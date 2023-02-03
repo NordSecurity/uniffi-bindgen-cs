@@ -1,0 +1,8 @@
+[bindings.csharp]
+cdylib_name = "uniffi_fixtures"
+
+[bindings.csharp.custom_types.Url]
+imports = ["System"]
+type_name = "Uri"
+into_custom = "new Uri({})"
+from_custom = "{}.AbsoluteUri"

@@ -1,0 +1,20 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#[cfg(feature = "uniffi_fixtures")]
+mod uniffi_fixtures {
+    arithmetical::uniffi_reexport_scaffolding!();
+    custom_types::uniffi_reexport_scaffolding!();
+    uniffi_callbacks::uniffi_reexport_scaffolding!();
+    uniffi_geometry::uniffi_reexport_scaffolding!();
+    uniffi_rondpoint::uniffi_reexport_scaffolding!();
+    uniffi_sprites::uniffi_reexport_scaffolding!();
+    uniffi_todolist::uniffi_reexport_scaffolding!();
+
+    uniffi_chronological::uniffi_reexport_scaffolding!();
+    uniffi_coverall::uniffi_reexport_scaffolding!();
+    uniffi_external_types_lib::uniffi_reexport_scaffolding!();
+
+    uniffi_cs_disposable::uniffi_reexport_scaffolding!();
+}

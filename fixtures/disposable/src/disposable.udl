@@ -1,0 +1,43 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+namespace disposable {
+    i32 get_live_count();
+    Resource get_resource();
+    ResourceJournalList get_resource_journal_list();
+    ResourceJournalMap get_resource_journal_map();
+    ResourceJournalMapList get_resource_journal_map_list();
+    MaybeResourceJournal get_maybe_resource_journal();
+};
+
+interface Resource {
+    constructor();
+};
+
+// interfaces are not allowed in enums
+// https://github.com/mozilla/uniffi-rs/blob/6920e5592f9267ace433a5deb05017dca79ee0d6/uniffi_bindgen/src/interface/enum_.rs#L271
+// [Enum]
+// interface MaybeResource {
+//     Some(Resource resource);
+//     None();
+// };
+
+dictionary ResourceJournalList {
+    sequence<Resource> resources;
+};
+
+dictionary ResourceJournalMap {
+    record<i32, Resource> resources;
+};
+
+dictionary ResourceJournalMapList {
+    // a complex type, map-optional-list
+    record<i32, sequence<Resource>?> resources;
+};
+
+[Enum]
+interface MaybeResourceJournal {
+    Some(ResourceJournalList resource);
+    None();
+};

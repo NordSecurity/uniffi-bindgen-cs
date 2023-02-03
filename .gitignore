@@ -1,0 +1,5 @@
+/target
+/testing
+bin/
+gen/
+obj/
