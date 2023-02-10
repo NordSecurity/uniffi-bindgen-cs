@@ -28,7 +28,8 @@ templates/ - generator C# templates
 
 # How to build
 
-Currently, Rust `1.58` is used to build `uniffi-bindgen-cs`.
+Minimum Rust version required to build `uniffi-bindgen-cs` is `1.58`.
+Newer Rust versions should also work fine.
 ```
 cd uniffi-bindgen-cs
 git submodule update --init --recursive
