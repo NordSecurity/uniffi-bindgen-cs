@@ -11,7 +11,7 @@ Minimum Rust version required to install `uniffi-bindgen-cs` is `1.58`.
 Newer Rust versions should also work fine.
 
 ```
-cargo install -e https://github.com/NordSecurity/uniffi-bindgen-cs
+cargo install uniffi-bindgen-cs --git https://github.com/NordSecurity/uniffi-bindgen-cs
 ```
 
 # How to generate bindings
@@ -23,7 +23,7 @@ Generates bindings file `path/to/definitions.cs`
 
 # How to integrate bindings
 
-To integrate the bindings into your projects, simply add the generated binding file to your project.
+To integrate the bindings into your projects, simply add the generated bindings file to your project.
 There are a couple of requirements to compile the generated bindings file:
 - `dotnet` version `6.0` or higher
 - allow `unsafe` code
