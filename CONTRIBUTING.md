@@ -6,6 +6,14 @@ Pull requests are welcome!
 
 Create an issue on Github, we will try to get back to you ASAP.
 
+# Checkout the code
+
+```
+git clone https://github.com/NordSecurity/uniffi-bindgen-cs.git
+cd uniffi-bindgen-cs
+git submodule update --init --recursive
+```
+
 # Run tests
 
 To run tests, `dotnet` installation is required. Unlike `uniffi-rs`, there is no integration with
