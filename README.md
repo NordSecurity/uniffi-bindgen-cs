@@ -36,3 +36,25 @@ There are a couple of requirements to compile the generated bindings file:
 # Contributing
 
 For contribution guidelines, read [CONTRIBUTING.md](CONTRIBUTING.md)
+
+# Versioning
+
+`uniffi-bindgen-cs` is versioned separately from `uniffi-rs`. UniFFI follows the [SemVer rules from
+the Cargo Book](https://doc.rust-lang.org/cargo/reference/resolver.html#semver-compatibility)
+which states "Versions are considered compatible if their left-most non-zero
+major/minor/patch component is the same". A breaking change is any modification to the C# bindings
+that demands the consumer of the bindings to make corresponding changes to their code to ensure that
+the bindings continue to function properly. `uniffi-bindgen-cs` is young, and its unclear how stable
+the generated bindings are going to be between versions. For this reason, major version is currently
+0, and most changes are probably going to bump minor version.
+
+To ensure consistent feature set across external binding generators, `uniffi-bindgen-cs` targets
+a specific `uniffi-rs` version. A consumer using Go bindings (in `uniffi-bindgen-go`) and C#
+bindings (in `uniffi-bindgen-cs`) expects the same features to be available across multiple bindings
+generators. This means that the consumer should choose external binding generator versions such that
+each generator targets the same `uniffi-rs` version. The table shows `uniffi-rs` version history
+to make it easier to understand when `uniffi-rs` version has changed.
+
+| uniffi-bindgen-cs version                | uniffi-rs version                                |
+|------------------------------------------|--------------------------------------------------|
+| v0.1.0                                   | v0.20.0                                          |
