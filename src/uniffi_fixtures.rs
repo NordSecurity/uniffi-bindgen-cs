@@ -12,6 +12,7 @@ mod uniffi_fixtures {
     uniffi_sprites::uniffi_reexport_scaffolding!();
     uniffi_todolist::uniffi_reexport_scaffolding!();
 
+    uniffi_fixture_callbacks::uniffi_reexport_scaffolding!();
     uniffi_chronological::uniffi_reexport_scaffolding!();
     uniffi_coverall::uniffi_reexport_scaffolding!();
     uniffi_external_types_lib::uniffi_reexport_scaffolding!();

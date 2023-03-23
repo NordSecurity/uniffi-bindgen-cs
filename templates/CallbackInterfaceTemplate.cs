@@ -10,14 +10,15 @@
 
 // Declaration and FfiConverters for {{ type_name }} Callback Interface
 public interface {{ type_name }} {
-    {% for meth in cbi.methods() -%}
-    {% match meth.return_type() -%}
-    {% when Some with (return_type) -%}
-        {{ return_type|type_name }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
-    {% else -%}
-        void {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
-    {% endmatch -%}
-    {% endfor %}
+    {%- for meth in cbi.methods() %}
+    {%- call cs::method_throws_annotation(meth.throws_type()) %}
+    {%- match meth.return_type() %}
+    {%- when Some with (return_type) %}
+    {{ return_type|type_name }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
+    {%- else %}
+    void {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
+    {%- endmatch %}
+    {%- endfor %}
 }
 
 // The ForeignCallback that is passed to Rust.

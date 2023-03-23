@@ -642,6 +642,7 @@ dependencies = [
  "uniffi-example-rondpoint",
  "uniffi-example-sprites",
  "uniffi-example-todolist",
+ "uniffi-fixture-callbacks",
  "uniffi-fixture-coverall",
  "uniffi-fixture-external-types",
  "uniffi-fixture-time",
@@ -711,6 +712,14 @@ name = "uniffi-example-todolist"
 version = "0.22.0"
 dependencies = [
  "once_cell",
+ "thiserror",
+ "uniffi",
+]
+
+[[package]]
+name = "uniffi-fixture-callbacks"
+version = "0.22.0"
+dependencies = [
  "thiserror",
  "uniffi",
 ]
