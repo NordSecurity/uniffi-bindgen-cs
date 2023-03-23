@@ -16,6 +16,39 @@ public class {{ type_name }}: UniffiException {
     }
     {% endfor %}
 }
+
+class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallStatusErrorHandler<{{ type_name }}> {
+    public static {{ e|ffi_converter_name }} INSTANCE = new {{ e|ffi_converter_name }}();
+
+    public override {{ type_name }} Read(BigEndianStream stream) {
+        var value = stream.ReadInt();
+        switch (value) {
+            {%- for variant in e.variants() %}
+            case {{ loop.index }}: return new {{ type_name }}.{{ variant.name()|exception_name }}({{ TypeIdentifier::String.borrow()|read_fn }}(stream));
+            {%- endfor %}
+            default:
+                throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Read()", value));
+        }
+    }
+
+    public override int AllocationSize({{ type_name }} value) {
+        return 4 + {{ TypeIdentifier::String.borrow()|allocation_size_fn }}(value.Message);
+    }
+
+    public override void Write({{ type_name }} value, BigEndianStream stream) {
+        switch (value) {
+            {%- for variant in e.variants() %}
+            case {{ type_name }}.{{ variant.name()|exception_name }}:
+                stream.WriteInt({{ loop.index }});
+                {{ TypeIdentifier::String.borrow()|write_fn }}(value.Message, stream);
+                break;
+            {%- endfor %}
+            default:
+                throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Write()", value));
+        }
+    }
+}
+
 {%- else %}
 public class {{ type_name }}: UniffiException{% if contains_object_references %}, IDisposable {% endif %} {
     // Each variant is a nested class
@@ -46,7 +79,7 @@ public class {{ type_name }}: UniffiException{% if contains_object_references %}
     public void Dispose() {
         switch (this) {
             {%- for variant in e.variants() %}
-            case {{ type_name }}.{{ variant.name()|class_name }} variant_value:
+            case {{ type_name }}.{{ variant.name()|exception_name }} variant_value:
                 {%- if variant.has_fields() %}
                 {% call cs::destroy_fields(variant, "variant_value") %}
                 {%- endif %}
@@ -58,42 +91,52 @@ public class {{ type_name }}: UniffiException{% if contains_object_references %}
     }
     {% endif %}
 }
-{%- endif %}
 
 class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallStatusErrorHandler<{{ type_name }}> {
     public static {{ e|ffi_converter_name }} INSTANCE = new {{ e|ffi_converter_name }}();
 
     public override {{ type_name }} Read(BigEndianStream stream) {
         var value = stream.ReadInt();
-        {% if e.is_flat() %}
-            switch (value) {
-                {%- for variant in e.variants() %}
-                case {{ loop.index }}: return new {{ type_name }}.{{ variant.name()|exception_name }}({{ TypeIdentifier::String.borrow()|read_fn }}(stream));
-                {%- endfor %}
-                default:
-                    throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Read()", value));
-            }
-        {% else %}
-            switch (value) {
-                {%- for variant in e.variants() %}
-                case {{ loop.index }}:
-                    return new {{ type_name }}.{{ variant.name()|exception_name }}(
-                        {%- for field in variant.fields() %}
-                        {{ field|read_fn }}(stream){% if !loop.last %},{% endif %}
-                        {%- endfor %});
-                {%- endfor %}
-                default:
-                    throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Read()", value));
-            }
-
-        {%- endif %}
+        switch (value) {
+            {%- for variant in e.variants() %}
+            case {{ loop.index }}:
+                return new {{ type_name }}.{{ variant.name()|exception_name }}(
+                    {%- for field in variant.fields() %}
+                    {{ field|read_fn }}(stream){% if !loop.last %},{% endif %}
+                    {%- endfor %});
+            {%- endfor %}
+            default:
+                throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Read()", value));
+        }
     }
 
     public override int AllocationSize({{ type_name }} value) {
-        throw new InternalException("Writing Errors is not supported");
+        switch (value) {
+            {%- for variant in e.variants() %}
+            case {{ type_name }}.{{ variant.name()|exception_name }} variant_value:
+                return 4
+                    {%- for field in variant.fields() %}
+                    + {{ field|allocation_size_fn }}(variant_value.{{ field.name()|var_name }})
+                    {%- endfor %};
+            {%- endfor %}
+            default:
+                throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.AllocationSize()", value));
+        }
     }
 
     public override void Write({{ type_name }} value, BigEndianStream stream) {
-        throw new InternalException("Writing Errors is not supported");
+        switch (value) {
+            {%- for variant in e.variants() %}
+            case {{ type_name }}.{{ variant.name()|exception_name }} variant_value:
+                stream.WriteInt({{ loop.index }});
+                {%- for field in variant.fields() %}
+                {{ field|write_fn }}(variant_value.{{ field.name()|var_name }}, stream);
+                {%- endfor %}
+                break;
+            {%- endfor %}
+            default:
+                throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Write()", value));
+        }
     }
 }
+{%- endif %}

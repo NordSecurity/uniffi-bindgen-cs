@@ -9,10 +9,10 @@ crate-type = ["lib", "cdylib"]
 name = "uniffi_cs_disposable"
 
 [dependencies]
-uniffi_macros = {path = "../../3rd-party/uniffi-rs/uniffi_macros"}
-uniffi = {path = "../../3rd-party/uniffi-rs/uniffi", features=["builtin-bindgen"]}
 once_cell = "1.12"
 thiserror = "1.0"
+uniffi = {path = "../../3rd-party/uniffi-rs/uniffi", features=["build"]}
+uniffi_macros = {path = "../../3rd-party/uniffi-rs/uniffi_macros"}
 
 [build-dependencies]
-uniffi_build = {path = "../../3rd-party/uniffi-rs/uniffi_build", features=["builtin-bindgen"]}
+uniffi = {path = "../../3rd-party/uniffi-rs/uniffi", features=["bindgen-tests"]}

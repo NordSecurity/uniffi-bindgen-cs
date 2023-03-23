@@ -111,15 +111,16 @@ dependencies = [
 
 [[package]]
 name = "cargo_metadata"
-version = "0.14.2"
+version = "0.15.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4acbb09d9ee8e23699b9634375c72795d095bf268439da88562cf9b501f181fa"
+checksum = "08a1ec454bc3eead8719cb56e15dbbfecdbc14e4b3a3ae4936cc6e31f5fc0d07"
 dependencies = [
  "camino",
  "cargo-platform",
  "semver",
  "serde",
  "serde_json",
+ "thiserror",
 ]
 
 [[package]]
@@ -179,11 +180,11 @@ dependencies = [
 
 [[package]]
 name = "crate_one"
-version = "0.20.0"
+version = "0.22.0"
 
 [[package]]
 name = "crate_two"
-version = "0.20.0"
+version = "0.22.0"
 dependencies = [
  "crate_one",
 ]
@@ -216,10 +217,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "64db3e262960f0662f43a6366788d5f10f7f244b8f7d7d987f560baf5ded5c50"
 
 [[package]]
-name = "goblin"
-version = "0.5.4"
+name = "glob"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7666983ed0dd8d21a6f6576ee00053ca0926fb281a5522577a4dbd0f1b54143"
+checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
+
+[[package]]
+name = "goblin"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d6b4de4a8eb6c46a8c77e1d3be942cb9a8bf073c22374578e5ba4b08ed0ff68"
 dependencies = [
  "log",
  "plain",
@@ -484,6 +491,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "siphasher"
+version = "0.3.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7bd3e3206899af3f8b12af284fafc038cc1dc2b41d1b89dd17297221c5d225de"
+
+[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -597,23 +610,18 @@ dependencies = [
 
 [[package]]
 name = "uniffi"
-version = "0.20.0"
+version = "0.23.0"
 dependencies = [
  "anyhow",
- "bytes",
- "camino",
- "cargo_metadata",
- "log",
- "once_cell",
- "paste",
- "static_assertions",
  "uniffi_bindgen",
+ "uniffi_build",
+ "uniffi_core",
  "uniffi_macros",
 ]
 
 [[package]]
 name = "uniffi-bindgen-cs"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "askama",
@@ -647,125 +655,105 @@ dependencies = [
  "once_cell",
  "thiserror",
  "uniffi",
- "uniffi_build",
  "uniffi_macros",
 ]
 
 [[package]]
 name = "uniffi-example-arithmetic"
-version = "0.20.0"
+version = "0.22.0"
 dependencies = [
  "thiserror",
  "uniffi",
- "uniffi_build",
- "uniffi_macros",
 ]
 
 [[package]]
 name = "uniffi-example-callbacks"
-version = "0.20.0"
+version = "0.22.0"
 dependencies = [
+ "thiserror",
  "uniffi",
- "uniffi_build",
- "uniffi_macros",
 ]
 
 [[package]]
 name = "uniffi-example-custom-types"
-version = "0.20.0"
+version = "0.22.0"
 dependencies = [
  "anyhow",
  "bytes",
  "serde_json",
  "uniffi",
- "uniffi_build",
- "uniffi_macros",
  "url",
 ]
 
 [[package]]
 name = "uniffi-example-geometry"
-version = "0.20.0"
+version = "0.22.0"
 dependencies = [
  "uniffi",
- "uniffi_build",
- "uniffi_macros",
 ]
 
 [[package]]
 name = "uniffi-example-rondpoint"
-version = "0.20.0"
+version = "0.22.0"
 dependencies = [
  "uniffi",
- "uniffi_build",
- "uniffi_macros",
 ]
 
 [[package]]
 name = "uniffi-example-sprites"
-version = "0.20.0"
+version = "0.22.0"
 dependencies = [
  "uniffi",
- "uniffi_build",
- "uniffi_macros",
 ]
 
 [[package]]
 name = "uniffi-example-todolist"
-version = "0.20.0"
+version = "0.22.0"
 dependencies = [
  "once_cell",
  "thiserror",
  "uniffi",
- "uniffi_build",
- "uniffi_macros",
 ]
 
 [[package]]
 name = "uniffi-fixture-coverall"
-version = "0.20.0"
+version = "0.22.0"
 dependencies = [
  "once_cell",
  "thiserror",
  "uniffi",
- "uniffi_build",
- "uniffi_macros",
 ]
 
 [[package]]
 name = "uniffi-fixture-external-types"
-version = "0.20.0"
+version = "0.22.0"
 dependencies = [
  "anyhow",
  "bytes",
  "crate_one",
  "crate_two",
  "uniffi",
- "uniffi_build",
- "uniffi_macros",
 ]
 
 [[package]]
 name = "uniffi-fixture-time"
-version = "0.20.0"
+version = "0.22.0"
 dependencies = [
  "chrono",
  "thiserror",
  "uniffi",
- "uniffi_build",
- "uniffi_macros",
 ]
 
 [[package]]
 name = "uniffi_bindgen"
-version = "0.20.0"
+version = "0.23.0"
 dependencies = [
  "anyhow",
  "askama",
  "bincode",
  "camino",
- "clap",
  "fs-err",
+ "glob",
  "goblin",
  "heck",
  "once_cell",
@@ -774,12 +762,13 @@ dependencies = [
  "serde_json",
  "toml",
  "uniffi_meta",
+ "uniffi_testing",
  "weedle2",
 ]
 
 [[package]]
 name = "uniffi_build"
-version = "0.20.0"
+version = "0.23.0"
 dependencies = [
  "anyhow",
  "camino",
@@ -787,8 +776,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "uniffi_checksum_derive"
+version = "0.23.0"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "uniffi_core"
+version = "0.23.0"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "camino",
+ "cargo_metadata",
+ "log",
+ "once_cell",
+ "paste",
+ "static_assertions",
+]
+
+[[package]]
 name = "uniffi_macros"
-version = "0.20.0"
+version = "0.23.0"
 dependencies = [
  "bincode",
  "camino",
@@ -805,9 +816,24 @@ dependencies = [
 
 [[package]]
 name = "uniffi_meta"
-version = "0.20.0"
+version = "0.23.0"
 dependencies = [
  "serde",
+ "siphasher",
+ "uniffi_checksum_derive",
+]
+
+[[package]]
+name = "uniffi_testing"
+version = "0.23.0"
+dependencies = [
+ "anyhow",
+ "camino",
+ "cargo_metadata",
+ "fs-err",
+ "once_cell",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
