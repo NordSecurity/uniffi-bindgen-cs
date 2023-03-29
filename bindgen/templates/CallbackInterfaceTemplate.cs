@@ -8,9 +8,10 @@
 
 {% if self.include_once_check("CallbackInterfaceRuntime.cs") %}{% include "CallbackInterfaceRuntime.cs" %}{% endif %}
 
-// Declaration and FfiConverters for {{ type_name }} Callback Interface
+{%- call cs::docstring(cbi, 0) %}
 public interface {{ type_name }} {
     {%- for meth in cbi.methods() %}
+    {%- call cs::docstring(meth, 4) %}
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
     {%- match meth.return_type() %}
     {%- when Some with (return_type) %}
