@@ -47,11 +47,11 @@ public class TestDocstring {
 
         string bindingsSource = File.ReadAllText(rootDirectory + "dotnet-tests/UniffiCS/gen/uniffi_docstring.cs");
 
-        List<string> matchList = matches
+        List<string> missingDocstrings = matches
             .Where(match => !bindingsSource.Contains(match.Value))
             .Select(match => match.Value)
             .ToList();
 
-        Assert.Empty(matchList);
+        Assert.Empty(missingDocstrings);
     }
 }
