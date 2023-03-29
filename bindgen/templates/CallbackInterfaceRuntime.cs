@@ -2,6 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
+static class UniffiCallbackConstants {
+    public static int SUCCESS = 0;
+    public static int ERROR = 1;
+    public static int UNEXPECTED_ERROR = 2;
+}
+
 class ConcurrentHandleMap<T> where T: notnull {
     Dictionary<ulong, T> leftMap = new Dictionary<ulong, T>();
     Dictionary<T, ulong> rightMap = new Dictionary<T, ulong>();
@@ -49,7 +55,7 @@ class ConcurrentHandleMap<T> where T: notnull {
 }
 
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-internal delegate int ForeignCallback(ulong handle, int method, RustBuffer args, ref RustBuffer outBuf);
+internal delegate int ForeignCallback(ulong handle, int method, IntPtr argsData, int argsLength, ref RustBuffer outBuf);
 
 internal abstract class FfiConverterCallbackInterface<CallbackInterface>
         : FfiConverter<CallbackInterface, ulong>

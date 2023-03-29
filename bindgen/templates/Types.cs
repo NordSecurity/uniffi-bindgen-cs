@@ -90,7 +90,7 @@
 {%- when Type::Custom { name, builtin } %}
 {% include "CustomTypeTemplate.cs" %}
 
-{%- when Type::External { crate_name, name } %}
+{%- when Type::External { crate_name, name, kind } %}
 {% include "ExternalTypeTemplate.cs" %}
 
 {%- else %}
