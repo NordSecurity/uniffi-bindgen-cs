@@ -9,7 +9,7 @@ TMP_STREAM_FILE="dotnet-tests/UniffiCS.tests/gen/tmp_BigEndianStream.cs"
 mkdir -p $(dirname "$TMP_STREAM_FILE")
 echo "using System;" > $TMP_STREAM_FILE
 echo "using System.IO;" >> $TMP_STREAM_FILE
-cat templates/BigEndianStream.cs >> $TMP_STREAM_FILE
+cat bindgen/templates/BigEndianStream.cs >> $TMP_STREAM_FILE
 sed -i 's/{#//g' $TMP_STREAM_FILE
 sed -i 's/#}//g' $TMP_STREAM_FILE
 

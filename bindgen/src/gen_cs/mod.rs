@@ -253,6 +253,10 @@ impl CsCodeOracle {
             Type::Map(key, value) => Box::new(compounds::MapCodeType::new(*key, *value)),
             Type::External { name, .. } => Box::new(external::ExternalCodeType::new(name)),
             Type::Custom { name, .. } => Box::new(custom::CustomCodeType::new(name)),
+
+            Type::Unresolved { name } => {
+                unreachable!("Type `{name}` must be resolved before calling create_code_type")
+            },
         }
     }
 }
@@ -296,23 +300,23 @@ impl CodeOracle for CsCodeOracle {
         }
     }
 
-    fn ffi_type_label(&self, ffi_type: &FFIType) -> String {
+    fn ffi_type_label(&self, ffi_type: &FfiType) -> String {
         match ffi_type {
-            FFIType::Int16 => "short".to_string(),
-            FFIType::Int32 => "int".to_string(),
-            FFIType::Int64 => "long".to_string(),
-            FFIType::Int8 => "sbyte".to_string(),
-            FFIType::UInt16 => "ushort".to_string(),
-            FFIType::UInt32 => "uint".to_string(),
-            FFIType::UInt64 => "ulong".to_string(),
-            FFIType::UInt8 => "byte".to_string(),
-            FFIType::Float32 => "float".to_string(),
-            FFIType::Float64 => "double".to_string(),
-            FFIType::RustArcPtr(name) => format!("{}SafeHandle", name),
-            FFIType::RustArcPtrUnsafe(_) => format!("IntPtr"),
-            FFIType::RustBuffer => "RustBuffer".to_string(),
-            FFIType::ForeignBytes => "ForeignBytes".to_string(),
-            FFIType::ForeignCallback => "ForeignCallback".to_string(),
+            FfiType::Int16 => "short".to_string(),
+            FfiType::Int32 => "int".to_string(),
+            FfiType::Int64 => "long".to_string(),
+            FfiType::Int8 => "sbyte".to_string(),
+            FfiType::UInt16 => "ushort".to_string(),
+            FfiType::UInt32 => "uint".to_string(),
+            FfiType::UInt64 => "ulong".to_string(),
+            FfiType::UInt8 => "byte".to_string(),
+            FfiType::Float32 => "float".to_string(),
+            FfiType::Float64 => "double".to_string(),
+            FfiType::RustArcPtr(name) => format!("{}SafeHandle", name),
+            FfiType::RustArcPtrUnsafe(_) => format!("IntPtr"),
+            FfiType::RustBuffer(_) => "RustBuffer".to_string(),
+            FfiType::ForeignBytes => "ForeignBytes".to_string(),
+            FfiType::ForeignCallback => "ForeignCallback".to_string(),
         }
     }
 }
@@ -379,7 +383,7 @@ pub mod filters {
     }
 
     /// Get the C# syntax for representing a given low-level `FFIType`.
-    pub fn ffi_type_name(type_: &FFIType) -> Result<String, askama::Error> {
+    pub fn ffi_type_name(type_: &FfiType) -> Result<String, askama::Error> {
         Ok(oracle().ffi_type_label(type_))
     }
 

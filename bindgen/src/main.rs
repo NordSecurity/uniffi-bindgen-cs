@@ -2,6 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-fn main() {
-    uniffi::generate_scaffolding("./src/disposable.udl").unwrap();
+pub fn main() {
+    uniffi_bindgen_cs::main();
 }

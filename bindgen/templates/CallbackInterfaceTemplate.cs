@@ -10,14 +10,15 @@
 
 // Declaration and FfiConverters for {{ type_name }} Callback Interface
 public interface {{ type_name }} {
-    {% for meth in cbi.methods() -%}
-    {% match meth.return_type() -%}
-    {% when Some with (return_type) -%}
-        {{ return_type|type_name }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
-    {% else -%}
-        void {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
-    {% endmatch -%}
-    {% endfor %}
+    {%- for meth in cbi.methods() %}
+    {%- call cs::method_throws_annotation(meth.throws_type()) %}
+    {%- match meth.return_type() %}
+    {%- when Some with (return_type) %}
+    {{ return_type|type_name }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
+    {%- else %}
+    void {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
+    {%- endmatch %}
+    {%- endfor %}
 }
 
 // The ForeignCallback that is passed to Rust.
@@ -40,13 +41,33 @@ class {{ foreign_callback }} {
             }
 
             {% for meth in cbi.methods() -%}
-            {% let method_name = meth.name()|fn_name -%}
-            {% let method_name = format!("Invoke{}", method_name) -%}
+            {%- let method_name = meth.name()|fn_name %}
+            {%- let method_name = format!("Invoke{}", method_name) %}
             case {{ loop.index }}: {
-                outBuf = {{ method_name }}(cb, args);
-                // Value written to out buffer.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                return 1;
+                try {
+                    {%- match meth.throws_type() %}
+                    {%- when Some(error_type) %}
+                    try {
+                        outBuf = {{ method_name }}(cb, args);
+                        return 1;
+                    } catch ({{ error_type|type_name }} e) {
+                        outBuf = {{ error_type|lower_fn }}(e);
+                        return -2;
+                    }
+                    {%- else %}
+                    outBuf = {{ method_name }}(cb, args);
+                    return 1;
+                    {%- endmatch %}
+                } catch (Exception e) {
+                    // Unexpected error
+                    try {
+                        // Try to serialize the error into a string
+                        outBuf = {{ Type::String.borrow()|lower_fn }}(e.Message);
+                    } catch {
+                        // If that fails, then it's time to give up and just return
+                    }
+                    return -1;
+                }
             }
 
             {% endfor %}
