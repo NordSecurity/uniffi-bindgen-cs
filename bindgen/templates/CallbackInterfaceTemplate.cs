@@ -96,8 +96,6 @@ class {{ foreign_callback }} {
                 {%- endfor -%}
                 );
 
-        // TODO catch errors and report them back to Rust.
-        // https://github.com/mozilla/uniffi-rs/issues/351
         {% match meth.return_type() -%}
             {%- when Some with (return_type) -%}
                 return {{ return_type|ffi_converter_name }}.INSTANCE.LowerIntoRustBuffer(result);
