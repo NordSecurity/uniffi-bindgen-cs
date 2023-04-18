@@ -256,7 +256,7 @@ impl CsCodeOracle {
 
             Type::Unresolved { name } => {
                 unreachable!("Type `{name}` must be resolved before calling create_code_type")
-            },
+            }
         }
     }
 }
@@ -411,5 +411,14 @@ pub mod filters {
     /// `Error` with `Exception`.
     pub fn exception_name(nm: &str) -> Result<String, askama::Error> {
         Ok(oracle().error_name(nm))
+    }
+
+    /// Get the idiomatic C# rendering of docstring
+    pub fn docstring(docstring: &str, spaces: &i32) -> Result<String, askama::Error> {
+        let middle = textwrap::indent(&textwrap::dedent(docstring), "/// ");
+        let wrapped = format!("/// <summary>\n{middle}\n/// </summary>");
+
+        let spaces = usize::try_from(*spaces).unwrap_or_default();
+        Ok(textwrap::indent(&wrapped, &" ".repeat(spaces)))
     }
 }
