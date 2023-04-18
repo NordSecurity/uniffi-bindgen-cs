@@ -35,6 +35,8 @@ pub struct Config {
     custom_types: HashMap<String, CustomTypeConfig>,
     #[serde(default)]
     external_packages: HashMap<String, String>,
+    #[serde(default)]
+    namespace: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -70,6 +72,7 @@ impl From<&ComponentInterface> for Config {
             cdylib_name: Some(format!("uniffi_{}", ci.namespace())),
             custom_types: HashMap::new(),
             external_packages: HashMap::new(),
+            namespace: Some(ci.namespace().to_string()),
         }
     }
 }
@@ -81,6 +84,7 @@ impl MergeWith for Config {
             cdylib_name: self.cdylib_name.merge_with(&other.cdylib_name),
             custom_types: self.custom_types.merge_with(&other.custom_types),
             external_packages: self.external_packages.merge_with(&other.external_packages),
+            namespace: self.namespace.merge_with(&other.namespace),
         }
     }
 }
@@ -256,7 +260,7 @@ impl CsCodeOracle {
 
             Type::Unresolved { name } => {
                 unreachable!("Type `{name}` must be resolved before calling create_code_type")
-            },
+            }
         }
     }
 }

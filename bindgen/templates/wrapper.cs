@@ -22,7 +22,12 @@ using System;
 using {{ imported_class }};
 {%- endfor %}
 
+{%- match config.namespace %}
+{%- when Some(namespace) %}
+namespace {{ namespace }};
+{%- else %}
 namespace {{ config.package_name() }}.{{ ci.namespace() }};
+{%- endmatch %}
 
 {%- for alias in self.type_aliases() %}
 using {{ alias.alias }} = {{ alias.original_type }};
