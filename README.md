@@ -57,5 +57,6 @@ to make it easier to understand when `uniffi-rs` version has changed.
 
 | uniffi-bindgen-cs version                | uniffi-rs version                                |
 |------------------------------------------|--------------------------------------------------|
+| v0.3.0                                   | 3142151e v0.24.0?                                |
 | v0.2.0                                   | v0.23.0                                          |
 | v0.1.0                                   | v0.20.0                                          |
