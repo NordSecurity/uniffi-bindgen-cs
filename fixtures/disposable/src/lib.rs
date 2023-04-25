@@ -9,8 +9,7 @@ use std::sync::{Arc, RwLock};
 static LIVE_COUNT: Lazy<RwLock<i32>> = Lazy::new(|| RwLock::new(0));
 
 #[derive(Debug, Clone)]
-pub struct Resource {
-}
+pub struct Resource {}
 
 impl Resource {
     pub fn new() -> Self {
@@ -55,30 +54,26 @@ fn get_resource() -> Arc<Resource> {
 
 fn get_resource_journal_list() -> ResourceJournalList {
     ResourceJournalList {
-        resources: vec!(get_resource(), get_resource()),
+        resources: vec![get_resource(), get_resource()],
     }
 }
 
 fn get_resource_journal_map() -> ResourceJournalMap {
     ResourceJournalMap {
-        resources: HashMap::from([
-            (1, get_resource()),
-            (2, get_resource()),
-        ]),
+        resources: HashMap::from([(1, get_resource()), (2, get_resource())]),
     }
 }
 
 fn get_resource_journal_map_list() -> ResourceJournalMapList {
     ResourceJournalMapList {
-        resources: HashMap::from([
-            (1, Some(vec!(get_resource(), get_resource()))),
-            (2, None),
-        ]),
+        resources: HashMap::from([(1, Some(vec![get_resource(), get_resource()])), (2, None)]),
     }
 }
 
 fn get_maybe_resource_journal() -> MaybeResourceJournal {
-    MaybeResourceJournal::Some { resource: get_resource_journal_list() }
+    MaybeResourceJournal::Some {
+        resource: get_resource_journal_list(),
+    }
 }
 
 include!(concat!(env!("OUT_DIR"), "/disposable.uniffi.rs"));

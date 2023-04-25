@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
+{%- call cs::docstring(func, 4) %}
 {%- call cs::method_throws_annotation(func.throws_type()) %}
 {%- match func.return_type() -%}
 {%- when Some with (return_type) %}

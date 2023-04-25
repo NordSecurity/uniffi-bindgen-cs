@@ -21,6 +21,7 @@ bindings 3rd-party/uniffi-rs/examples/sprites/src/sprites.udl
 bindings 3rd-party/uniffi-rs/examples/todolist/src/todolist.udl
 bindings 3rd-party/uniffi-rs/fixtures/callbacks/src/callbacks.udl
 bindings 3rd-party/uniffi-rs/fixtures/coverall/src/coverall.udl
+bindings 3rd-party/uniffi-rs/fixtures/docstring/src/docstring.udl
 bindings 3rd-party/uniffi-rs/fixtures/external-types/lib/src/external-types-lib.udl
 bindings 3rd-party/uniffi-rs/fixtures/uniffi-fixture-time/src/chronological.udl
 bindings fixtures/disposable/src/disposable.udl
