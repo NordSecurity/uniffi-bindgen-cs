@@ -52,8 +52,13 @@ To ensure consistent feature set across external binding generators, `uniffi-bin
 a specific `uniffi-rs` version. A consumer using Go bindings (in `uniffi-bindgen-go`) and C#
 bindings (in `uniffi-bindgen-cs`) expects the same features to be available across multiple bindings
 generators. This means that the consumer should choose external binding generator versions such that
-each generator targets the same `uniffi-rs` version. The table shows `uniffi-rs` version history
-to make it easier to understand when `uniffi-rs` version has changed.
+each generator targets the same `uniffi-rs` version.
+
+To simplify this choice `uniffi-bindgen-cs` and `uniffi-bindgen-go` use tag naming convention
+as follows: `vX.Y.Z+vA.B.C`, where `X.Y.Z` is the version of the generator itself, and `A.B.C` is
+the version of uniffi-rs it is based on.
+
+The table shows `uniffi-rs` version history for tags that were published before tag naming convention described above was introduced.
 
 | uniffi-bindgen-cs version                | uniffi-rs version                                |
 |------------------------------------------|--------------------------------------------------|
