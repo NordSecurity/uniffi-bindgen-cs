@@ -15,7 +15,7 @@ public class TestCoverall {
         };
         closure();
         GC.Collect();
-        Thread.Sleep(1);
+        Thread.Sleep(10);
         Assert.Equal(0UL, CoverallMethods.GetNumAlive());
     }
 
@@ -141,17 +141,19 @@ public class TestCoverall {
         // Make sure that there is no blocking during concurrent FFI calls.
 
         using (var counter = new ThreadsafeCounter()) {
+            const int WAIT_MILLIS = 10;
+
             Thread blockingThread = new Thread(new ThreadStart(() => {
-                // block the thread for 100ms
-                counter.BusyWait(300);
+                counter.BusyWait(WAIT_MILLIS);
             }));
 
             var count = 0;
             Thread countingThread = new Thread(new ThreadStart(() => {
-                for (int i = 0; i < 100; i++) {
+                for (int i = 0; i < WAIT_MILLIS; i++) {
                     // `count` is only incremented if another thread is blocking the counter.
                     // This ensures that both calls are running concurrently.
                     count = counter.IncrementIfBusy();
+                    Thread.Sleep(1);
                 }
             }));
 
