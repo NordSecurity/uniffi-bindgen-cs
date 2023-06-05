@@ -1,6 +1,6 @@
 {#/* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 // Common helper code.
 //
@@ -13,6 +13,7 @@
 // now that means coming from the exact some version of `uniffi` that was used to
 // compile the Rust component. The easiest way to ensure this is to bundle the C#
 // helpers directly inline like we're doing here.
+#}
 
 using System.IO;
 using System.Runtime.InteropServices;
@@ -22,6 +23,7 @@ using System;
 using {{ imported_class }};
 {%- endfor %}
 
+{%- call cs::docstring(ci.namespace_definition().unwrap(), 0) %}
 {%- match config.namespace %}
 {%- when Some(namespace) %}
 namespace {{ namespace }};

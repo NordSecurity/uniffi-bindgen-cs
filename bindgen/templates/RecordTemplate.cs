@@ -4,8 +4,10 @@
 
 {%- let rec = ci.get_record_definition(name).unwrap() %}
 
+{%- call cs::docstring(rec, 0) %}
 public record {{ type_name }} (
     {%- for field in rec.fields() %}
+    {%- call cs::docstring(field, 4) %}
     {{ field|type_name }} {{ field.name()|var_name -}}
     {%- match field.default_value() %}
         {%- when Some with(literal) %} = {{ literal|render_literal(field) }}

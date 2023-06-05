@@ -10,8 +10,10 @@
 
 {%- if e.is_flat() %}
 
+{%- call cs::docstring(e, 0) %}
 public enum {{ type_name }}: int {
     {% for variant in e.variants() -%}
+    {%- call cs::docstring(variant, 4) %}
     {{ variant.name()|enum_variant }}{% if !loop.last %},{% endif %}
     {%- endfor %}
 }
@@ -39,8 +41,10 @@ class {{ e|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
 
 {% else %}
 
+{%- call cs::docstring(e, 0) %}
 public record {{ type_name }}{% if contains_object_references %}: IDisposable {% endif %} {
     {% for variant in e.variants() -%}
+    {%- call cs::docstring(variant, 4) %}
     {% if !variant.has_fields() -%}
     public record {{ variant.name()|class_name }}: {{ type_name }} {}
     {% else -%}
