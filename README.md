@@ -7,7 +7,7 @@ uses `uniffi-rs` version `0.20.0`.
 
 # How to install
 
-Minimum Rust version required to install `uniffi-bindgen-cs` is `1.58`.
+Minimum Rust version required to install `uniffi-bindgen-cs` is `1.64`.
 Newer Rust versions should also work fine.
 
 ```
