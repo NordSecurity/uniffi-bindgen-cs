@@ -23,7 +23,7 @@ using System;
 using {{ imported_class }};
 {%- endfor %}
 
-{%- call cs::docstring(ci.namespace_definition().unwrap(), 0) %}
+{%- call cs::docstring(ci.namespace_definition(), 0) %}
 {%- match config.namespace %}
 {%- when Some(namespace) %}
 namespace {{ namespace }};
