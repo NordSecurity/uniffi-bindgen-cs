@@ -15,9 +15,15 @@
 // helpers directly inline like we're doing here.
 #}
 
-using System.IO;
-using System.Runtime.InteropServices;
-using System;
+{#
+// Don't import directly to dedup and sort imports together with user defined
+// imports for custom types, e.g. `System` from `/uniffi-test-fixtures.toml`.
+#}
+{{- self.add_import("System") }}
+{{- self.add_import("System.Collections.Generic") }}
+{{- self.add_import("System.IO") }}
+{{- self.add_import("System.Linq") }}
+{{- self.add_import("System.Runtime.InteropServices") }}
 
 {%- for imported_class in self.imports() %}
 using {{ imported_class }};

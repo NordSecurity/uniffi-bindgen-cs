@@ -7,7 +7,7 @@ uses `uniffi-rs` version `0.20.0`.
 
 # How to install
 
-Minimum Rust version required to install `uniffi-bindgen-cs` is `1.58`.
+Minimum Rust version required to install `uniffi-bindgen-cs` is `1.64`.
 Newer Rust versions should also work fine.
 
 ```
@@ -25,13 +25,17 @@ Generates bindings file `path/to/definitions.cs`
 
 To integrate the bindings into your projects, simply add the generated bindings file to your project.
 There are a couple of requirements to compile the generated bindings file:
-- `dotnet` version `6.0` or higher
+- .NET core `6.0` or higher
 - allow `unsafe` code
-    ```
-    <PropertyGroup>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    </PropertyGroup>
-    ```
+- allow `Nullable`
+
+```
+<PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+</PropertyGroup>
+```
 
 # Contributing
 
