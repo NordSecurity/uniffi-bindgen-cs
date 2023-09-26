@@ -181,7 +181,7 @@ pub struct CsWrapper<'a> {
     config: Config,
     ci: &'a ComponentInterface,
     type_helper_code: String,
-    type_imports: BTreeSet<String>,
+    type_imports: RefCell<BTreeSet<String>>,
     type_aliases: BTreeSet<TypeAlias>,
 }
 
@@ -189,7 +189,7 @@ impl<'a> CsWrapper<'a> {
     pub fn new(config: Config, ci: &'a ComponentInterface) -> Self {
         let type_renderer = TypeRenderer::new(&config, ci);
         let type_helper_code = type_renderer.render().unwrap();
-        let type_imports = type_renderer.imports.into_inner();
+        let type_imports = type_renderer.imports.clone();
         let type_aliases = type_renderer.type_aliases.into_inner();
         Self {
             config,
@@ -207,8 +207,19 @@ impl<'a> CsWrapper<'a> {
             .collect()
     }
 
+    // Helper to add an import statement
+    //
+    // Call this inside your template to cause an import statement to be added at the top of the
+    // file.  Imports will be sorted and de-deuped.
+    //
+    // Returns an empty string so that it can be used inside an askama `{{ }}` block.
+    fn add_import(&self, name: &str) -> &str {
+        self.type_imports.borrow_mut().insert(name.to_owned());
+        ""
+    }
+
     pub fn imports(&self) -> Vec<String> {
-        self.type_imports.iter().cloned().collect()
+        self.type_imports.borrow().iter().cloned().collect()
     }
 
     pub fn type_aliases(&self) -> Vec<TypeAlias> {
