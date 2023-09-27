@@ -15,15 +15,21 @@
 // helpers directly inline like we're doing here.
 #}
 
-using System.IO;
-using System.Runtime.InteropServices;
-using System;
+{#
+// Don't import directly to dedup and sort imports together with user defined
+// imports for custom types, e.g. `System` from `/uniffi-test-fixtures.toml`.
+#}
+{{- self.add_import("System") }}
+{{- self.add_import("System.Collections.Generic") }}
+{{- self.add_import("System.IO") }}
+{{- self.add_import("System.Linq") }}
+{{- self.add_import("System.Runtime.InteropServices") }}
 
 {%- for imported_class in self.imports() %}
 using {{ imported_class }};
 {%- endfor %}
 
-{%- call cs::docstring(ci.namespace_definition().unwrap(), 0) %}
+{%- call cs::docstring(ci.namespace_definition(), 0) %}
 {%- match config.namespace %}
 {%- when Some(namespace) %}
 namespace {{ namespace }};
@@ -50,7 +56,12 @@ using {{ alias.alias }} = {{ alias.original_type }};
 {{ type_helper_code }}
 #pragma warning restore 8625
 
+{%- match config.global_methods_class_name %}
+{%- when Some(class_name) %}
+public static class {{ class_name }} {
+{%- when None %}
 public static class {{ ci.namespace().to_upper_camel_case() }}Methods {
+{%- endmatch %}
 {%- for func in ci.function_definitions() %}
 {%- include "TopLevelFunctionTemplate.cs" %}
 {%- endfor %}
