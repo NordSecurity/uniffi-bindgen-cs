@@ -62,6 +62,12 @@ The table shows `uniffi-rs` version history for tags that were published before 
 
 | uniffi-bindgen-cs version                | uniffi-rs version                                |
 |------------------------------------------|--------------------------------------------------|
-| v0.3.0                                   | 3142151e v0.24.0?                                |
+| ~~v0.3.0~~ (DONT USE, UNFINISHED)        | ~~3142151e v0.24.0?~~                            |
 | v0.2.0                                   | v0.23.0                                          |
 | v0.1.0                                   | v0.20.0                                          |
+
+### v0.3.0
+
+This is a version somewhere between 0.23.0 and 0.24.0. This was supposed to be a temporary stepping
+stone for the actual 0.24.0 version, but ended up never being actually used (at least by us). It
+is reverted in main branch. Use v0.2.0 instead.
