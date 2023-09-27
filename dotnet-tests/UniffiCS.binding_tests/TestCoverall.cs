@@ -131,8 +131,8 @@ public class TestCoverall {
     [Fact]
     public void TestInterfacesInDicts() {
         using (var coveralls = new Coveralls("test_interface_in_dicts")) {
-            coveralls.AddPatch(new Patch(Color.RED));
-            coveralls.AddRepair(new Repair(DateTime.Now, new Patch(Color.BLUE)));
+            coveralls.AddPatch(new Patch(Color.Red));
+            coveralls.AddRepair(new Repair(DateTime.Now, new Patch(Color.Blue)));
             Assert.Equal(2, coveralls.GetRepairs().Count);
         }
     }

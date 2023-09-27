@@ -10,13 +10,13 @@ using uniffi.rondpoint;
 public class TestRondpoint {
     [Fact]
     public void CopyWorks() {
-        var dico = new Dictionnaire(Enumeration.DEUX, true, (byte)0, 123456789u);
+        var dico = new Dictionnaire(Enumeration.Deux, true, (byte)0, 123456789u);
         var copyDico = RondpointMethods.CopieDictionnaire(dico);
         Assert.Equal(dico, copyDico);
 
-        Assert.Equal(Enumeration.DEUX, RondpointMethods.CopieEnumeration(Enumeration.DEUX));
+        Assert.Equal(Enumeration.Deux, RondpointMethods.CopieEnumeration(Enumeration.Deux));
 
-        var list = new List<Enumeration>() { Enumeration.UN, Enumeration.DEUX };
+        var list = new List<Enumeration>() { Enumeration.Un, Enumeration.Deux };
         Assert.Equal(list, RondpointMethods.CopieEnumerations(list));
 
         var dict = new Dictionary<String, EnumerationAvecDonnees>() {
@@ -179,7 +179,7 @@ public class TestRondpoint {
         Assert.Equal(42.1, op.SinonF64());
 
         // Enums
-        Assert.Equal(Enumeration.TROIS, op.SinonEnum());
+        Assert.Equal(Enumeration.Trois, op.SinonEnum());
     }
 
     [Fact]
@@ -224,7 +224,7 @@ public class TestRondpoint {
         AffirmAllerRetour(op.SinonF64, 0.0, 1.0);
 
         // Enums
-        AffirmAllerRetour(op.SinonEnum, Enumeration.UN, Enumeration.DEUX, Enumeration.TROIS);
+        AffirmAllerRetour(op.SinonEnum, Enumeration.Un, Enumeration.Deux, Enumeration.Trois);
 
         op.Dispose();
     }
@@ -249,7 +249,7 @@ public class TestRondpoint {
             #pragma warning disable 8625
             listVar = null,
             #pragma warning restore 8625
-            enumerationVar = Enumeration.DEUX,
+            enumerationVar = Enumeration.Deux,
             dictionnaireVar = null,
         };
         Assert.Equal(defaultes, explicite);

@@ -20,7 +20,7 @@ public class TestDocstring {
 
         UniffiDocstringMethods.Test();
 
-        _ = EnumTest.ONE;
+        _ = EnumTest.One;
 
         _ = new AssociatedEnumTest.Test(0);
 
