@@ -37,6 +37,38 @@ There are a couple of requirements to compile the generated bindings file:
 </PropertyGroup>
 ```
 
+# Configuration options
+
+Its possible to configure some settings by passing `--config` argument to the generator.
+```
+uniffi-bindgen-cs path/to/definitions.udl --config path/to/uniffi.toml
+```
+
+- `package_name` - deprecated, use `namespace`.
+
+- `cdylib_name` - override the dynamic library name linked by generated bindings, exluding `lib`
+    prefix and `.dll` file extension. E.g. for `libgreeter.dll`, use `greeter`.
+
+- `custom_types` - properties for custom type defined in UDL with `[Custom] typedef string Url;`.
+
+    - `imports` - any imports required to satisfy this type. E.g. `imports = ["System"]`.
+
+    - `type_name` - the name to represent the type in generated bindings.
+
+    - `into_custom` - an expression to convert from the underlying type into custom type. `{}` will
+        will be expanded into variable containing the underlying value. The expression is used in a
+        return statement, i.e. `return <expression(value)>;`. E.g. `new Uri({})`.
+
+    - `from_custom` - an expression to convert from the custom type into underlying type. `{}` will
+        will be expanded into variable containing the custom value. The expression is used in a
+        return statement, i.e. `return <expression(value);>`. E.g. `{}.AbsoluteUri`.
+
+- `namespace` - override the `namespace ..;` declaration in generated bindings file. The default is
+    `uniffi.{{namespace}}`, where `namespace` is the namespace from UDL file.
+
+- `global_methods_class_name` - override the class name containing top level functions. The default
+    is `{{namespace}}Methods`, where `namespace` is the namespace from UDL file.
+
 # Contributing
 
 For contribution guidelines, read [CONTRIBUTING.md](CONTRIBUTING.md)

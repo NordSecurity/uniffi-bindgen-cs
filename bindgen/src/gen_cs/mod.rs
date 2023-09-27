@@ -37,6 +37,8 @@ pub struct Config {
     external_packages: HashMap<String, String>,
     #[serde(default)]
     namespace: Option<String>,
+    #[serde(default)]
+    global_methods_class_name: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -65,18 +67,6 @@ impl Config {
     }
 }
 
-impl From<&ComponentInterface> for Config {
-    fn from(ci: &ComponentInterface) -> Self {
-        Config {
-            package_name: Some(format!("uniffi.{}", ci.namespace())),
-            cdylib_name: Some(format!("uniffi_{}", ci.namespace())),
-            custom_types: HashMap::new(),
-            external_packages: HashMap::new(),
-            namespace: Some(ci.namespace().to_string()),
-        }
-    }
-}
-
 impl MergeWith for Config {
     fn merge_with(&self, other: &Self) -> Self {
         Config {
@@ -85,6 +75,9 @@ impl MergeWith for Config {
             custom_types: self.custom_types.merge_with(&other.custom_types),
             external_packages: self.external_packages.merge_with(&other.external_packages),
             namespace: self.namespace.merge_with(&other.namespace),
+            global_methods_class_name: self
+                .global_methods_class_name
+                .merge_with(&other.global_methods_class_name),
         }
     }
 }

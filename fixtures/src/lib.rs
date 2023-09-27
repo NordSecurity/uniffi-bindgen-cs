@@ -17,5 +17,6 @@ mod uniffi_fixtures {
     uniffi_fixture_callbacks::uniffi_reexport_scaffolding!();
     uniffi_fixture_docstring::uniffi_reexport_scaffolding!();
 
+    global_methods_class_name::uniffi_reexport_scaffolding!();
     uniffi_cs_disposable::uniffi_reexport_scaffolding!();
 }
