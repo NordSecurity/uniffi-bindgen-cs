@@ -9,7 +9,8 @@ GEN_DIR="dotnet-tests/UniffiCS/gen"
 rm -rf "$GEN_DIR"
 mkdir -p "$GEN_DIR"
 function bindings() {
-    target/debug/uniffi-bindgen-cs $1 --out-dir="$GEN_DIR" --config="uniffi-test-fixtures.toml"
+    CONFIG="${CONFIG:-uniffi-test-fixtures.toml}"
+    target/debug/uniffi-bindgen-cs $1 --out-dir="$GEN_DIR" --config="$CONFIG"
 }
 
 bindings 3rd-party/uniffi-rs/examples/arithmetic/src/arithmetic.udl
@@ -25,6 +26,9 @@ bindings 3rd-party/uniffi-rs/fixtures/docstring/src/docstring.udl
 bindings 3rd-party/uniffi-rs/fixtures/external-types/lib/src/external-types-lib.udl
 bindings 3rd-party/uniffi-rs/fixtures/uniffi-fixture-time/src/chronological.udl
 bindings fixtures/disposable/src/disposable.udl
+
+CONFIG="fixtures/global-methods-class-name/uniffi.toml" \
+    bindings fixtures/global-methods-class-name/src/global_methods_class_name.udl
 
 export LD_LIBRARY_PATH="$SCRIPT_DIR/target/debug/:${LD_LIBRARY_PATH:-}"
 cd $CSPROJ_DIR
