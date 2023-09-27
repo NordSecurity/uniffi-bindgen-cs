@@ -19,11 +19,11 @@ public class TestDocstring {
 
         _ = EnumTest.ONE;
 
-        _ = new AssociatedEnumTest.Test();
+        _ = new AssociatedEnumTest.Test(0);
 
         _ = new ErrorTest.One("hello");
 
-        _ = new AssociatedErrorTest.Test();
+        _ = new AssociatedErrorTest.Test(0);
 
         var obj1 = new ObjectTest();
         var obj2 = ObjectTest.NewAlternate();

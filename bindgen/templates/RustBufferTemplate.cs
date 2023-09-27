@@ -28,12 +28,6 @@ internal struct RustBuffer {
         });
     }
 
-    public static BigEndianStream MemoryStream(IntPtr data, int length) {
-        unsafe {
-            return new BigEndianStream(new UnmanagedMemoryStream((byte*)data.ToPointer(), length));
-        }
-    }
-
     public BigEndianStream AsStream() {
         unsafe {
             return new BigEndianStream(new UnmanagedMemoryStream((byte*)data.ToPointer(), len));
