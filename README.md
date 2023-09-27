@@ -39,14 +39,14 @@ There are a couple of requirements to compile the generated bindings file:
 
 # Configuration options
 
-Its possible to configure some settings by passing `--config` argument to the generator.
+It's possible to configure some settings by passing `--config` argument to the generator.
 ```
 uniffi-bindgen-cs path/to/definitions.udl --config path/to/uniffi.toml
 ```
 
 - `package_name` - deprecated, use `namespace`.
 
-- `cdylib_name` - override the dynamic library name linked by generated bindings, exluding `lib`
+- `cdylib_name` - override the dynamic library name linked by generated bindings, excluding `lib`
     prefix and `.dll` file extension. E.g. for `libgreeter.dll`, use `greeter`.
 
 - `custom_types` - properties for custom type defined in UDL with `[Custom] typedef string Url;`.
@@ -80,7 +80,7 @@ the Cargo Book](https://doc.rust-lang.org/cargo/reference/resolver.html#semver-c
 which states "Versions are considered compatible if their left-most non-zero
 major/minor/patch component is the same". A breaking change is any modification to the C# bindings
 that demands the consumer of the bindings to make corresponding changes to their code to ensure that
-the bindings continue to function properly. `uniffi-bindgen-cs` is young, and its unclear how stable
+the bindings continue to function properly. `uniffi-bindgen-cs` is young, and it's unclear how stable
 the generated bindings are going to be between versions. For this reason, major version is currently
 0, and most changes are probably going to bump minor version.
 
