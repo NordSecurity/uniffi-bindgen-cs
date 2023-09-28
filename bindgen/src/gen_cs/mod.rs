@@ -8,7 +8,7 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 
 use anyhow::{Context, Result};
 use askama::Template;
-use heck::{ToLowerCamelCase, ToShoutySnakeCase, ToUpperCamelCase};
+use heck::{ToLowerCamelCase, ToUpperCamelCase};
 use serde::{Deserialize, Serialize};
 
 use uniffi_bindgen::backend::{CodeOracle, CodeType, TemplateExpression, TypeIdentifier};
@@ -291,7 +291,7 @@ impl CodeOracle for CsCodeOracle {
 
     /// Get the idiomatic C# rendering of an individual enum variant.
     fn enum_variant_name(&self, nm: &str) -> String {
-        nm.to_string().to_shouty_snake_case()
+        nm.to_string().to_upper_camel_case()
     }
 
     /// Get the idiomatic C# rendering of an exception name
