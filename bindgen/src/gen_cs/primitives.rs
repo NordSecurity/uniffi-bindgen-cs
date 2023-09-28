@@ -73,15 +73,15 @@ macro_rules! impl_code_type_for_primitive {
     };
 }
 
-impl_code_type_for_primitive!(BooleanCodeType, "Boolean", "Boolean");
+impl_code_type_for_primitive!(BooleanCodeType, "bool", "Boolean");
 impl_code_type_for_primitive!(StringCodeType, "String", "String");
-impl_code_type_for_primitive!(Int8CodeType, "SByte", "SByte");
-impl_code_type_for_primitive!(Int16CodeType, "Int16", "Short");
-impl_code_type_for_primitive!(Int32CodeType, "Int32", "Int");
-impl_code_type_for_primitive!(Int64CodeType, "Int64", "Long");
-impl_code_type_for_primitive!(UInt8CodeType, "Byte", "Byte");
-impl_code_type_for_primitive!(UInt16CodeType, "UInt16", "UShort");
-impl_code_type_for_primitive!(UInt32CodeType, "UInt32", "UInt");
-impl_code_type_for_primitive!(UInt64CodeType, "UInt64", "ULong");
-impl_code_type_for_primitive!(Float32CodeType, "Single", "Float");
-impl_code_type_for_primitive!(Float64CodeType, "Double", "Double");
+impl_code_type_for_primitive!(Int8CodeType, "sbyte", "Int8");
+impl_code_type_for_primitive!(Int16CodeType, "short", "Int16");
+impl_code_type_for_primitive!(Int32CodeType, "int", "Int32");
+impl_code_type_for_primitive!(Int64CodeType, "long", "Int64");
+impl_code_type_for_primitive!(UInt8CodeType, "byte", "UInt8");
+impl_code_type_for_primitive!(UInt16CodeType, "ushort", "UInt16");
+impl_code_type_for_primitive!(UInt32CodeType, "uint", "UInt32");
+impl_code_type_for_primitive!(UInt64CodeType, "ulong", "UInt64");
+impl_code_type_for_primitive!(Float32CodeType, "float", "Float");
+impl_code_type_for_primitive!(Float64CodeType, "double", "Double");

@@ -25,6 +25,7 @@ bindings 3rd-party/uniffi-rs/fixtures/coverall/src/coverall.udl
 bindings 3rd-party/uniffi-rs/fixtures/docstring/src/docstring.udl
 bindings 3rd-party/uniffi-rs/fixtures/external-types/lib/src/external-types-lib.udl
 bindings 3rd-party/uniffi-rs/fixtures/uniffi-fixture-time/src/chronological.udl
+bindings fixtures/custom-types-builtin/src/custom-types-builtin.udl
 bindings fixtures/disposable/src/disposable.udl
 
 CONFIG="fixtures/global-methods-class-name/uniffi.toml" \

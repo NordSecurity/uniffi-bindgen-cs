@@ -1,0 +1,71 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+// Ensure that builtin types can be used as the underlying type in custom types.
+
+[Custom]
+typedef string MyString;
+
+// using sequence or record as the underlying type produces broken code
+
+// [Custom]
+// typedef sequence<string> Array;
+
+// [Custom]
+// typedef record<string, string> Table;
+
+[Custom]
+typedef boolean Boolean;
+
+[Custom]
+typedef i8 Int8;
+
+[Custom]
+typedef i16 Int16;
+
+[Custom]
+typedef i32 Int32;
+
+[Custom]
+typedef i64 Int64;
+
+[Custom]
+typedef u8 UInt8;
+
+[Custom]
+typedef u16 UInt16;
+
+[Custom]
+typedef u32 UInt32;
+
+[Custom]
+typedef u64 UInt64;
+
+[Custom]
+typedef float Float;
+
+[Custom]
+typedef double Double;
+
+dictionary CustomTypesBuiltin {
+    MyString string;
+    // Array array;
+    // Table table;
+    Boolean boolean;
+    Int8 int8;
+    Int16 int16;
+    Int32 int32;
+    Int64 int64;
+    UInt8 uint8;
+    UInt16 uint16;
+    UInt32 uint32;
+    UInt64 uint64;
+    Float float;
+    Double double;
+};
+
+namespace custom_types_builtin {
+    CustomTypesBuiltin get_custom_types_builtin();
+    CustomTypesBuiltin return_custom_types_builtin(CustomTypesBuiltin custom_types);
+};

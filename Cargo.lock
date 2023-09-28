@@ -764,6 +764,7 @@ name = "uniffi-bindgen-cs-fixtures"
 version = "0.1.0"
 dependencies = [
  "global-methods-class-name",
+ "uniffi-cs-custom-types-builtin",
  "uniffi-cs-disposable-fixture",
  "uniffi-example-arithmetic",
  "uniffi-example-callbacks",
@@ -777,6 +778,17 @@ dependencies = [
  "uniffi-fixture-docstring",
  "uniffi-fixture-external-types",
  "uniffi-fixture-time",
+]
+
+[[package]]
+name = "uniffi-cs-custom-types-builtin"
+version = "1.0.0"
+dependencies = [
+ "once_cell",
+ "paste",
+ "thiserror",
+ "uniffi",
+ "uniffi_macros",
 ]
 
 [[package]]

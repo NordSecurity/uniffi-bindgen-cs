@@ -2,8 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
-class FfiConverterShort: FfiConverter<short, short> {
-    public static FfiConverterShort INSTANCE = new FfiConverterShort();
+class {{ ffi_converter_name }}: FfiConverter<short, short> {
+    public static {{ ffi_converter_name }} INSTANCE = new {{ ffi_converter_name }}();
 
     public override short Lift(short value) {
         return value;
