@@ -340,6 +340,30 @@ pub mod filters {
         Ok(codetype.type_label(oracle()))
     }
 
+    pub fn type_name_custom(typ: &Type) -> Result<String, askama::Error> {
+        // Lowercasing numeric types introduces a problem. In C# custom types are
+        // implemented with `using` directive, and the `using` directive expects
+        // and identifier on the right side of `=`. Lowercase numeric types are
+        // not identifiers, but rather reserved keywords. So its not possible to
+        // define a type alias using a lowercase numeric type as the underlying
+        // type. To use numeric types as the underlying type, the uppercase
+        // numeric system type counterparts must be used.
+        match typ {
+            Type::Boolean => Ok("Boolean".to_string()),
+            Type::Int8 => Ok("SByte".to_string()),
+            Type::Int16 => Ok("Int16".to_string()),
+            Type::Int32 => Ok("Int32".to_string()),
+            Type::Int64 => Ok("Int64".to_string()),
+            Type::UInt8 => Ok("Byte".to_string()),
+            Type::UInt16 => Ok("UInt16".to_string()),
+            Type::UInt32 => Ok("UInt32".to_string()),
+            Type::UInt64 => Ok("UInt64".to_string()),
+            Type::Float32 => Ok("Single".to_string()),
+            Type::Float64 => Ok("Double".to_string()),
+            _ => type_name(typ),
+        }
+    }
+
     pub fn canonical_name(codetype: &impl CodeType) -> Result<String, askama::Error> {
         Ok(codetype.canonical_name(oracle()))
     }

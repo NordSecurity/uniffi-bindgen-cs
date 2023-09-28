@@ -2,8 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
-class FfiConverterSByte: FfiConverter<sbyte, sbyte> {
-    public static FfiConverterSByte INSTANCE = new FfiConverterSByte();
+class {{ ffi_converter_name }}: FfiConverter<sbyte, sbyte> {
+    public static {{ ffi_converter_name }} INSTANCE = new {{ ffi_converter_name }}();
 
     public override sbyte Lift(sbyte value) {
         return value;
