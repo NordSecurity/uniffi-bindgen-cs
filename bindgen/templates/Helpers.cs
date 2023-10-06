@@ -87,7 +87,7 @@ class _UniffiHelpers {
             // with the message.  but if that code panics, then it just sends back
             // an empty buffer.
             if (status.error_buf.len > 0) {
-                throw new PanicException({{ TypeIdentifier::String.borrow()|lift_fn }}(status.error_buf));
+                throw new PanicException({{ Type::String.borrow()|lift_fn }}(status.error_buf));
             } else {
                 throw new PanicException("Rust panic");
             }

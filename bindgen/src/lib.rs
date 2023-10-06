@@ -3,13 +3,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 pub mod gen_cs;
+use anyhow::{bail, Result};
 use camino::{Utf8Path, Utf8PathBuf};
 use clap::Parser;
 use fs_err::File;
-pub use gen_cs::{generate_bindings, Config};
+pub use gen_cs::generate_bindings;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::io::Write;
-use uniffi_bindgen;
-use uniffi_bindgen::interface::ComponentInterface;
+use uniffi_bindgen::{interface::ComponentInterface, BindingsConfig};
 
 #[derive(Parser)]
 #[clap(name = "uniffi-bindgen")]
@@ -32,27 +34,48 @@ struct Cli {
     udl_file: Utf8PathBuf,
 }
 
-impl uniffi_bindgen::BindingGeneratorConfig for gen_cs::Config {
-    fn get_entry_from_bindings_table(bindings: &toml::Value) -> Option<toml::Value> {
-        bindings.get("csharp").map(|v| v.clone())
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ConfigRoot {
+    #[serde(default)]
+    bindings: ConfigBindings,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ConfigBindings {
+    #[serde(default)]
+    csharp: gen_cs::Config,
+}
+
+impl BindingsConfig for ConfigRoot {
+    fn update_from_ci(&mut self, ci: &ComponentInterface) {
+        self.bindings.csharp.update_from_ci(ci);
     }
 
-    fn get_config_defaults(_ci: &ComponentInterface) -> Vec<(String, toml::Value)> {
-        vec![]
+    fn update_from_cdylib_name(&mut self, cdylib_name: &str) {
+        self.bindings.csharp.update_from_cdylib_name(cdylib_name);
+    }
+
+    fn update_from_dependency_configs(&mut self, config_map: HashMap<&str, &Self>) {
+        self.bindings.csharp.update_from_dependency_configs(
+            config_map
+                .iter()
+                .map(|(key, config)| (*key, &config.bindings.csharp))
+                .collect(),
+        );
     }
 }
 
-struct BindingGeneratorCs {
+struct BindingGenerator {
     _try_format_code: bool,
 }
 
-impl uniffi_bindgen::BindingGenerator for BindingGeneratorCs {
+impl uniffi_bindgen::BindingGenerator for BindingGenerator {
     type Config = gen_cs::Config;
 
     fn write_bindings(
         &self,
-        ci: ComponentInterface,
-        config: Self::Config,
+        ci: &ComponentInterface,
+        config: &Self::Config,
         out_dir: &Utf8Path,
     ) -> anyhow::Result<()> {
         let bindings_file = out_dir.join(format!("{}.cs", ci.namespace()));
@@ -64,12 +87,19 @@ impl uniffi_bindgen::BindingGenerator for BindingGeneratorCs {
 
         Ok(())
     }
+
+    fn check_library_path(&self, library_path: &Utf8Path, cdylib_name: Option<&str>) -> Result<()> {
+        if cdylib_name.is_none() {
+            bail!("Generate bindings for C# requires a cdylib, but {library_path} was given");
+        }
+        Ok(())
+    }
 }
 
 pub fn main() {
     let cli = Cli::parse();
     uniffi_bindgen::generate_external_bindings(
-        BindingGeneratorCs {
+        BindingGenerator {
             _try_format_code: !cli.no_format,
         },
         &cli.udl_file,

@@ -2,8 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
-{%- let e = ci.get_error_definition(name).unwrap() %}
-
 {% if e.is_flat() %}
 {%- call cs::docstring(e, 0) %}
 public class {{ type_name }}: UniffiException {
@@ -26,7 +24,7 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, Call
         var value = stream.ReadInt();
         switch (value) {
             {%- for variant in e.variants() %}
-            case {{ loop.index }}: return new {{ type_name }}.{{ variant.name()|exception_name }}({{ TypeIdentifier::String.borrow()|read_fn }}(stream));
+            case {{ loop.index }}: return new {{ type_name }}.{{ variant.name()|exception_name }}({{ Type::String.borrow()|read_fn }}(stream));
             {%- endfor %}
             default:
                 throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Read()", value));
@@ -34,7 +32,7 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, Call
     }
 
     public override int AllocationSize({{ type_name }} value) {
-        return 4 + {{ TypeIdentifier::String.borrow()|allocation_size_fn }}(value.Message);
+        return 4 + {{ Type::String.borrow()|allocation_size_fn }}(value.Message);
     }
 
     public override void Write({{ type_name }} value, BigEndianStream stream) {
@@ -42,7 +40,7 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, Call
             {%- for variant in e.variants() %}
             case {{ type_name }}.{{ variant.name()|exception_name }}:
                 stream.WriteInt({{ loop.index }});
-                {{ TypeIdentifier::String.borrow()|write_fn }}(value.Message, stream);
+                {{ Type::String.borrow()|write_fn }}(value.Message, stream);
                 break;
             {%- endfor %}
             default:
