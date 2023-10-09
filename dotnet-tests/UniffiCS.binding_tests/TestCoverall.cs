@@ -124,7 +124,9 @@ public class TestCoverall {
                 () => coveralls.MaybeThrowComplex(2));
             Assert.Equal("Forbidden", permission_denied.reason);
 
-            Assert.Throws<PanicException>(() => coveralls.MaybeThrowComplex(3));
+            Assert.Throws<ComplexException.UnknownException>(() => coveralls.MaybeThrowComplex(3));
+
+            Assert.Throws<PanicException>(() => coveralls.MaybeThrowComplex(4));
         }
     }
 
