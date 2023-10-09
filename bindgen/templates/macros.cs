@@ -65,9 +65,13 @@
 // Note unfiltered name but ffi_type_name filters.
 -#}
 {%- macro arg_list_ffi_decl(func) %}
+    {%- if func.is_object_free_function() %}
+    IntPtr ptr,
+    {%- else %}
     {%- for arg in func.arguments() %}
         {{- arg.type_().borrow()|ffi_type_name }} {{ arg.name()|var_name -}},
     {%- endfor %}
+    {%- endif %}
     ref RustCallStatus _uniffi_out_err
 {%- endmacro -%}
 
