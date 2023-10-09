@@ -70,7 +70,7 @@ struct BindingGenerator {
 }
 
 impl uniffi_bindgen::BindingGenerator for BindingGenerator {
-    type Config = gen_cs::Config;
+    type Config = ConfigRoot;
 
     fn write_bindings(
         &self,
@@ -80,7 +80,7 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
     ) -> anyhow::Result<()> {
         let bindings_file = out_dir.join(format!("{}.cs", ci.namespace()));
         let mut f = File::create(&bindings_file)?;
-        write!(f, "{}", generate_bindings(&config, &ci)?)?;
+        write!(f, "{}", generate_bindings(&config.bindings.csharp, &ci)?)?;
 
         // TODO: find a way to easily format standalone C# files
         // https://github.com/dotnet/format

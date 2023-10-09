@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+using System.Collections.Generic;
 using System;
 using uniffi.custom_types_builtin;
 
@@ -17,6 +18,8 @@ public class TestCustomTypesBuiltin {
 
     void AssertDemo(CustomTypesBuiltin demo) {
         Assert.Equal("Hello, world!", demo.@string);
+        Assert.Equal(new List<String> { "Hello, world!" }, demo.array);
+        Assert.Equal(new Dictionary<String, String> { {"hello", "world"} }, demo.table);
         Assert.True(demo.boolean);
         Assert.Equal(SByte.MaxValue, demo.int8);
         Assert.Equal(Int16.MaxValue, demo.int16);

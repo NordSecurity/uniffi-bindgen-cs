@@ -22,11 +22,11 @@ public class TestDocstring {
 
         _ = EnumTest.One;
 
-        _ = new AssociatedEnumTest.Test(0);
+        _ = new AssociatedEnumTest.Test();
 
         _ = new ErrorTest.One("hello");
 
-        _ = new AssociatedErrorTest.Test(0);
+        _ = new AssociatedErrorTest.Test();
 
         var obj1 = new ObjectTest();
         var obj2 = ObjectTest.NewAlternate();

@@ -87,8 +87,8 @@ impl CodeType for MapCodeType {
     fn canonical_name(&self) -> String {
         format!(
             "Dictionary{}{}",
-            super::CsCodeOracle.find(self.key()).type_label(),
-            super::CsCodeOracle.find(self.value()).type_label(),
+            super::CsCodeOracle.find(self.key()).canonical_name(),
+            super::CsCodeOracle.find(self.value()).canonical_name(),
         )
     }
 

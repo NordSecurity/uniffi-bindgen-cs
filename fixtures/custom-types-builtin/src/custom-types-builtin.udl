@@ -9,11 +9,11 @@ typedef string MyString;
 
 // using sequence or record as the underlying type produces broken code
 
-// [Custom]
-// typedef sequence<string> Array;
+[Custom]
+typedef sequence<string> Array;
 
-// [Custom]
-// typedef record<string, string> Table;
+[Custom]
+typedef record<string, string> Table;
 
 [Custom]
 typedef boolean Boolean;
@@ -50,8 +50,8 @@ typedef double Double;
 
 dictionary CustomTypesBuiltin {
     MyString string;
-    // Array array;
-    // Table table;
+    Array array;
+    Table table;
     Boolean boolean;
     Int8 int8;
     Int16 int16;
