@@ -245,7 +245,7 @@ impl<T: AsType> AsCodeType for T {
             Type::Float64 => Box::new(primitives::Float64CodeType),
             Type::Boolean => Box::new(primitives::BooleanCodeType),
             Type::String => Box::new(primitives::StringCodeType),
-            Type::Bytes => panic!("TODO implement bytes"),
+            Type::Bytes => Box::new(compounds::SequenceCodeType::new(Type::UInt8)),
 
             Type::Timestamp => Box::new(miscellany::TimestampCodeType),
             Type::Duration => Box::new(miscellany::DurationCodeType),
@@ -457,5 +457,10 @@ pub mod filters {
 
         let spaces = usize::try_from(*spaces).unwrap_or_default();
         Ok(textwrap::indent(&wrapped, &" ".repeat(spaces)))
+    }
+
+    /// Panic with message
+    pub fn panic(message: &str) -> Result<String, askama::Error> {
+        panic!("{}", message)
     }
 }

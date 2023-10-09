@@ -77,6 +77,10 @@
 {%- when Type::Sequence(inner_type) %}
 {% include "SequenceTemplate.cs" %}
 
+{%- when Type::Bytes %}
+{%- let inner_type = Type::UInt8 %}
+{% include "SequenceTemplate.cs" %}
+
 {%- when Type::Map(key_type, value_type) %}
 {% include "MapTemplate.cs" %}
 
@@ -95,6 +99,8 @@
 {%- when Type::External { crate_name, name, kind } %}
 {% include "ExternalTypeTemplate.cs" %}
 
-{%- else %}
+{%- when Type::ForeignExecutor %}
+{{ "ForeignExecutor not implemented in Types.cs {}"|panic }}
+
 {%- endmatch %}
 {%- endfor %}
