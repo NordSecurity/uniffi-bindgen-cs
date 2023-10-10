@@ -19,6 +19,7 @@ mod callback_interface;
 mod compounds;
 mod custom;
 mod enum_;
+mod error;
 mod external;
 mod miscellany;
 mod object;
@@ -226,10 +227,10 @@ pub trait AsCodeType {
 impl<T: AsType> AsCodeType for T {
     // Map `Type` instances to a `Box<dyn CodeType>` for that type.
     //
-    // There is a companion match in `templates/Types.kt` which performs a similar function for the
+    // There is a companion match in `templates/Types.cs` which performs a similar function for the
     // template code.
     //
-    //   - When adding additional types here, make sure to also add a match arm to the `Types.kt` template.
+    //   - When adding additional types here, make sure to also add a match arm to the `Types.cs` template.
     //   - To keep things managable, let's try to limit ourselves to these 2 mega-matches
     fn as_codetype(&self) -> Box<dyn CodeType> {
         match self.as_type() {
@@ -448,6 +449,15 @@ pub mod filters {
     /// `Error` with `Exception`.
     pub fn exception_name(nm: &str) -> Result<String, askama::Error> {
         Ok(oracle().error_name(nm))
+    }
+
+    // Get C# error code type representation.
+    pub fn as_error(type_: &Type) -> Result<error::ErrorCodeTypeProvider, askama::Error> {
+        match type_ {
+            Type::Enum(id) => Ok(error::ErrorCodeTypeProvider { id }),
+            // XXX - not sure how we are supposed to return askama::Error?
+            _ => panic!("unsupported type for error: {type_:?}"),
+        }
     }
 
     /// Get the idiomatic C# rendering of docstring
