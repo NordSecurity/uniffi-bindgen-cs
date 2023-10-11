@@ -2,12 +2,11 @@
 
 Generate [UniFFI](https://github.com/mozilla/uniffi-rs) bindings for C#. `uniffi-bindgen-cs` lives
 as a separate project from `uniffi-rs`, as per
-[uniffi-rs #1355](https://github.com/mozilla/uniffi-rs/issues/1355). Currently, `uniffi-bindgen-cs`
-uses `uniffi-rs` version `0.20.0`.
+[uniffi-rs #1355](https://github.com/mozilla/uniffi-rs/issues/1355).
 
 # How to install
 
-Minimum Rust version required to install `uniffi-bindgen-cs` is `1.64`.
+Minimum Rust version required to install `uniffi-bindgen-cs` is `1.70`.
 Newer Rust versions should also work fine.
 
 ```bash
