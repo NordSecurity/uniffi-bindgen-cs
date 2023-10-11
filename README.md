@@ -45,10 +45,9 @@ configuration keys are defined in `bindings.csharp` section.
 uniffi-bindgen-cs path/to/definitions.udl --config path/to/uniffi.toml
 ```
 
-- `package_name` - deprecated, use `namespace`.
-
 - `cdylib_name` - override the dynamic library name linked by generated bindings, excluding `lib`
-    prefix and `.dll` file extension.
+    prefix and `.dll` file extension. When using `--library` mode, defaults to library's name.
+    In standalone mode this value is required, and error will be produced if its missing.
     ```toml
     # For library `libgreeter.dll`
     [bindings.csharp]

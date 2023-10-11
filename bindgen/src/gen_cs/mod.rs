@@ -29,15 +29,12 @@ mod record;
 // config options to customize the generated C# bindings.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Config {
-    package_name: Option<String>,
+    namespace: Option<String>,
     cdylib_name: Option<String>,
     #[serde(default)]
     custom_types: HashMap<String, CustomTypeConfig>,
     #[serde(default)]
     external_packages: HashMap<String, String>,
-    #[serde(default)]
-    namespace: Option<String>,
-    #[serde(default)]
     global_methods_class_name: Option<String>,
 }
 
@@ -50,12 +47,14 @@ pub struct CustomTypeConfig {
 }
 
 impl uniffi_bindgen::BindingsConfig for Config {
-    fn update_from_ci(&mut self, _ci: &ComponentInterface) {
-        // TODO
+    fn update_from_ci(&mut self, ci: &ComponentInterface) {
+        self.namespace
+            .get_or_insert_with(|| format!("uniffi.{}", ci.namespace()));
     }
 
-    fn update_from_cdylib_name(&mut self, _cdylib_name: &str) {
-        // TODO
+    fn update_from_cdylib_name(&mut self, cdylib_name: &str) {
+        self.cdylib_name
+            .get_or_insert_with(|| cdylib_name.to_string());
     }
 
     fn update_from_dependency_configs(&mut self, _config_map: HashMap<&str, &Self>) {
@@ -64,20 +63,18 @@ impl uniffi_bindgen::BindingsConfig for Config {
 }
 
 impl Config {
-    pub fn package_name(&self) -> String {
-        if let Some(package_name) = &self.package_name {
-            package_name.clone()
-        } else {
-            "uniffi".into()
-        }
+    pub fn namespace(&self) -> String {
+        self.namespace
+            .as_ref()
+            .expect("`namespace` must be set in `update_from_ci`")
+            .clone()
     }
 
     pub fn cdylib_name(&self) -> String {
-        if let Some(cdylib_name) = &self.cdylib_name {
-            cdylib_name.clone()
-        } else {
-            "uniffi".into()
-        }
+        self.cdylib_name
+            .as_ref()
+            .expect("`cdylib_name` not specified")
+            .clone()
     }
 }
 

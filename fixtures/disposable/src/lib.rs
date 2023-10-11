@@ -76,4 +76,4 @@ fn get_maybe_resource_journal() -> MaybeResourceJournal {
     }
 }
 
-include!(concat!(env!("OUT_DIR"), "/disposable.uniffi.rs"));
+uniffi::include_scaffolding!("disposable");

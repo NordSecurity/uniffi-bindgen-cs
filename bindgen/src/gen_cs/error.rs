@@ -2,8 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+use super::{AsCodeType, CsCodeOracle};
 use uniffi_bindgen::backend::{CodeType, Literal};
-use super::{CsCodeOracle, AsCodeType};
 
 #[derive(Debug)]
 pub struct ErrorCodeType {

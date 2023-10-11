@@ -22,16 +22,24 @@ struct Cli {
     #[clap(long, short)]
     out_dir: Option<Utf8PathBuf>,
 
-    /// Do not try to format the generated bindings.
-    #[clap(long, short)]
-    no_format: bool,
-
     /// Path to the optional uniffi config file. If not provided, uniffi-bindgen will try to guess it from the UDL's file location.
     #[clap(long, short)]
     config: Option<Utf8PathBuf>,
 
-    /// Path to the UDL file.
-    udl_file: Utf8PathBuf,
+    /// Extract proc-macro metadata from cdylib for this crate.
+    #[clap(long)]
+    lib_file: Option<Utf8PathBuf>,
+
+    /// Pass in a cdylib path rather than a UDL file
+    #[clap(long = "library")]
+    library_mode: bool,
+
+    /// When `--library` is passed, only generate bindings for one crate
+    #[clap(long = "crate")]
+    crate_name: Option<String>,
+
+    /// Path to the UDL file, or cdylib if `library-mode` is specified
+    source: Utf8PathBuf,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -65,9 +73,7 @@ impl BindingsConfig for ConfigRoot {
     }
 }
 
-struct BindingGenerator {
-    _try_format_code: bool,
-}
+struct BindingGenerator {}
 
 impl uniffi_bindgen::BindingGenerator for BindingGenerator {
     type Config = ConfigRoot;
@@ -96,15 +102,36 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
     }
 }
 
-pub fn main() {
+pub fn main() -> Result<()> {
     let cli = Cli::parse();
-    uniffi_bindgen::generate_external_bindings(
-        BindingGenerator {
-            _try_format_code: !cli.no_format,
-        },
-        &cli.udl_file,
-        cli.config,
-        cli.out_dir,
-    )
-    .unwrap();
+
+    if cli.library_mode {
+        if cli.lib_file.is_some() {
+            panic!("--lib-file is not compatible with --library.")
+        }
+        if cli.config.is_some() {
+            panic!("--config is not compatible with --library.  The config file(s) will be found automatically.")
+        }
+        let out_dir = cli
+            .out_dir
+            .expect("--out-dir is required when using --library");
+        uniffi_bindgen::library_mode::generate_external_bindings(
+            BindingGenerator {},
+            &cli.source,
+            cli.crate_name,
+            &out_dir,
+        )
+        .map(|_| ())
+    } else {
+        if cli.crate_name.is_some() {
+            panic!("--crate requires --library.")
+        }
+        uniffi_bindgen::generate_external_bindings(
+            BindingGenerator {},
+            &cli.source,
+            cli.config.as_deref(),
+            cli.out_dir.as_deref(),
+            cli.lib_file.as_deref(),
+        )
+    }
 }

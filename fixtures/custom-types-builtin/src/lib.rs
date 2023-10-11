@@ -76,4 +76,4 @@ pub fn return_custom_types_builtin(custom_types: CustomTypesBuiltin) -> CustomTy
     custom_types
 }
 
-include!(concat!(env!("OUT_DIR"), "/custom-types-builtin.uniffi.rs"));
+uniffi::include_scaffolding!("custom_types_builtin");
