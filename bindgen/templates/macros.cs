@@ -72,7 +72,7 @@
         {{- arg.type_().borrow()|ffi_type_name }} {{ arg.name()|var_name -}},
     {%- endfor %}
     {%- endif %}
-    ref RustCallStatus _uniffi_out_err
+    {%- if func.has_rust_call_status_arg() %}ref RustCallStatus _uniffi_out_err{% endif %}
 {%- endmacro -%}
 
 // Macro for destroying fields

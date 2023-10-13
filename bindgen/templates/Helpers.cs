@@ -50,6 +50,16 @@ public class InvalidEnumException: InternalException {
     }
 }
 
+public class UniffiContractVersionException: UniffiException {
+    public UniffiContractVersionException(string message): base(message) {
+    }
+}
+
+public class UniffiContractChecksumException: UniffiException {
+    public UniffiContractChecksumException(string message): base(message) {
+    }
+}
+
 // Each top-level error class has a companion object that can lift the error from the call status's rust buffer
 interface CallStatusErrorHandler<E> where E: Exception {
     E Lift(RustBuffer error_buf);
