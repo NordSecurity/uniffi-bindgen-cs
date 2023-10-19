@@ -36,6 +36,14 @@ There are a couple of requirements to compile the generated bindings file:
 </PropertyGroup>
 ```
 
+# Unsupported features
+
+The following uniffi features are unsupported.
+
+- [External types](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/40)
+
+- [Async functions](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/41)
+
 # Configuration options
 
 It's possible to configure some settings by passing `--config` argument to the generator. All
@@ -121,6 +129,7 @@ The table shows `uniffi-rs` version history for tags that were published before 
 
 | uniffi-bindgen-cs version                | uniffi-rs version                                |
 |------------------------------------------|--------------------------------------------------|
+| v0.5.0                                   | v0.24.0                                          |
 | ~~v0.3.0~~ (DONT USE, UNFINISHED)        | ~~3142151e v0.24.0?~~                            |
 | v0.2.0                                   | v0.23.0                                          |
 | v0.1.0                                   | v0.20.0                                          |
