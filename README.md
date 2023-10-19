@@ -2,12 +2,11 @@
 
 Generate [UniFFI](https://github.com/mozilla/uniffi-rs) bindings for C#. `uniffi-bindgen-cs` lives
 as a separate project from `uniffi-rs`, as per
-[uniffi-rs #1355](https://github.com/mozilla/uniffi-rs/issues/1355). Currently, `uniffi-bindgen-cs`
-uses `uniffi-rs` version `0.20.0`.
+[uniffi-rs #1355](https://github.com/mozilla/uniffi-rs/issues/1355).
 
 # How to install
 
-Minimum Rust version required to install `uniffi-bindgen-cs` is `1.64`.
+Minimum Rust version required to install `uniffi-bindgen-cs` is `1.70`.
 Newer Rust versions should also work fine.
 
 ```bash
@@ -37,6 +36,14 @@ There are a couple of requirements to compile the generated bindings file:
 </PropertyGroup>
 ```
 
+# Unsupported features
+
+The following uniffi features are unsupported.
+
+- [External types](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/40)
+
+- [Async functions](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/41)
+
 # Configuration options
 
 It's possible to configure some settings by passing `--config` argument to the generator. All
@@ -45,10 +52,9 @@ configuration keys are defined in `bindings.csharp` section.
 uniffi-bindgen-cs path/to/definitions.udl --config path/to/uniffi.toml
 ```
 
-- `package_name` - deprecated, use `namespace`.
-
 - `cdylib_name` - override the dynamic library name linked by generated bindings, excluding `lib`
-    prefix and `.dll` file extension.
+    prefix and `.dll` file extension. When using `--library` mode, defaults to library's name.
+    In standalone mode this value is required, and error will be produced if its missing.
     ```toml
     # For library `libgreeter.dll`
     [bindings.csharp]
@@ -123,6 +129,7 @@ The table shows `uniffi-rs` version history for tags that were published before 
 
 | uniffi-bindgen-cs version                | uniffi-rs version                                |
 |------------------------------------------|--------------------------------------------------|
+| v0.5.0                                   | v0.24.0                                          |
 | ~~v0.3.0~~ (DONT USE, UNFINISHED)        | ~~3142151e v0.24.0?~~                            |
 | v0.2.0                                   | v0.23.0                                          |
 | v0.1.0                                   | v0.20.0                                          |

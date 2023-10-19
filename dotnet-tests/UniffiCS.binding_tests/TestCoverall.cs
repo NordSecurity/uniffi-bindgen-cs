@@ -124,7 +124,9 @@ public class TestCoverall {
                 () => coveralls.MaybeThrowComplex(2));
             Assert.Equal("Forbidden", permission_denied.reason);
 
-            Assert.Throws<PanicException>(() => coveralls.MaybeThrowComplex(3));
+            Assert.Throws<ComplexException.UnknownException>(() => coveralls.MaybeThrowComplex(3));
+
+            Assert.Throws<PanicException>(() => coveralls.MaybeThrowComplex(4));
         }
     }
 
@@ -142,7 +144,7 @@ public class TestCoverall {
         // Make sure that there is no blocking during concurrent FFI calls.
 
         using (var counter = new ThreadsafeCounter()) {
-            const int WAIT_MILLIS = 10;
+            const int WAIT_MILLIS = 20;
 
             Thread blockingThread = new Thread(new ThreadStart(() => {
                 counter.BusyWait(WAIT_MILLIS);

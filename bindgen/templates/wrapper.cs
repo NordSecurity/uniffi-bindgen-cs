@@ -30,12 +30,7 @@ using {{ imported_class }};
 {%- endfor %}
 
 {%- call cs::docstring(ci.namespace_definition(), 0) %}
-{%- match config.namespace %}
-{%- when Some(namespace) %}
-namespace {{ namespace }};
-{%- else %}
-namespace {{ config.package_name() }}.{{ ci.namespace() }};
-{%- endmatch %}
+namespace {{ config.namespace() }};
 
 {%- for alias in self.type_aliases() %}
 using {{ alias.alias }} = {{ alias.original_type }};

@@ -58,12 +58,14 @@
 {%- include "StringHelper.cs" %}
 
 {%- when Type::Enum(name) %}
+{%- let e = ci.get_enum_definition(name).unwrap() %}
+{%- if !ci.is_name_used_as_error(name) %}
 {% include "EnumTemplate.cs" %}
-
-{%- when Type::Error(name) %}
+{%- else %}
 {% include "ErrorTemplate.cs" %}
+{%- endif -%}
 
-{%- when Type::Object(name) %}
+{%- when Type::Object{ name, imp } %}
 {% include "ObjectTemplate.cs" %}
 
 {%- when Type::Record(name) %}
@@ -73,6 +75,10 @@
 {% include "OptionalTemplate.cs" %}
 
 {%- when Type::Sequence(inner_type) %}
+{% include "SequenceTemplate.cs" %}
+
+{%- when Type::Bytes %}
+{%- let inner_type = Type::UInt8 %}
 {% include "SequenceTemplate.cs" %}
 
 {%- when Type::Map(key_type, value_type) %}
@@ -90,9 +96,11 @@
 {%- when Type::Custom { name, builtin } %}
 {% include "CustomTypeTemplate.cs" %}
 
-{%- when Type::External { crate_name, name } %}
+{%- when Type::External { crate_name, name, kind } %}
 {% include "ExternalTypeTemplate.cs" %}
 
-{%- else %}
+{%- when Type::ForeignExecutor %}
+{{ "ForeignExecutor not implemented in Types.cs {}"|panic }}
+
 {%- endmatch %}
 {%- endfor %}

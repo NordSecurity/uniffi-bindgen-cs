@@ -1,4 +1,5 @@
 use paste::paste;
+use std::collections::HashMap;
 
 macro_rules! define_custom_builtin_type {
     ($custom:ty, $underlying:ty) => {
@@ -21,8 +22,8 @@ macro_rules! define_custom_builtin_type {
 }
 
 define_custom_builtin_type!(MyString, String);
-// define_custom_builtin_type!(Array, Vec<String>);
-// define_custom_builtin_type!(Table, HashMap<String, String>);
+define_custom_builtin_type!(Array, Vec<String>);
+define_custom_builtin_type!(Table, HashMap<String, String>);
 define_custom_builtin_type!(Boolean, bool);
 define_custom_builtin_type!(Int8, i8);
 define_custom_builtin_type!(Int16, i16);
@@ -37,8 +38,8 @@ define_custom_builtin_type!(Double, f64);
 
 pub struct CustomTypesBuiltin {
     string: MyString,
-    // array: Array,
-    // table: Table,
+    array: Array,
+    table: Table,
     boolean: Boolean,
     int8: Int8,
     int16: Int16,
@@ -55,8 +56,8 @@ pub struct CustomTypesBuiltin {
 pub fn get_custom_types_builtin() -> CustomTypesBuiltin {
     return CustomTypesBuiltin {
         string: MyString("Hello, world!".to_string()),
-        // array: Array(vec!["Hello, world!".to_string()]),
-        // table: Table(HashMap::from([("hello".to_string(), "world".to_string())])),
+        array: Array(vec!["Hello, world!".to_string()]),
+        table: Table(HashMap::from([("hello".to_string(), "world".to_string())])),
         boolean: Boolean(true),
         int8: Int8(i8::MAX),
         int16: Int16(i16::MAX),
@@ -75,4 +76,4 @@ pub fn return_custom_types_builtin(custom_types: CustomTypesBuiltin) -> CustomTy
     custom_types
 }
 
-include!(concat!(env!("OUT_DIR"), "/custom-types-builtin.uniffi.rs"));
+uniffi::include_scaffolding!("custom_types_builtin");

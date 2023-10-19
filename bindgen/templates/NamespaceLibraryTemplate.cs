@@ -5,6 +5,8 @@
 // This is an implementation detail which will be called internally by the public API.
 static class _UniFFILib {
     static _UniFFILib() {
+        _UniFFILib.uniffiCheckContractApiVersion();
+        _UniFFILib.uniffiCheckApiChecksums();
         {% let initialization_fns = self.initialization_fns() %}
         {% for fn in initialization_fns -%}
         {{ fn }}();
@@ -18,4 +20,22 @@ static class _UniFFILib {
     );
 
     {% endfor %}
+
+    static void uniffiCheckContractApiVersion() {
+        var scaffolding_contract_version = _UniFFILib.{{ ci.ffi_uniffi_contract_version().name() }}();
+        if ({{ ci.uniffi_contract_version() }} != scaffolding_contract_version) {
+            throw new UniffiContractVersionException($"{{ config.namespace() }}: uniffi bindings expected version `{{ ci.uniffi_contract_version() }}`, library returned `{scaffolding_contract_version}`");
+        }
+    }
+
+    static void uniffiCheckApiChecksums() {
+        {%- for (name, expected_checksum) in ci.iter_checksums() %}
+        {
+            var checksum = _UniFFILib.{{ name }}();
+            if (checksum != {{ expected_checksum }}) {
+                throw new UniffiContractChecksumException($"{{ config.namespace() }}: uniffi bindings expected function `{{ name }}` checksum `{{ expected_checksum }}`, library returned `{checksum}`");
+            }
+        }
+        {%- endfor %}
+    }
 }

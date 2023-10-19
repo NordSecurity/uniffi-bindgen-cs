@@ -11,9 +11,9 @@ use askama::Template;
 use heck::{ToLowerCamelCase, ToUpperCamelCase};
 use serde::{Deserialize, Serialize};
 
-use uniffi_bindgen::backend::{CodeOracle, CodeType, TemplateExpression, TypeIdentifier};
+use uniffi_bindgen::backend::{CodeType, TemplateExpression, Type};
 use uniffi_bindgen::interface::*;
-use uniffi_bindgen::MergeWith;
+use uniffi_bindgen::ComponentInterface;
 
 mod callback_interface;
 mod compounds;
@@ -29,15 +29,12 @@ mod record;
 // config options to customize the generated C# bindings.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Config {
-    package_name: Option<String>,
+    namespace: Option<String>,
     cdylib_name: Option<String>,
     #[serde(default)]
     custom_types: HashMap<String, CustomTypeConfig>,
     #[serde(default)]
     external_packages: HashMap<String, String>,
-    #[serde(default)]
-    namespace: Option<String>,
-    #[serde(default)]
     global_methods_class_name: Option<String>,
 }
 
@@ -49,36 +46,35 @@ pub struct CustomTypeConfig {
     from_custom: TemplateExpression,
 }
 
-impl Config {
-    pub fn package_name(&self) -> String {
-        if let Some(package_name) = &self.package_name {
-            package_name.clone()
-        } else {
-            "uniffi".into()
-        }
+impl uniffi_bindgen::BindingsConfig for Config {
+    fn update_from_ci(&mut self, ci: &ComponentInterface) {
+        self.namespace
+            .get_or_insert_with(|| format!("uniffi.{}", ci.namespace()));
     }
 
-    pub fn cdylib_name(&self) -> String {
-        if let Some(cdylib_name) = &self.cdylib_name {
-            cdylib_name.clone()
-        } else {
-            "uniffi".into()
-        }
+    fn update_from_cdylib_name(&mut self, cdylib_name: &str) {
+        self.cdylib_name
+            .get_or_insert_with(|| cdylib_name.to_string());
+    }
+
+    fn update_from_dependency_configs(&mut self, _config_map: HashMap<&str, &Self>) {
+        // TODO
     }
 }
 
-impl MergeWith for Config {
-    fn merge_with(&self, other: &Self) -> Self {
-        Config {
-            package_name: self.package_name.merge_with(&other.package_name),
-            cdylib_name: self.cdylib_name.merge_with(&other.cdylib_name),
-            custom_types: self.custom_types.merge_with(&other.custom_types),
-            external_packages: self.external_packages.merge_with(&other.external_packages),
-            namespace: self.namespace.merge_with(&other.namespace),
-            global_methods_class_name: self
-                .global_methods_class_name
-                .merge_with(&other.global_methods_class_name),
-        }
+impl Config {
+    pub fn namespace(&self) -> String {
+        self.namespace
+            .as_ref()
+            .expect("`namespace` must be set in `update_from_ci`")
+            .clone()
+    }
+
+    pub fn cdylib_name(&self) -> String {
+        self.cdylib_name
+            .as_ref()
+            .expect("`cdylib_name` not specified")
+            .clone()
     }
 }
 
@@ -196,7 +192,8 @@ impl<'a> CsWrapper<'a> {
     pub fn initialization_fns(&self) -> Vec<String> {
         self.ci
             .iter_types()
-            .filter_map(|t| t.initialization_fn(&CsCodeOracle))
+            .map(|t| CsCodeOracle.find(t))
+            .filter_map(|ct| ct.initialization_fn())
             .collect()
     }
 
@@ -220,19 +217,20 @@ impl<'a> CsWrapper<'a> {
     }
 }
 
-#[derive(Clone)]
-pub struct CsCodeOracle;
+pub trait AsCodeType {
+    fn as_codetype(&self) -> Box<dyn CodeType>;
+}
 
-impl CsCodeOracle {
+impl<T: AsType> AsCodeType for T {
     // Map `Type` instances to a `Box<dyn CodeType>` for that type.
     //
-    // There is a companion match in `templates/Types.kt` which performs a similar function for the
+    // There is a companion match in `templates/Types.cs` which performs a similar function for the
     // template code.
     //
-    //   - When adding additional types here, make sure to also add a match arm to the `Types.kt` template.
+    //   - When adding additional types here, make sure to also add a match arm to the `Types.cs` template.
     //   - To keep things managable, let's try to limit ourselves to these 2 mega-matches
-    fn create_code_type(&self, type_: TypeIdentifier) -> Box<dyn CodeType> {
-        match type_ {
+    fn as_codetype(&self) -> Box<dyn CodeType> {
+        match self.as_type() {
             Type::UInt8 => Box::new(primitives::UInt8CodeType),
             Type::Int8 => Box::new(primitives::Int8CodeType),
             Type::UInt16 => Box::new(primitives::UInt16CodeType),
@@ -245,33 +243,33 @@ impl CsCodeOracle {
             Type::Float64 => Box::new(primitives::Float64CodeType),
             Type::Boolean => Box::new(primitives::BooleanCodeType),
             Type::String => Box::new(primitives::StringCodeType),
+            Type::Bytes => Box::new(compounds::SequenceCodeType::new(Type::UInt8)),
 
             Type::Timestamp => Box::new(miscellany::TimestampCodeType),
             Type::Duration => Box::new(miscellany::DurationCodeType),
 
             Type::Enum(id) => Box::new(enum_::EnumCodeType::new(id)),
-            Type::Object(id) => Box::new(object::ObjectCodeType::new(id)),
+            Type::Object { name, .. } => Box::new(object::ObjectCodeType::new(name)),
             Type::Record(id) => Box::new(record::RecordCodeType::new(id)),
-            Type::Error(id) => Box::new(error::ErrorCodeType::new(id)),
             Type::CallbackInterface(id) => {
                 Box::new(callback_interface::CallbackInterfaceCodeType::new(id))
             }
+            Type::ForeignExecutor => panic!("TODO implement async"),
             Type::Optional(inner) => Box::new(compounds::OptionalCodeType::new(*inner)),
             Type::Sequence(inner) => Box::new(compounds::SequenceCodeType::new(*inner)),
             Type::Map(key, value) => Box::new(compounds::MapCodeType::new(*key, *value)),
             Type::External { name, .. } => Box::new(external::ExternalCodeType::new(name)),
             Type::Custom { name, .. } => Box::new(custom::CustomCodeType::new(name)),
-
-            Type::Unresolved { name } => {
-                unreachable!("Type `{name}` must be resolved before calling create_code_type")
-            }
         }
     }
 }
 
-impl CodeOracle for CsCodeOracle {
-    fn find(&self, type_: &TypeIdentifier) -> Box<dyn CodeType> {
-        self.create_code_type(type_.clone())
+#[derive(Clone)]
+pub struct CsCodeOracle;
+
+impl CsCodeOracle {
+    fn find(&self, type_: &Type) -> Box<dyn CodeType> {
+        type_.clone().as_type().as_codetype()
     }
 
     /// Get the idiomatic C# rendering of a class name (for enums, records, errors, etc).
@@ -321,10 +319,15 @@ impl CodeOracle for CsCodeOracle {
             FfiType::Float32 => "float".to_string(),
             FfiType::Float64 => "double".to_string(),
             FfiType::RustArcPtr(name) => format!("{}SafeHandle", name),
-            FfiType::RustArcPtrUnsafe(_) => format!("IntPtr"),
             FfiType::RustBuffer(_) => "RustBuffer".to_string(),
             FfiType::ForeignBytes => "ForeignBytes".to_string(),
             FfiType::ForeignCallback => "ForeignCallback".to_string(),
+            FfiType::ForeignExecutorHandle => panic!("TODO implement async"),
+            FfiType::ForeignExecutorCallback => panic!("TODO implement async"),
+            FfiType::FutureCallback { .. } => {
+                panic!("TODO implement async")
+            }
+            FfiType::FutureCallbackData => panic!("TODO implement async"),
         }
     }
 }
@@ -336,8 +339,8 @@ pub mod filters {
         &CsCodeOracle
     }
 
-    pub fn type_name(codetype: &impl CodeType) -> Result<String, askama::Error> {
-        Ok(codetype.type_label(oracle()))
+    pub fn type_name(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
+        Ok(as_ct.as_codetype().type_label())
     }
 
     pub fn type_name_custom(typ: &Type) -> Result<String, askama::Error> {
@@ -364,54 +367,54 @@ pub mod filters {
         }
     }
 
-    pub fn canonical_name(codetype: &impl CodeType) -> Result<String, askama::Error> {
-        Ok(codetype.canonical_name(oracle()))
+    pub fn canonical_name(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
+        Ok(as_ct.as_codetype().canonical_name())
     }
 
-    pub fn ffi_converter_name(codetype: &impl CodeType) -> Result<String, askama::Error> {
-        Ok(codetype.ffi_converter_name(oracle()))
+    pub fn ffi_converter_name(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
+        Ok(as_ct.as_codetype().ffi_converter_name())
     }
 
-    pub fn lower_fn(codetype: &impl CodeType) -> Result<String, askama::Error> {
+    pub fn lower_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
         Ok(format!(
             "{}.INSTANCE.Lower",
-            codetype.ffi_converter_name(oracle())
+            as_ct.as_codetype().ffi_converter_name()
         ))
     }
 
-    pub fn allocation_size_fn(codetype: &impl CodeType) -> Result<String, askama::Error> {
+    pub fn allocation_size_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
         Ok(format!(
             "{}.INSTANCE.AllocationSize",
-            codetype.ffi_converter_name(oracle())
+            as_ct.as_codetype().ffi_converter_name()
         ))
     }
 
-    pub fn write_fn(codetype: &impl CodeType) -> Result<String, askama::Error> {
+    pub fn write_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
         Ok(format!(
             "{}.INSTANCE.Write",
-            codetype.ffi_converter_name(oracle())
+            as_ct.as_codetype().ffi_converter_name()
         ))
     }
 
-    pub fn lift_fn(codetype: &impl CodeType) -> Result<String, askama::Error> {
+    pub fn lift_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
         Ok(format!(
             "{}.INSTANCE.Lift",
-            codetype.ffi_converter_name(oracle())
+            as_ct.as_codetype().ffi_converter_name()
         ))
     }
 
-    pub fn read_fn(codetype: &impl CodeType) -> Result<String, askama::Error> {
+    pub fn read_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
         Ok(format!(
             "{}.INSTANCE.Read",
-            codetype.ffi_converter_name(oracle())
+            as_ct.as_codetype().ffi_converter_name()
         ))
     }
 
     pub fn render_literal(
         literal: &Literal,
-        codetype: &impl CodeType,
+        as_ct: &impl AsCodeType,
     ) -> Result<String, askama::Error> {
-        Ok(codetype.literal(oracle(), literal))
+        Ok(as_ct.as_codetype().literal(literal))
     }
 
     /// Get the C# syntax for representing a given low-level `FFIType`.
@@ -445,6 +448,15 @@ pub mod filters {
         Ok(oracle().error_name(nm))
     }
 
+    // Get C# error code type representation.
+    pub fn as_error(type_: &Type) -> Result<error::ErrorCodeTypeProvider, askama::Error> {
+        match type_ {
+            Type::Enum(id) => Ok(error::ErrorCodeTypeProvider { id }),
+            // XXX - not sure how we are supposed to return askama::Error?
+            _ => panic!("unsupported type for error: {type_:?}"),
+        }
+    }
+
     /// Get the idiomatic C# rendering of docstring
     pub fn docstring(docstring: &str, spaces: &i32) -> Result<String, askama::Error> {
         let middle = textwrap::indent(&textwrap::dedent(docstring), "/// ");
@@ -452,5 +464,10 @@ pub mod filters {
 
         let spaces = usize::try_from(*spaces).unwrap_or_default();
         Ok(textwrap::indent(&wrapped, &" ".repeat(spaces)))
+    }
+
+    /// Panic with message
+    pub fn panic(message: &str) -> Result<String, askama::Error> {
+        panic!("{}", message)
     }
 }

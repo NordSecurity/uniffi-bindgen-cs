@@ -13,16 +13,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.64
+      image: rust:1.70
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: 'true'
     - name: Build
-      run: ./build.sh
+      run: |
+        ./build.sh
+        ./generate_bindings.sh
     - uses: actions/upload-artifact@v3
       with:
         path: |
+          dotnet-tests/UniffiCS/gen
           target/debug/libuniffi_fixtures.so
           target/debug/uniffi-bindgen-cs
 
@@ -43,14 +46,17 @@ jobs:
       image: mcr.microsoft.com/dotnet/sdk:6.0
     needs: build
     steps:
+
     - uses: actions/checkout@v3
       with:
         submodules: 'true'
+
     - uses: actions/download-artifact@v3
-      with:
-        name: artifact
-        path: target/debug
+
     - name: Test
       run: |
+        # copy artifacts to root directory
+        cp -R artifact/* .
+
         chmod +x target/debug/uniffi-bindgen-cs
         ./test_bindings.sh

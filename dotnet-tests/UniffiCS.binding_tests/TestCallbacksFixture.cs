@@ -35,6 +35,15 @@ class CsharpGetters: ForeignGetters {
     public List<Int32> GetList(List<Int32> v, Boolean arg2) {
         return arg2 ? v : new List<Int32>();
     }
+
+    public void GetNothing(String v) {
+        if (v == "bad-argument") {
+            throw new SimpleException.BadArgument("bad argument");
+        }
+        if (v == "unexpected-error") {
+            throw new Exception("something failed");
+        }
+    }
 }
 
 class CsharpStringifier: StoredForeignStringifier {
@@ -110,6 +119,18 @@ public class TestCallbacksFixture {
             foreach (var v in new List<List<Double?>?>{null, new List<Double?>{null, 3.14}}) {
                 Assert.Equal(stringifier.FromComplexType(v), rustStringifier.FromComplexType(v));
             }
+        }
+    }
+
+    [Fact]
+    public void VoidCallbackExceptions() {
+        var callback = new CsharpGetters();
+        using (var rustGetters = new RustGetters()) {
+            // no exception
+            rustGetters.GetNothing(callback, "foo");
+
+            Assert.Throws<SimpleException.BadArgument>(() => rustGetters.GetNothing(callback, "bad-argument"));
+            Assert.Throws<SimpleException.UnexpectedException>(() => rustGetters.GetNothing(callback, "unexpected-error"));
         }
     }
 }

@@ -26,7 +26,7 @@ class {{ e|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
         if (Enum.IsDefined(typeof({{ type_name }}), value)) {
             return ({{ type_name }})value;
         } else {
-            throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Read()", value));
+            throw new InternalException(String.Format("invalid enum value '{0}' in {{ e|ffi_converter_name }}.Read()", value));
         }
     }
 
@@ -67,7 +67,7 @@ public record {{ type_name }}{% if contains_object_references %}: IDisposable {%
                 break;
             {%- endfor %}
             default:
-                throw new InternalException(String.Format("invalid enum value '{}' in {{ type_name }}.Dispose()", this));
+                throw new InternalException(String.Format("invalid enum value '{0}' in {{ type_name }}.Dispose()", this));
         }
     }
     {% endif %}
@@ -88,7 +88,7 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>{
                 );
             {%- endfor %}
             default:
-                throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Read()", value));
+                throw new InternalException(String.Format("invalid enum value '{0}' in {{ e|ffi_converter_name }}.Read()", value));
         }
     }
 
@@ -102,7 +102,7 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>{
                     {%- endfor %};
             {%- endfor %}
             default:
-                throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.AllocationSize()", value));
+                throw new InternalException(String.Format("invalid enum value '{0}' in {{ e|ffi_converter_name }}.AllocationSize()", value));
         }
     }
 
@@ -117,7 +117,7 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>{
                 break;
             {%- endfor %}
             default:
-                throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Write()", value));
+                throw new InternalException(String.Format("invalid enum value '{0}' in {{ e|ffi_converter_name }}.Write()", value));
         }
     }
 }

@@ -3,23 +3,24 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 use paste::paste;
-use uniffi_bindgen::backend::{CodeOracle, CodeType, Literal};
+use uniffi_bindgen::backend::{CodeType, Literal};
 
 macro_rules! impl_code_type_for_miscellany {
     ($T:ty, $class_name:literal, $canonical_name:literal) => {
         paste! {
+            #[derive(Debug)]
             pub struct $T;
 
             impl CodeType for $T  {
-                fn type_label(&self, _oracle: &dyn CodeOracle) -> String {
+                fn type_label(&self) -> String {
                     $class_name.into()
                 }
 
-                fn canonical_name(&self, _oracle: &dyn CodeOracle) -> String {
+                fn canonical_name(&self) -> String {
                    $canonical_name.into()
                }
 
-                fn literal(&self, _oracle: &dyn CodeOracle, _literal: &Literal) -> String {
+                fn literal(&self, _literal: &Literal) -> String {
                     unreachable!()
                 }
             }

@@ -6,7 +6,4 @@ pub fn hello_world() -> String {
     "Hello, world!".to_string()
 }
 
-include!(concat!(
-    env!("OUT_DIR"),
-    "/global_methods_class_name.uniffi.rs"
-));
+uniffi::include_scaffolding!("global_methods_class_name");

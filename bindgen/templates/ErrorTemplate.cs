@@ -2,7 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
-{%- let e = ci.get_error_definition(name).unwrap() %}
+{%- let type_name = type_|as_error|type_name %}
+{%- let ffi_converter_name = type_|as_error|ffi_converter_name %}
+{%- let canonical_type_name = type_|as_error|canonical_name %}
 
 {% if e.is_flat() %}
 {%- call cs::docstring(e, 0) %}
@@ -19,22 +21,22 @@ public class {{ type_name }}: UniffiException {
     {% endfor %}
 }
 
-class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallStatusErrorHandler<{{ type_name }}> {
-    public static {{ e|ffi_converter_name }} INSTANCE = new {{ e|ffi_converter_name }}();
+class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallStatusErrorHandler<{{ type_name }}> {
+    public static {{ ffi_converter_name }} INSTANCE = new {{ ffi_converter_name }}();
 
     public override {{ type_name }} Read(BigEndianStream stream) {
         var value = stream.ReadInt();
         switch (value) {
             {%- for variant in e.variants() %}
-            case {{ loop.index }}: return new {{ type_name }}.{{ variant.name()|exception_name }}({{ TypeIdentifier::String.borrow()|read_fn }}(stream));
+            case {{ loop.index }}: return new {{ type_name }}.{{ variant.name()|exception_name }}({{ Type::String.borrow()|read_fn }}(stream));
             {%- endfor %}
             default:
-                throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Read()", value));
+                throw new InternalException(String.Format("invalid error value '{0}' in {{ ffi_converter_name }}.Read()", value));
         }
     }
 
     public override int AllocationSize({{ type_name }} value) {
-        return 4 + {{ TypeIdentifier::String.borrow()|allocation_size_fn }}(value.Message);
+        return 4 + {{ Type::String.borrow()|allocation_size_fn }}(value.Message);
     }
 
     public override void Write({{ type_name }} value, BigEndianStream stream) {
@@ -42,11 +44,10 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, Call
             {%- for variant in e.variants() %}
             case {{ type_name }}.{{ variant.name()|exception_name }}:
                 stream.WriteInt({{ loop.index }});
-                {{ TypeIdentifier::String.borrow()|write_fn }}(value.Message, stream);
                 break;
             {%- endfor %}
             default:
-                throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Write()", value));
+                throw new InternalException(String.Format("invalid error value '{0}' in {{ ffi_converter_name }}.Write()", value));
         }
     }
 }
@@ -90,14 +91,14 @@ public class {{ type_name }}: UniffiException{% if contains_object_references %}
                 break;
             {%- endfor %}
             default:
-                throw new InternalException(String.Format("invalid enum value '{}' in {{ type_name }}.Dispose()", this));
+                throw new InternalException(String.Format("invalid error value '{0}' in {{ type_name }}.Dispose()", this));
         }
     }
     {% endif %}
 }
 
-class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallStatusErrorHandler<{{ type_name }}> {
-    public static {{ e|ffi_converter_name }} INSTANCE = new {{ e|ffi_converter_name }}();
+class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallStatusErrorHandler<{{ type_name }}> {
+    public static {{ ffi_converter_name }} INSTANCE = new {{ ffi_converter_name }}();
 
     public override {{ type_name }} Read(BigEndianStream stream) {
         var value = stream.ReadInt();
@@ -110,7 +111,7 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, Call
                     {%- endfor %});
             {%- endfor %}
             default:
-                throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Read()", value));
+                throw new InternalException(String.Format("invalid error value '{0}' in {{ ffi_converter_name }}.Read()", value));
         }
     }
 
@@ -124,7 +125,7 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, Call
                     {%- endfor %};
             {%- endfor %}
             default:
-                throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.AllocationSize()", value));
+                throw new InternalException(String.Format("invalid error value '{0}' in {{ ffi_converter_name }}.AllocationSize()", value));
         }
     }
 
@@ -139,7 +140,7 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, Call
                 break;
             {%- endfor %}
             default:
-                throw new InternalException(String.Format("invalid enum value '{}' in {{ e|ffi_converter_name }}.Write()", value));
+                throw new InternalException(String.Format("invalid error value '{0}' in {{ ffi_converter_name }}.Write()", value));
         }
     }
 }

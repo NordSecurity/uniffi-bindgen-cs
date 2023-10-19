@@ -11,7 +11,7 @@
 {%- macro to_ffi_call(func) -%}
     {%- match func.throws_type() %}
     {%- when Some with (e) %}
-    _UniffiHelpers.RustCallWithError({{ e|ffi_converter_name}}.INSTANCE,
+    _UniffiHelpers.RustCallWithError({{ e|as_error|ffi_converter_name}}.INSTANCE,
     {%- else %}
     _UniffiHelpers.RustCall(
     {%- endmatch %} (ref RustCallStatus _status) =>
@@ -22,7 +22,7 @@
 {%- macro to_ffi_call_with_prefix(prefix, func) %}
     {%- match func.throws_type() %}
     {%- when Some with (e) %}
-    _UniffiHelpers.RustCallWithError({{ e|ffi_converter_name}}.INSTANCE,
+    _UniffiHelpers.RustCallWithError({{ e|as_error|ffi_converter_name}}.INSTANCE,
     {%- else %}
     _UniffiHelpers.RustCall(
     {%- endmatch %} (ref RustCallStatus _status) =>
@@ -65,10 +65,14 @@
 // Note unfiltered name but ffi_type_name filters.
 -#}
 {%- macro arg_list_ffi_decl(func) %}
+    {%- if func.is_object_free_function() %}
+    IntPtr ptr,
+    {%- else %}
     {%- for arg in func.arguments() %}
         {{- arg.type_().borrow()|ffi_type_name }} {{ arg.name()|var_name -}},
     {%- endfor %}
-    ref RustCallStatus _uniffi_out_err
+    {%- endif %}
+    {%- if func.has_rust_call_status_arg() %}ref RustCallStatus _uniffi_out_err{% endif %}
 {%- endmacro -%}
 
 // Macro for destroying fields
@@ -88,7 +92,7 @@ fun {{ func.name()|fn_name }}(
 {%- macro method_throws_annotation(throwable_type) %}
     {%- match throwable_type -%}
     {%- when Some with (throwable) %}
-    /// <exception cref="{{ throwable|type_name }}"></exception>
+    /// <exception cref="{{ throwable|as_error|type_name }}"></exception>
     {%- else -%}
     {%- endmatch %}
 {%- endmacro %}
