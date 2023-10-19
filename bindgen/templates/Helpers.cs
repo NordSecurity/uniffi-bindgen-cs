@@ -7,7 +7,7 @@
 // Error runtime.
 [StructLayout(LayoutKind.Sequential)]
 struct RustCallStatus {
-    public int code;
+    public sbyte code;
     public RustBuffer error_buf;
 
     public bool IsSuccess() {
