@@ -31,11 +31,11 @@ struct Cli {
     lib_file: Option<Utf8PathBuf>,
 
     /// Pass in a cdylib path rather than a UDL file
-    #[clap(long = "library")]
+    #[clap(long = "library", conflicts_with_all = &["config", "lib-file"], requires = "out-dir")]
     library_mode: bool,
 
     /// When `--library` is passed, only generate bindings for one crate
-    #[clap(long = "crate")]
+    #[clap(long = "crate", requires = "library-mode")]
     crate_name: Option<String>,
 
     /// Path to the UDL file, or cdylib if `library-mode` is specified
@@ -106,12 +106,6 @@ pub fn main() -> Result<()> {
     let cli = Cli::parse();
 
     if cli.library_mode {
-        if cli.lib_file.is_some() {
-            panic!("--lib-file is not compatible with --library.")
-        }
-        if cli.config.is_some() {
-            panic!("--config is not compatible with --library.  The config file(s) will be found automatically.")
-        }
         let out_dir = cli
             .out_dir
             .expect("--out-dir is required when using --library");
@@ -123,9 +117,6 @@ pub fn main() -> Result<()> {
         )
         .map(|_| ())
     } else {
-        if cli.crate_name.is_some() {
-            panic!("--crate requires --library.")
-        }
         uniffi_bindgen::generate_external_bindings(
             BindingGenerator {},
             &cli.source,
