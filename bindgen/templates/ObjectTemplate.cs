@@ -57,6 +57,16 @@ public class {{ type_name }}: FFIObject<{{ safe_handle_type }}>, I{{ type_name }
     {% endmatch %}
     {% endfor %}
 
+    {%- for tm in obj.uniffi_traits() -%}
+    {%- match tm %}
+    {%- when UniffiTrait::Display { fmt } %}
+    public override string ToString() {
+        return {{ Type::String.borrow()|lift_fn }}({%- call cs::to_ffi_call_with_prefix("this.GetHandle()", fmt) %});
+    }
+    {%- else %}
+    {%- endmatch %}
+    {%- endfor %}
+
     {% if !obj.alternate_constructors().is_empty() -%}
     {% for cons in obj.alternate_constructors() -%}
     {%- call cs::docstring(cons, 4) %}
