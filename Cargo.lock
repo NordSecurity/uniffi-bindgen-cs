@@ -1202,6 +1202,7 @@ dependencies = [
  "uniffi-fixture-coverall",
  "uniffi-fixture-docstring",
  "uniffi-fixture-time",
+ "uniffi-fixture-trait-methods",
 ]
 
 [[package]]
@@ -1315,6 +1316,15 @@ name = "uniffi-fixture-time"
 version = "0.22.0"
 dependencies = [
  "chrono",
+ "thiserror",
+ "uniffi",
+]
+
+[[package]]
+name = "uniffi-fixture-trait-methods"
+version = "0.22.0"
+dependencies = [
+ "once_cell",
  "thiserror",
  "uniffi",
 ]
