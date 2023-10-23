@@ -7,22 +7,22 @@ use uniffi_bindgen::backend::{CodeType, Literal};
 
 #[derive(Debug)]
 pub struct ErrorCodeType {
-    id: String,
+    name: String,
 }
 
 impl ErrorCodeType {
-    pub fn new(id: String) -> Self {
-        Self { id }
+    pub fn new(name: String) -> Self {
+        Self { name }
     }
 }
 
 impl CodeType for ErrorCodeType {
     fn type_label(&self) -> String {
-        CsCodeOracle.error_name(&self.id)
+        CsCodeOracle.error_name(&self.name)
     }
 
     fn canonical_name(&self) -> String {
-        format!("Type{}", CsCodeOracle.error_name(&self.id))
+        format!("Type{}", CsCodeOracle.error_name(&self.name))
     }
 
     fn literal(&self, _literal: &Literal) -> String {
@@ -31,11 +31,11 @@ impl CodeType for ErrorCodeType {
 }
 
 pub struct ErrorCodeTypeProvider<'a> {
-    pub id: &'a String,
+    pub name: &'a String,
 }
 
 impl<'a> AsCodeType for ErrorCodeTypeProvider<'a> {
     fn as_codetype(&self) -> Box<dyn CodeType> {
-        Box::new(ErrorCodeType::new(self.id.clone()))
+        Box::new(ErrorCodeType::new(self.name.clone()))
     }
 }

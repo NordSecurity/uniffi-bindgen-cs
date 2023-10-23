@@ -21,12 +21,16 @@ public class TestDocstring {
         UniffiDocstringMethods.Test();
 
         _ = EnumTest.One;
+        _ = EnumTest.Two;
 
-        _ = new AssociatedEnumTest.Test();
+        _ = new AssociatedEnumTest.Test(0);
+        _ = new AssociatedEnumTest.Test2(0);
 
         _ = new ErrorTest.One("hello");
+        _ = new ErrorTest.Two("hello");
 
-        _ = new AssociatedErrorTest.Test();
+        _ = new AssociatedErrorTest.Test(0);
+        _ = new AssociatedErrorTest.Test2(0);
 
         var obj1 = new ObjectTest();
         var obj2 = ObjectTest.NewAlternate();

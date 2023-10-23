@@ -6,4 +6,4 @@ docker run \
     --volume $HOME/.cargo/registry:/usr/local/cargo/registry \
     --volume $PWD:/mounted_workdir \
     --workdir /mounted_workdir \
-    rust:1.70 ./build.sh
+    rust:1.72-bullseye ./build.sh

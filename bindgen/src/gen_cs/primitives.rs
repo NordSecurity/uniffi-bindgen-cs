@@ -4,7 +4,7 @@
 
 use paste::paste;
 use uniffi_bindgen::backend::{CodeType, Literal};
-use uniffi_bindgen::interface::{types::Type, Radix};
+use uniffi_bindgen::interface::{Radix, Type};
 
 fn render_literal(literal: &Literal) -> String {
     fn typed_number(type_: &Type, num_str: String) -> String {

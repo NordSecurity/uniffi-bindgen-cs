@@ -69,7 +69,7 @@
     IntPtr ptr,
     {%- else %}
     {%- for arg in func.arguments() %}
-        {{- arg.type_().borrow()|ffi_type_name }} {{ arg.name()|var_name -}},
+        {{- arg.type_().borrow()|ffi_type_name }} {{ arg.name()|var_name -}}{%- if !loop.last || func.has_rust_call_status_arg() -%},{%- endif -%}
     {%- endfor %}
     {%- endif %}
     {%- if func.has_rust_call_status_arg() %}ref RustCallStatus _uniffi_out_err{% endif %}

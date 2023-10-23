@@ -120,10 +120,13 @@ impl<'a> TypeRenderer<'a> {
     }
 
     // Get the package name for an external type
-    fn external_type_package_name(&self, crate_name: &str) -> String {
+    fn external_type_package_name(&self, module_path: &str, namespace: &str) -> String {
+        // config overrides are keyed by the crate name, default fallback is the namespace.
+        let crate_name = module_path.split("::").next().unwrap();
         match self.cs_config.external_packages.get(crate_name) {
             Some(name) => name.clone(),
-            None => crate_name.to_string(),
+            // unreachable in library mode - all deps are in our config with correct namespace.
+            None => format!("uniffi.{namespace}"),
         }
     }
 
@@ -248,16 +251,23 @@ impl<T: AsType> AsCodeType for T {
             Type::Timestamp => Box::new(miscellany::TimestampCodeType),
             Type::Duration => Box::new(miscellany::DurationCodeType),
 
-            Type::Enum(id) => Box::new(enum_::EnumCodeType::new(id)),
+            Type::Enum { name, .. } => Box::new(enum_::EnumCodeType::new(name)),
             Type::Object { name, .. } => Box::new(object::ObjectCodeType::new(name)),
-            Type::Record(id) => Box::new(record::RecordCodeType::new(id)),
-            Type::CallbackInterface(id) => {
-                Box::new(callback_interface::CallbackInterfaceCodeType::new(id))
+            Type::Record { name, .. } => Box::new(record::RecordCodeType::new(name)),
+            Type::CallbackInterface { name, .. } => {
+                Box::new(callback_interface::CallbackInterfaceCodeType::new(name))
             }
             Type::ForeignExecutor => panic!("TODO implement async"),
-            Type::Optional(inner) => Box::new(compounds::OptionalCodeType::new(*inner)),
-            Type::Sequence(inner) => Box::new(compounds::SequenceCodeType::new(*inner)),
-            Type::Map(key, value) => Box::new(compounds::MapCodeType::new(*key, *value)),
+            Type::Optional { inner_type } => {
+                Box::new(compounds::OptionalCodeType::new(*inner_type))
+            }
+            Type::Sequence { inner_type } => {
+                Box::new(compounds::SequenceCodeType::new(*inner_type))
+            }
+            Type::Map {
+                key_type,
+                value_type,
+            } => Box::new(compounds::MapCodeType::new(*key_type, *value_type)),
             Type::External { name, .. } => Box::new(external::ExternalCodeType::new(name)),
             Type::Custom { name, .. } => Box::new(custom::CustomCodeType::new(name)),
         }
@@ -324,10 +334,9 @@ impl CsCodeOracle {
             FfiType::ForeignCallback => "ForeignCallback".to_string(),
             FfiType::ForeignExecutorHandle => panic!("TODO implement async"),
             FfiType::ForeignExecutorCallback => panic!("TODO implement async"),
-            FfiType::FutureCallback { .. } => {
-                panic!("TODO implement async")
-            }
-            FfiType::FutureCallbackData => panic!("TODO implement async"),
+            FfiType::RustFutureHandle => "IntPtr".to_string(),
+            FfiType::RustFutureContinuationCallback => "IntPtr".to_string(),
+            FfiType::RustFutureContinuationData => "IntPtr".to_string(),
         }
     }
 }
@@ -417,6 +426,10 @@ pub mod filters {
         Ok(as_ct.as_codetype().literal(literal))
     }
 
+    pub fn ffi_type(type_: &impl AsType) -> Result<FfiType, askama::Error> {
+        Ok(type_.as_type().into())
+    }
+
     /// Get the C# syntax for representing a given low-level `FFIType`.
     pub fn ffi_type_name(type_: &FfiType) -> Result<String, askama::Error> {
         Ok(oracle().ffi_type_label(type_))
@@ -451,7 +464,7 @@ pub mod filters {
     // Get C# error code type representation.
     pub fn as_error(type_: &Type) -> Result<error::ErrorCodeTypeProvider, askama::Error> {
         match type_ {
-            Type::Enum(id) => Ok(error::ErrorCodeTypeProvider { id }),
+            Type::Enum { name, .. } => Ok(error::ErrorCodeTypeProvider { name }),
             // XXX - not sure how we are supposed to return askama::Error?
             _ => panic!("unsupported type for error: {type_:?}"),
         }

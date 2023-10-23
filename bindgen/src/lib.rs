@@ -113,6 +113,7 @@ pub fn main() -> Result<()> {
             BindingGenerator {},
             &cli.source,
             cli.crate_name,
+            cli.config.as_deref(),
             &out_dir,
         )
         .map(|_| ())
@@ -123,6 +124,7 @@ pub fn main() -> Result<()> {
             cli.config.as_deref(),
             cli.out_dir.as_deref(),
             cli.lib_file.as_deref(),
+            cli.crate_name.as_deref(),
         )
     }
 }
