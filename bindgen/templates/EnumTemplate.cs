@@ -6,7 +6,6 @@
 // C# doesn't support enums with associated data. Use regular `enum` for flat
 // enums, and `record` for enums with associated data.
 #}
-{%- let e = ci.get_enum_definition(name).unwrap() %}
 
 {%- if e.is_flat() %}
 
