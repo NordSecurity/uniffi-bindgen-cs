@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+using System.Collections.Generic;
 using System.Threading;
 using System;
 using uniffi.coverall;
@@ -168,4 +169,10 @@ public class TestCoverall {
         }
     }
 
+    [Fact]
+    public void TestBytes() {
+        using (var coveralls = new Coveralls("test_bytes")) {
+            Assert.Equal(new List<byte> { 3, 2, 1 }, coveralls.Reverse(new List<byte> { 1, 2, 3 }));
+        }
+    }
 }
