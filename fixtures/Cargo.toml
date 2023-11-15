@@ -9,7 +9,6 @@ path = "src/lib.rs"
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
-bytes-type = { path = "bytes-type" }
 global-methods-class-name = { path = "global-methods-class-name" }
 uniffi-cs-custom-types-builtin = { path = "custom-types-builtin" }
 uniffi-cs-disposable-fixture = { path = "disposable" }

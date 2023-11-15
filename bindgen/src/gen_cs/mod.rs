@@ -108,12 +108,6 @@ pub struct TypeAlias {
     original_type: String,
 }
 
-fn get_bytes_underlying_type() -> Type {
-    Type::Sequence {
-        inner_type: Box::new(Type::UInt8),
-    }
-}
-
 impl<'a> TypeRenderer<'a> {
     fn new(cs_config: &'a Config, ci: &'a ComponentInterface) -> Self {
         Self {
@@ -123,23 +117,6 @@ impl<'a> TypeRenderer<'a> {
             imports: RefCell::new(BTreeSet::new()),
             type_aliases: RefCell::new(BTreeSet::new()),
         }
-    }
-
-    fn get_cs_types(&self) -> BTreeSet<Type> {
-        let mut types: BTreeSet<Type> = self.ci.iter_types().cloned().collect();
-
-        // Replace Type::Bytes with Type::Sequence<u8>
-        if types.remove(&Type::Bytes) {
-            let bytes_type = get_bytes_underlying_type();
-            types.insert(bytes_type.clone());
-
-            match bytes_type {
-                Type::Sequence { inner_type } => types.insert(*inner_type),
-                _ => panic!("incorrect bytes type: {:?}", bytes_type),
-            };
-        }
-
-        types
     }
 
     // Get the package name for an external type
@@ -269,7 +246,7 @@ impl<T: AsType> AsCodeType for T {
             Type::Float64 => Box::new(primitives::Float64CodeType),
             Type::Boolean => Box::new(primitives::BooleanCodeType),
             Type::String => Box::new(primitives::StringCodeType),
-            Type::Bytes => get_bytes_underlying_type().as_codetype(),
+            Type::Bytes => Box::new(primitives::BytesCodeType),
 
             Type::Timestamp => Box::new(miscellany::TimestampCodeType),
             Type::Duration => Box::new(miscellany::DurationCodeType),

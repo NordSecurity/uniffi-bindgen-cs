@@ -4,7 +4,7 @@
 
 {%- import "macros.cs" as cs %}
 
-{%- for type_ in self.get_cs_types() %}
+{%- for type_ in ci.iter_types() %}
 {%- let type_name = type_|type_name %}
 {%- let ffi_converter_name = type_|ffi_converter_name %}
 {%- let canonical_type_name = type_|canonical_name %}
@@ -78,7 +78,7 @@
 {% include "SequenceTemplate.cs" %}
 
 {%- when Type::Bytes %}
-{{ "Type::Bytes not supposed to be rendered"|panic }}
+{% include "BytesTemplate.cs" %}
 
 {%- when Type::Map { key_type, value_type } %}
 {% include "MapTemplate.cs" %}
