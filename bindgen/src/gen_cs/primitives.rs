@@ -86,3 +86,4 @@ impl_code_type_for_primitive!(UInt32CodeType, "uint", "UInt32");
 impl_code_type_for_primitive!(UInt64CodeType, "ulong", "UInt64");
 impl_code_type_for_primitive!(Float32CodeType, "float", "Float");
 impl_code_type_for_primitive!(Float64CodeType, "double", "Double");
+impl_code_type_for_primitive!(BytesCodeType, "byte[]", "ByteArray");

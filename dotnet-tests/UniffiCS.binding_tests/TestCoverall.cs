@@ -172,7 +172,7 @@ public class TestCoverall {
     [Fact]
     public void TestBytes() {
         using (var coveralls = new Coveralls("test_bytes")) {
-            Assert.Equal(new List<byte> { 3, 2, 1 }, coveralls.Reverse(new List<byte> { 1, 2, 3 }));
+            Assert.Equal(new byte[] { 3, 2, 1 }, coveralls.Reverse(new byte[] { 1, 2, 3}));
         }
     }
 }
