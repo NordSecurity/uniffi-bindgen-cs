@@ -14,7 +14,7 @@ v0.6.0+v0.25.0
 
 ## Update version in [bindgen/Cargo.toml](../bindgen/Cargo.toml)
 
-Note that the version in [bindgen/Cargo.toml](../bindgen/Cargo.toml) does is not prefixed with `v`,
+Note that the version in [bindgen/Cargo.toml](../bindgen/Cargo.toml) is not prefixed with `v`,
 i.e. `0.6.0+v0.25.0` instead of `v0.6.0+v0.25.0`.
 
 ## Update version in [Cargo.lock](../Cargo.lock)
