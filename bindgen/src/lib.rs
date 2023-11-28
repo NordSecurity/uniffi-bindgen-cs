@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 pub mod gen_cs;
+
 use anyhow::{bail, Result};
 use camino::{Utf8Path, Utf8PathBuf};
 use clap::Parser;
@@ -40,6 +41,10 @@ struct Cli {
 
     /// Path to the UDL file, or cdylib if `library-mode` is specified
     source: Utf8PathBuf,
+
+    /// Do not try to format the generated bindings.
+    #[clap(long, short)]
+    no_format: bool,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -73,7 +78,9 @@ impl BindingsConfig for ConfigRoot {
     }
 }
 
-struct BindingGenerator {}
+struct BindingGenerator {
+    try_format_code: bool,
+}
 
 impl uniffi_bindgen::BindingGenerator for BindingGenerator {
     type Config = ConfigRoot;
@@ -86,10 +93,23 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
     ) -> anyhow::Result<()> {
         let bindings_file = out_dir.join(format!("{}.cs", ci.namespace()));
         let mut f = File::create(&bindings_file)?;
-        write!(f, "{}", generate_bindings(&config.bindings.csharp, &ci)?)?;
 
-        // TODO: find a way to easily format standalone C# files
-        // https://github.com/dotnet/format
+        let mut bindings = generate_bindings(&config.bindings.csharp, &ci)?;
+
+        if self.try_format_code {
+            match gen_cs::formatting::format(bindings.clone()) {
+                Ok(formatted) => bindings = formatted,
+                Err(e) => {
+                    println!(
+                        "Warning: Unable to auto-format {} using CSharpier (hint: 'dotnet tool install -g csharpier'): {e:?}",
+                        bindings_file.file_name().unwrap(),
+                    );
+                }
+            }
+        }
+
+        bindings = gen_cs::formatting::add_header(bindings);
+        write!(f, "{}", bindings)?;
 
         Ok(())
     }
@@ -110,7 +130,7 @@ pub fn main() -> Result<()> {
             .out_dir
             .expect("--out-dir is required when using --library");
         uniffi_bindgen::library_mode::generate_external_bindings(
-            BindingGenerator {},
+            BindingGenerator { try_format_code: !cli.no_format },
             &cli.source,
             cli.crate_name,
             cli.config.as_deref(),
@@ -119,7 +139,7 @@ pub fn main() -> Result<()> {
         .map(|_| ())
     } else {
         uniffi_bindgen::generate_external_bindings(
-            BindingGenerator {},
+            BindingGenerator { try_format_code: !cli.no_format },
             &cli.source,
             cli.config.as_deref(),
             cli.out_dir.as_deref(),

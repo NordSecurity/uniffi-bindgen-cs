@@ -247,16 +247,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "89b2fd2a0dcf38d7971e2194b6b6eebab45ae01067456a7fd93d5547a61b70be"
 
 [[package]]
-name = "bytes-type"
-version = "1.0.0"
-dependencies = [
- "once_cell",
- "thiserror",
- "uniffi",
- "uniffi_macros",
-]
-
-[[package]]
 name = "camino"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1198,7 +1188,6 @@ dependencies = [
 name = "uniffi-bindgen-cs-fixtures"
 version = "0.1.0"
 dependencies = [
- "bytes-type",
  "global-methods-class-name",
  "uniffi-cs-custom-types-builtin",
  "uniffi-cs-disposable-fixture",

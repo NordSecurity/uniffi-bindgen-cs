@@ -21,6 +21,7 @@ mod custom;
 mod enum_;
 mod error;
 mod external;
+pub mod formatting;
 mod miscellany;
 mod object;
 mod primitives;
