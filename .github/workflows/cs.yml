@@ -1,4 +1,4 @@
-name: Rust
+name: C#
 
 on:
   push:
@@ -20,14 +20,7 @@ jobs:
         submodules: 'true'
     - name: Build
       run: |
-        ./build.sh
-        ./generate_bindings.sh
-    - uses: actions/upload-artifact@v3
-      with:
-        path: |
-          dotnet-tests/UniffiCS/gen
-          target/debug/libuniffi_fixtures.so
-          target/debug/uniffi-bindgen-cs
+        cargo build --release --package uniffi-bindgen-cs
 
   binding-unit-tests:
     runs-on: ubuntu-latest
@@ -43,20 +36,19 @@ jobs:
   test-bindings:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/dotnet/sdk:6.0
-    needs: build
+      image: ghcr.io/nordsecurity/uniffi-bindgen-cs-test-runner:v0.1.0
     steps:
-
     - uses: actions/checkout@v3
       with:
         submodules: 'true'
-
-    - uses: actions/download-artifact@v3
-
-    - name: Test
+    - name: Test bindings
+      shell: bash
+      env:
+        # Github sets HOME to /github/home and breaks dependencies in Docker image..
+        # https://github.com/actions/runner/issues/863
+        HOME: /root
       run: |
-        # copy artifacts to root directory
-        cp -R artifact/* .
-
-        chmod +x target/debug/uniffi-bindgen-cs
+        source ~/.bashrc
+        ./build.sh
+        ./generate_bindings.sh
         ./test_bindings.sh
