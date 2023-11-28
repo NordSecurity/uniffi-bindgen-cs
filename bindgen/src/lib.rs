@@ -41,6 +41,10 @@ struct Cli {
 
     /// Path to the UDL file, or cdylib if `library-mode` is specified
     source: Utf8PathBuf,
+
+    /// Do not try to format the generated bindings.
+    #[clap(long, short)]
+    no_format: bool,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -74,7 +78,9 @@ impl BindingsConfig for ConfigRoot {
     }
 }
 
-struct BindingGenerator {}
+struct BindingGenerator {
+    try_format_code: bool,
+}
 
 impl uniffi_bindgen::BindingGenerator for BindingGenerator {
     type Config = ConfigRoot;
@@ -85,15 +91,12 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
         config: &Self::Config,
         out_dir: &Utf8Path,
     ) -> anyhow::Result<()> {
-        // todo: make this configurable
-        let try_format_code = true;
-
         let bindings_file = out_dir.join(format!("{}.cs", ci.namespace()));
         let mut f = File::create(&bindings_file)?;
 
         let mut bindings = generate_bindings(&config.bindings.csharp, &ci)?;
 
-        if try_format_code {
+        if self.try_format_code {
             match gen_cs::formatting::format(bindings.clone()) {
                 Ok(formatted) => bindings = formatted,
                 Err(e) => {
@@ -127,7 +130,7 @@ pub fn main() -> Result<()> {
             .out_dir
             .expect("--out-dir is required when using --library");
         uniffi_bindgen::library_mode::generate_external_bindings(
-            BindingGenerator {},
+            BindingGenerator { try_format_code: !cli.no_format },
             &cli.source,
             cli.crate_name,
             cli.config.as_deref(),
@@ -136,7 +139,7 @@ pub fn main() -> Result<()> {
         .map(|_| ())
     } else {
         uniffi_bindgen::generate_external_bindings(
-            BindingGenerator {},
+            BindingGenerator { try_format_code: !cli.no_format },
             &cli.source,
             cli.config.as_deref(),
             cli.out_dir.as_deref(),
