@@ -1,10 +1,10 @@
 all: build generate test
 
 build:
-	./docker_build.sh
+	./build.sh
 
 generate:
 	./generate_bindings.sh
 
 test:
-	./docker_test_bindings.sh
+	./test_bindings.sh
