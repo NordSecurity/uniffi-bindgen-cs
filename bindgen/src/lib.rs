@@ -130,7 +130,9 @@ pub fn main() -> Result<()> {
             .out_dir
             .expect("--out-dir is required when using --library");
         uniffi_bindgen::library_mode::generate_external_bindings(
-            BindingGenerator { try_format_code: !cli.no_format },
+            BindingGenerator {
+                try_format_code: !cli.no_format,
+            },
             &cli.source,
             cli.crate_name,
             cli.config.as_deref(),
@@ -139,7 +141,9 @@ pub fn main() -> Result<()> {
         .map(|_| ())
     } else {
         uniffi_bindgen::generate_external_bindings(
-            BindingGenerator { try_format_code: !cli.no_format },
+            BindingGenerator {
+                try_format_code: !cli.no_format,
+            },
             &cli.source,
             cli.config.as_deref(),
             cli.out_dir.as_deref(),
