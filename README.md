@@ -44,6 +44,12 @@ The following uniffi features are unsupported.
 
 - Async functions [#41](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/41)
 
+# Known Limitations
+
+The following valid Rust type definitions fail to be converted properly, but a simple work-around is given:
+
+- Enum variants having the same name as their member type [#60](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/60)
+
 # Configuration options
 
 It's possible to [configure some settings](docs/CONFIGURATION.md) by passing `--config`
