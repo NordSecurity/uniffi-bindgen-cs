@@ -6,7 +6,7 @@
 
 {%- call cs::docstring(rec, 0) %}
 public record {{ type_name }} (
-    {%- for field in rec.fields() %}
+    {%- for field in rec.fields()|order_fields %}
     {%- call cs::docstring(field, 4) %}
     {{ field|type_name }} {{ field.name()|var_name -}}
     {%- match field.default_value() %}
@@ -29,7 +29,7 @@ class {{ rec|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
     public override {{ type_name }} Read(BigEndianStream stream) {
         return new {{ type_name }}(
         {%- for field in rec.fields() %}
-            {{ field|read_fn }}(stream){% if !loop.last %},{% endif%}
+            {{ field.name()|var_name }}: {{ field|read_fn }}(stream){% if !loop.last %},{% endif%}
         {%- endfor %}
         );
     }
