@@ -20,4 +20,5 @@ mod uniffi_fixtures {
     global_methods_class_name::uniffi_reexport_scaffolding!();
     uniffi_cs_custom_types_builtin::uniffi_reexport_scaffolding!();
     uniffi_cs_disposable::uniffi_reexport_scaffolding!();
+    uniffi_cs_optional_parameters::uniffi_reexport_scaffolding!();
 }

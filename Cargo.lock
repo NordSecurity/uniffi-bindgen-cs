@@ -1191,6 +1191,7 @@ dependencies = [
  "global-methods-class-name",
  "uniffi-cs-custom-types-builtin",
  "uniffi-cs-disposable-fixture",
+ "uniffi-cs-optional-parameters-fixture",
  "uniffi-example-arithmetic",
  "uniffi-example-callbacks",
  "uniffi-example-custom-types",
@@ -1222,6 +1223,14 @@ version = "1.0.0"
 dependencies = [
  "once_cell",
  "thiserror",
+ "uniffi",
+ "uniffi_macros",
+]
+
+[[package]]
+name = "uniffi-cs-optional-parameters-fixture"
+version = "1.0.0"
+dependencies = [
  "uniffi",
  "uniffi_macros",
 ]
