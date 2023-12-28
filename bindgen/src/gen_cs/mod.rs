@@ -480,6 +480,15 @@ pub mod filters {
         Ok(textwrap::indent(&wrapped, &" ".repeat(spaces)))
     }
 
+    /// Orders fields in a way that avoids CS1737 errors
+    pub fn order_fields(fields: &[Field]) -> Result<Vec<Field>, askama::Error> {
+        let mut fields = fields.to_vec();
+        // fields with default values must come after fields without default values
+        // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs1737
+        fields.sort_by_key(|field| field.default_value().is_some());
+        Ok(fields)
+    }
+
     /// Panic with message
     pub fn panic(message: &str) -> Result<String, askama::Error> {
         panic!("{}", message)
