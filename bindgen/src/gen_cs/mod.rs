@@ -481,12 +481,14 @@ pub mod filters {
     }
 
     /// Orders fields in a way that avoids CS1737 errors
-    pub fn order_fields(fields: &[Field]) -> Result<Vec<Field>, askama::Error> {
-        let mut fields = fields.to_vec();
+    pub fn order_fields(fields: &[Field]) -> Result<(Vec<Field>, bool), askama::Error> {
+        let original_fields = fields.to_vec();
+        let mut fields = original_fields.clone();
         // fields with default values must come after fields without default values
         // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs1737
         fields.sort_by_key(|field| field.default_value().is_some());
-        Ok(fields)
+        let is_reordered = fields != original_fields;
+        Ok((fields, is_reordered))
     }
 
     /// Panic with message

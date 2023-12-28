@@ -3,10 +3,18 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
 {%- let rec = ci.get_record_definition(name).unwrap() %}
+{%- let (ordered_fields, is_reordered) = rec.fields()|order_fields %}
 
 {%- call cs::docstring(rec, 0) %}
+{%- if is_reordered %}
+/// <remarks>
+/// <b>UniFFI Warning:</b> Optional parameters have been reordered because
+/// of a C# syntax limitation. Use named parameters for compatibility with
+/// future ordering changes.
+/// </remarks>
+{%- endif %}
 public record {{ type_name }} (
-    {%- for field in rec.fields()|order_fields %}
+    {%- for field in ordered_fields %}
     {%- call cs::docstring(field, 4) %}
     {{ field|type_name }} {{ field.name()|var_name -}}
     {%- match field.default_value() %}
