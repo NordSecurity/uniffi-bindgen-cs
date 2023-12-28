@@ -12,6 +12,7 @@ crate-type = ["cdylib", "lib"]
 global-methods-class-name = { path = "global-methods-class-name" }
 uniffi-cs-custom-types-builtin = { path = "custom-types-builtin" }
 uniffi-cs-disposable-fixture = { path = "disposable" }
+uniffi-cs-optional-parameters-fixture = { path = "optional-parameters" }
 uniffi-example-arithmetic = { path = "../3rd-party/uniffi-rs/examples/arithmetic" }
 uniffi-example-callbacks = { path = "../3rd-party/uniffi-rs/examples/callbacks" }
 uniffi-example-custom-types = { path = "../3rd-party/uniffi-rs/examples/custom-types" }
