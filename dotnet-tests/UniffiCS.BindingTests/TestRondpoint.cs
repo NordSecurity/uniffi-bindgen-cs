@@ -2,10 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-using System.Collections.Generic;
-using System.Globalization;
 using System;
+using System.Collections.Generic;
 using uniffi.rondpoint;
+
+namespace UniffiCS.BindingTests;
 
 public class TestRondpoint {
     [Fact]
@@ -191,9 +192,9 @@ public class TestRondpoint {
         AffirmAllerRetour(op.SinonSequence, new List<String>() { "foo", "bar" }, new List<String>());
 
         // Optionals
-        #pragma warning disable 8621
+#pragma warning disable 8621
         AffirmAllerRetour(op.SinonNull, "foo", "bar");
-        #pragma warning restore 8621
+#pragma warning restore 8621
         AffirmAllerRetour(op.SinonZero, (int?)0, (int?)1);
 
         // Decimals
@@ -246,9 +247,9 @@ public class TestRondpoint {
             doubleVar = 8.0,
             booleanVar = true,
             stringVar = "default",
-            #pragma warning disable 8625
+#pragma warning disable 8625
             listVar = null,
-            #pragma warning restore 8625
+#pragma warning restore 8625
             enumerationVar = Enumeration.Deux,
             dictionnaireVar = null,
         };
@@ -271,12 +272,12 @@ public class TestRondpoint {
     }
 
     static void AffirmEnchaine<T>(Func<T, string> callback, params T[] list)
-            where T: notnull
+        where T: notnull
     {
         foreach (var value in list) {
-            #pragma warning disable 8602
+#pragma warning disable 8602
             Assert.Equal(value.ToString().ToLower(), callback(value).ToLower());
-            #pragma warning restore 8602
+#pragma warning restore 8602
         }
     }
 }
