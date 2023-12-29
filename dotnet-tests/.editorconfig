@@ -3,14 +3,18 @@
 # top-most EditorConfig file
 root = true
 
-# CSharpier: https://csharpier.com/docs/Configuration
 [*]
-# Non-configurable behaviors
+
+# License header
+file_header_template = This Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# CSharpier: https://csharpier.com/docs/Configuration
+## Non-configurable behaviors
 charset = utf-8
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-# Configurable behaviors
+## Configurable behaviors
 end_of_line = lf
 indent_style = space
 indent_size = 4
