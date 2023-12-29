@@ -5,6 +5,8 @@
 using System;
 using uniffi.custom_types;
 
+namespace UniffiCS.BindingTests;
+
 public class TestCustomTypes {
     [Fact]
     public void CustomTypesWork() {

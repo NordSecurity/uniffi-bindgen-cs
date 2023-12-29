@@ -4,6 +4,8 @@
 
 using uniffi.trait_methods;
 
+namespace UniffiCS.BindingTests;
+
 public class TestTraitMethods {
     [Fact]
     public void TraitMethodsWork() {
@@ -19,4 +21,3 @@ public class TestTraitMethods {
         }
     }
 }
-

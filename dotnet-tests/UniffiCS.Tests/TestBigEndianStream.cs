@@ -1,4 +1,6 @@
-namespace UniffiCS.tests;
+using UniffiCS.Tests.gen;
+
+namespace UniffiCS.Tests;
 
 using System.Diagnostics;
 using System.IO;

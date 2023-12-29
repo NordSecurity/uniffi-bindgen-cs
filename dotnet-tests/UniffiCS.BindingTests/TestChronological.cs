@@ -2,9 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-using System.Threading;
 using System;
+using System.Threading;
 using uniffi.chronological;
+
+namespace UniffiCS.BindingTests;
 
 public class TestChronological {
     static DateTime EpochSecond(int seconds, int nanoseconds) {

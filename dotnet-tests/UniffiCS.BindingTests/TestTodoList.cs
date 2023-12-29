@@ -3,8 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 using System.Collections.Generic;
-using System;
 using uniffi.todolist;
+
+namespace UniffiCS.BindingTests;
 
 public class TestTodoList {
     [Fact]
@@ -46,7 +47,7 @@ public class TestTodoList {
         Assert.Null(TodolistMethods.GetDefaultList());
 
         // https://github.com/xunit/xunit/issues/2027
-        #pragma warning disable CS8602
+#pragma warning disable CS8602
 
         // Note that each individual object instance needs to be explicitly destroyed,
         // either by using the `.use` helper or explicitly calling its `.destroy` method.
@@ -74,7 +75,7 @@ public class TestTodoList {
             }
         }
 
-        #pragma warning restore CS8602
+#pragma warning restore CS8602
 
         // Ensure the kotlin version of deinit doesn't crash, and is idempotent.
         todo.Dispose();

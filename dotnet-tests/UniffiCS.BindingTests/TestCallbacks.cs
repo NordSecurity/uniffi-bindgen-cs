@@ -5,6 +5,8 @@
 using System;
 using uniffi.callbacks;
 
+namespace UniffiCS.BindingTests;
+
 class SomeOtherError: Exception {}
 
 class CallAnswererImpl: CallAnswerer {
@@ -71,4 +73,3 @@ public class TestCallbacks {
         return getter();
     }
 }
-

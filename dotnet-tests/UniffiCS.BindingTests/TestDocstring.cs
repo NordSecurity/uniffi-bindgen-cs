@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using uniffi.uniffi_docstring;
 
+namespace UniffiCS.BindingTests;
+
 public class TestDocstring {
     class CallbackImpls : CallbackTest {
         public void Test() {}

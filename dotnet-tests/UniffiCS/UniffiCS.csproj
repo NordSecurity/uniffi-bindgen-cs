@@ -8,6 +8,6 @@
 
   <!-- Allow testing internals of generated code -->
   <ItemGroup>
-    <InternalsVisibleTo Include="UniffiCS.binding_tests" />
+    <InternalsVisibleTo Include="UniffiCS.BindingTests" />
   </ItemGroup>
 </Project>
