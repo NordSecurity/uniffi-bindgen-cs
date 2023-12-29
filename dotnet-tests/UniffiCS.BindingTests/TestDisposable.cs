@@ -6,42 +6,53 @@ using uniffi.disposable;
 
 namespace UniffiCS.BindingTests;
 
-public class TestDisposable {
+public class TestDisposable
+{
     [Fact]
-    public void ObjectDecrementsLiveCount() {
-        using (var resource = DisposableMethods.GetResource()) {
+    public void ObjectDecrementsLiveCount()
+    {
+        using (var resource = DisposableMethods.GetResource())
+        {
             Assert.Equal(1, DisposableMethods.GetLiveCount());
         }
         Assert.Equal(0, DisposableMethods.GetLiveCount());
     }
 
     [Fact]
-    public void MapDecrementsLiveCount() {
-        using (var journal = DisposableMethods.GetResourceJournalMap()) {
+    public void MapDecrementsLiveCount()
+    {
+        using (var journal = DisposableMethods.GetResourceJournalMap())
+        {
             Assert.Equal(2, DisposableMethods.GetLiveCount());
         }
         Assert.Equal(0, DisposableMethods.GetLiveCount());
     }
 
     [Fact]
-    public void ListDecrementsLiveCount() {
-        using (var journal = DisposableMethods.GetResourceJournalList()) {
+    public void ListDecrementsLiveCount()
+    {
+        using (var journal = DisposableMethods.GetResourceJournalList())
+        {
             Assert.Equal(2, DisposableMethods.GetLiveCount());
         }
         Assert.Equal(0, DisposableMethods.GetLiveCount());
     }
 
     [Fact]
-    public void MapListDecrementsLiveCount() {
-        using (var journal = DisposableMethods.GetResourceJournalMapList()) {
+    public void MapListDecrementsLiveCount()
+    {
+        using (var journal = DisposableMethods.GetResourceJournalMapList())
+        {
             Assert.Equal(2, DisposableMethods.GetLiveCount());
         }
         Assert.Equal(0, DisposableMethods.GetLiveCount());
     }
 
     [Fact]
-    public void EnumDecrementsLiveCount() {
-        using (var maybe_journal = DisposableMethods.GetMaybeResourceJournal()) {
+    public void EnumDecrementsLiveCount()
+    {
+        using (var maybe_journal = DisposableMethods.GetMaybeResourceJournal())
+        {
             Assert.Equal(2, DisposableMethods.GetLiveCount());
         }
         Assert.Equal(0, DisposableMethods.GetLiveCount());

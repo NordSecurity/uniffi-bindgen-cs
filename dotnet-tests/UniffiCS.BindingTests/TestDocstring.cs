@@ -10,13 +10,16 @@ using uniffi.uniffi_docstring;
 
 namespace UniffiCS.BindingTests;
 
-public class TestDocstring {
-    class CallbackImpls : CallbackTest {
-        public void Test() {}
+public class TestDocstring
+{
+    class CallbackImpls : CallbackTest
+    {
+        public void Test() { }
     }
 
     [Fact]
-    public void DocstringWorks() {
+    public void DocstringWorks()
+    {
         // Checking to make sure the symbols are reachable,
         // not accidentally commented out by docstrings
 
@@ -46,11 +49,14 @@ public class TestDocstring {
     }
 
     [Fact]
-    public void DocstringsAppearInBindings() {
+    public void DocstringsAppearInBindings()
+    {
         // Hacky way to find project directory based on working directory..
         string rootDirectory = Directory.GetCurrentDirectory() + "../../../../../../";
 
-        string uniffiTestSource = File.ReadAllText(rootDirectory + "3rd-party/uniffi-rs/fixtures/docstring/tests/test_generated_bindings.rs");
+        string uniffiTestSource = File.ReadAllText(
+            rootDirectory + "3rd-party/uniffi-rs/fixtures/docstring/tests/test_generated_bindings.rs"
+        );
         MatchCollection matches = Regex.Matches(uniffiTestSource, @"<docstring-.*>");
         Assert.NotEmpty(matches);
 

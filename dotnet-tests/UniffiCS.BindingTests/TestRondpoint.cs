@@ -8,9 +8,11 @@ using uniffi.rondpoint;
 
 namespace UniffiCS.BindingTests;
 
-public class TestRondpoint {
+public class TestRondpoint
+{
     [Fact]
-    public void CopyWorks() {
+    public void CopyWorks()
+    {
         var dico = new Dictionnaire(Enumeration.Deux, true, (byte)0, 123456789u);
         var copyDico = RondpointMethods.CopieDictionnaire(dico);
         Assert.Equal(dico, copyDico);
@@ -20,7 +22,8 @@ public class TestRondpoint {
         var list = new List<Enumeration>() { Enumeration.Un, Enumeration.Deux };
         Assert.Equal(list, RondpointMethods.CopieEnumerations(list));
 
-        var dict = new Dictionary<String, EnumerationAvecDonnees>() {
+        var dict = new Dictionary<String, EnumerationAvecDonnees>()
+        {
             { "0", new EnumerationAvecDonnees.Zero() },
             { "1", new EnumerationAvecDonnees.Un(1u) },
             { "2", new EnumerationAvecDonnees.Deux(2u, "deux") },
@@ -31,18 +34,23 @@ public class TestRondpoint {
     }
 
     [Fact]
-    public void EnumComparisonOperatorWorks() {
+    public void EnumComparisonOperatorWorks()
+    {
         Assert.Equal(new EnumerationAvecDonnees.Zero(), new EnumerationAvecDonnees.Zero());
         Assert.Equal(new EnumerationAvecDonnees.Un(1u), new EnumerationAvecDonnees.Un(1u));
         Assert.Equal(new EnumerationAvecDonnees.Deux(2u, "deux"), new EnumerationAvecDonnees.Deux(2u, "deux"));
 
-        Assert.NotEqual((EnumerationAvecDonnees)new EnumerationAvecDonnees.Zero(), (EnumerationAvecDonnees)new EnumerationAvecDonnees.Un(1u));
+        Assert.NotEqual(
+            (EnumerationAvecDonnees)new EnumerationAvecDonnees.Zero(),
+            (EnumerationAvecDonnees)new EnumerationAvecDonnees.Un(1u)
+        );
         Assert.NotEqual(new EnumerationAvecDonnees.Un(1u), new EnumerationAvecDonnees.Un(2u));
         Assert.NotEqual(new EnumerationAvecDonnees.Deux(2u, "un"), new EnumerationAvecDonnees.Deux(2u, "deux"));
     }
 
     [Fact]
-    public void TestRoundTrip() {
+    public void TestRoundTrip()
+    {
         var rt = new Retourneur();
 
         var meanValue = 0x1234_5678_9123_4567;
@@ -80,7 +88,8 @@ public class TestRondpoint {
             "null\u0000byte",
             "été",
             "ښي لاس ته لوستلو لوستل",
-            "😻emoji 👨‍👧‍👦multi-emoji, 🇨🇭a flag, a canal, panama");
+            "😻emoji 👨‍👧‍👦multi-emoji, 🇨🇭a flag, a canal, panama"
+        );
 
         // signed record
         var nombresSignes = (int v) => new DictionnaireNombresSignes((sbyte)v, (short)v, (int)v, (long)v);
@@ -94,13 +103,14 @@ public class TestRondpoint {
     }
 
     [Fact]
-    public void TestStringifier() {
+    public void TestStringifier()
+    {
         var st = new Stringifier();
 
         var meanValue = 0x1234_5678_9123_4567;
 
         var wellKnown = st.WellKnownString("c#");
-        Assert.Equal("uniffi 💚 c#!", st.WellKnownString("c#")) ;
+        Assert.Equal("uniffi 💚 c#!", st.WellKnownString("c#"));
 
         // booleans
         AffirmEnchaine(st.ToStringBoolean, true, false);
@@ -126,20 +136,23 @@ public class TestRondpoint {
             (v) => float.Parse(st.ToStringFloat(v)).ToString(),
             Single.MinValue,
             Single.MaxValue,
-            Single.Epsilon);
+            Single.Epsilon
+        );
 
         // doubles
         AffirmEnchaine(
             (v) => double.Parse(st.ToStringDouble(v)).ToString(),
             Double.MinValue,
             Double.MaxValue,
-            Double.Epsilon);
+            Double.Epsilon
+        );
 
         st.Dispose();
     }
 
     [Fact]
-    void TestDefaultParameterLiterals() {
+    void TestDefaultParameterLiterals()
+    {
         var op = new Optionneur();
 
         Assert.Equal("default", op.SinonString());
@@ -184,7 +197,8 @@ public class TestRondpoint {
     }
 
     [Fact]
-    void ArgumentsOverwriteDefaultParameterLiterals() {
+    void ArgumentsOverwriteDefaultParameterLiterals()
+    {
         var op = new Optionneur();
 
         AffirmAllerRetour(op.SinonString, "foo", "bar");
@@ -231,10 +245,12 @@ public class TestRondpoint {
     }
 
     [Fact]
-    void TestDefaultParameterLiteralsInRecord() {
+    void TestDefaultParameterLiteralsInRecord()
+    {
         // Testing defaulting properties in record types.
         var defaultes = new OptionneurDictionnaire();
-        var explicite = new OptionneurDictionnaire() {
+        var explicite = new OptionneurDictionnaire()
+        {
             i8Var = (sbyte)-8,
             u8Var = (byte)8,
             i16Var = (short)-16,
@@ -255,9 +271,13 @@ public class TestRondpoint {
         };
         Assert.Equal(defaultes, explicite);
 
-        using (var rt = new Retourneur()) {
+        using (var rt = new Retourneur())
+        {
             // a default list value (null) is transformed into an empty list after a roundtrip
-            defaultes = defaultes with {listVar = new List<String>()};
+            defaultes = defaultes with
+            {
+                listVar = new List<String>()
+            };
 
             // TODO(CS): C# record comparison doesn't work if the record contains lists/maps.
             // Rewrite records to use custom struct type.
@@ -265,16 +285,19 @@ public class TestRondpoint {
         }
     }
 
-    static void AffirmAllerRetour<T>(Func<T, T> callback, params T[] list) {
-        foreach (var value in list) {
+    static void AffirmAllerRetour<T>(Func<T, T> callback, params T[] list)
+    {
+        foreach (var value in list)
+        {
             Assert.Equal(value, callback(value));
         }
     }
 
     static void AffirmEnchaine<T>(Func<T, string> callback, params T[] list)
-        where T: notnull
+        where T : notnull
     {
-        foreach (var value in list) {
+        foreach (var value in list)
+        {
 #pragma warning disable 8602
             Assert.Equal(value.ToString().ToLower(), callback(value).ToLower());
 #pragma warning restore 8602

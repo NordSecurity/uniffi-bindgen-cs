@@ -7,39 +7,54 @@ using uniffi.callbacks;
 
 namespace UniffiCS.BindingTests;
 
-class SomeOtherError: Exception {}
+class SomeOtherError : Exception { }
 
-class CallAnswererImpl: CallAnswerer {
+class CallAnswererImpl : CallAnswerer
+{
     public String mode;
-    public CallAnswererImpl(String mode) {
+
+    public CallAnswererImpl(String mode)
+    {
         this.mode = mode;
     }
 
-    public String Answer() {
-        if (mode == "normal") {
+    public String Answer()
+    {
+        if (mode == "normal")
+        {
             return "Bonjour";
-        } else if (mode == "busy") {
+        }
+        else if (mode == "busy")
+        {
             throw new TelephoneException.Busy("I'm busy");
-        } else {
+        }
+        else
+        {
             throw new SomeOtherError();
         }
     }
 }
 
-public class TestCallbacks {
+public class TestCallbacks
+{
     [Fact]
-    public void CallbackWorks() {
-        using (var telephone = new Telephone()) {
+    public void CallbackWorks()
+    {
+        using (var telephone = new Telephone())
+        {
             Assert.Equal("Bonjour", telephone.Call(new CallAnswererImpl("normal")));
 
             Assert.Throws<TelephoneException.Busy>(() => telephone.Call(new CallAnswererImpl("busy")));
 
-            Assert.Throws<TelephoneException.InternalTelephoneException>(() => telephone.Call(new CallAnswererImpl("something-else")));
+            Assert.Throws<TelephoneException.InternalTelephoneException>(
+                () => telephone.Call(new CallAnswererImpl("something-else"))
+            );
         }
     }
 
     [Fact]
-    public void CallbackRegistrationIsNotAffectedByGC() {
+    public void CallbackRegistrationIsNotAffectedByGC()
+    {
         // See `static ForeignCallback INSTANCE` at `templates/CallbackInterfaceTemplate.cs`
 
         var callback = new CallAnswererImpl("normal");
@@ -52,12 +67,13 @@ public class TestCallbacks {
         telephone.Call(callback);
     }
 
-
     [Fact]
-    public void CallbackReferenceIsDropped() {
+    public void CallbackReferenceIsDropped()
+    {
         var telephone = new Telephone();
 
-        var weak_callback = CallInItsOwnScope(() => {
+        var weak_callback = CallInItsOwnScope(() =>
+        {
             var callback = new CallAnswererImpl("normal");
             telephone.Call(callback);
             return new WeakReference(callback);

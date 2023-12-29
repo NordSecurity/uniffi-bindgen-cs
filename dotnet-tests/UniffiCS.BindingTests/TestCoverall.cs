@@ -8,11 +8,14 @@ using uniffi.coverall;
 
 namespace UniffiCS.BindingTests;
 
-public class TestCoverall {
+public class TestCoverall
+{
     [Fact]
-    public void FFIObjectSafeHandleDropsNativeReferenceOutsideOfUsingBlock() {
+    public void FFIObjectSafeHandleDropsNativeReferenceOutsideOfUsingBlock()
+    {
         Assert.Equal(0UL, CoverallMethods.GetNumAlive());
-        var closure = () => {
+        var closure = () =>
+        {
             var coveralls = new Coveralls("safe_handle_drops_native_reference");
             Assert.Equal(1UL, CoverallMethods.GetNumAlive());
         };
@@ -23,8 +26,10 @@ public class TestCoverall {
     }
 
     [Fact]
-    public void TestCreateSomeDict() {
-        using (var d = CoverallMethods.CreateSomeDict()) {
+    public void TestCreateSomeDict()
+    {
+        using (var d = CoverallMethods.CreateSomeDict())
+        {
             Assert.Equal("text", d.text);
             Assert.Equal("maybe_text", d.maybeText);
             Assert.True(d.aBool);
@@ -50,8 +55,10 @@ public class TestCoverall {
     }
 
     [Fact]
-    public void TestArcs() {
-        using (var coveralls = new Coveralls("test_arcs")) {
+    public void TestArcs()
+    {
+        using (var coveralls = new Coveralls("test_arcs"))
+        {
             Assert.Equal(1UL, CoverallMethods.GetNumAlive());
             // One ref held by the foreign-language code, one created for this method call.
             Assert.Equal(2UL, coveralls.StrongCount());
@@ -61,7 +68,8 @@ public class TestCoverall {
             Assert.Equal(3UL, coveralls.StrongCount());
             Assert.Equal(1UL, CoverallMethods.GetNumAlive());
             // Careful, this makes a new C# object which must be separately destroyed.
-            using (var other = coveralls.GetOther()) {
+            using (var other = coveralls.GetOther())
+            {
                 Assert.Equal("test_arcs", other!.GetName());
             }
 
@@ -72,18 +80,21 @@ public class TestCoverall {
             Assert.Throws<PanicException>(() => coveralls.FalliblePanic("Expected panic in a fallible function!"));
 
             coveralls.TakeOther(null);
-            Assert.Equal(2UL, coveralls.StrongCount());  
+            Assert.Equal(2UL, coveralls.StrongCount());
         }
 
         Assert.Equal(0UL, CoverallMethods.GetNumAlive());
     }
 
     [Fact]
-    public void TestReturnObjects() {
-        using (var coveralls = new Coveralls("test_return_objects")) {
+    public void TestReturnObjects()
+    {
+        using (var coveralls = new Coveralls("test_return_objects"))
+        {
             Assert.Equal(1UL, CoverallMethods.GetNumAlive());
             Assert.Equal(2UL, coveralls.StrongCount());
-            using (var c2 = coveralls.CloneMe()) {
+            using (var c2 = coveralls.CloneMe())
+            {
                 Assert.Equal(coveralls.GetName(), c2.GetName());
                 Assert.Equal(2UL, CoverallMethods.GetNumAlive());
                 Assert.Equal(2UL, c2.StrongCount());
@@ -104,8 +115,10 @@ public class TestCoverall {
     }
 
     [Fact]
-    public void TestSimpleErrors() {
-        using (var coveralls = new Coveralls("test_simple_errors")) {
+    public void TestSimpleErrors()
+    {
+        using (var coveralls = new Coveralls("test_simple_errors"))
+        {
             Assert.Throws<CoverallException.TooManyHoles>(() => coveralls.MaybeThrow(true));
             Assert.Throws<CoverallException.TooManyHoles>(() => coveralls.MaybeThrowInto(true));
             Assert.Throws<PanicException>(() => coveralls.Panic("oops"));
@@ -113,17 +126,19 @@ public class TestCoverall {
     }
 
     [Fact]
-    public void TestComplexErrors() {
-        using (var coveralls = new Coveralls("test_complex_errors")) {
+    public void TestComplexErrors()
+    {
+        using (var coveralls = new Coveralls("test_complex_errors"))
+        {
             Assert.True(coveralls.MaybeThrowComplex(0));
 
-            var os_exception = Assert.Throws<ComplexException.OsException>(
-                () => coveralls.MaybeThrowComplex(1));
+            var os_exception = Assert.Throws<ComplexException.OsException>(() => coveralls.MaybeThrowComplex(1));
             Assert.Equal(10, os_exception.code);
             Assert.Equal(20, os_exception.extendedCode);
 
             var permission_denied = Assert.Throws<ComplexException.PermissionDenied>(
-                () => coveralls.MaybeThrowComplex(2));
+                () => coveralls.MaybeThrowComplex(2)
+            );
             Assert.Equal("Forbidden", permission_denied.reason);
 
             Assert.Throws<ComplexException.UnknownException>(() => coveralls.MaybeThrowComplex(3));
@@ -133,8 +148,10 @@ public class TestCoverall {
     }
 
     [Fact]
-    public void TestInterfacesInDicts() {
-        using (var coveralls = new Coveralls("test_interface_in_dicts")) {
+    public void TestInterfacesInDicts()
+    {
+        using (var coveralls = new Coveralls("test_interface_in_dicts"))
+        {
             coveralls.AddPatch(new Patch(Color.Red));
             coveralls.AddRepair(new Repair(DateTime.Now, new Patch(Color.Blue)));
             Assert.Equal(2, coveralls.GetRepairs().Count);
@@ -142,25 +159,34 @@ public class TestCoverall {
     }
 
     [Fact]
-    public void MultiThreadedCallsWork() {
+    public void MultiThreadedCallsWork()
+    {
         // Make sure that there is no blocking during concurrent FFI calls.
 
-        using (var counter = new ThreadsafeCounter()) {
+        using (var counter = new ThreadsafeCounter())
+        {
             const int WAIT_MILLIS = 20;
 
-            Thread blockingThread = new Thread(new ThreadStart(() => {
-                counter.BusyWait(WAIT_MILLIS);
-            }));
+            Thread blockingThread = new Thread(
+                new ThreadStart(() =>
+                {
+                    counter.BusyWait(WAIT_MILLIS);
+                })
+            );
 
             var count = 0;
-            Thread countingThread = new Thread(new ThreadStart(() => {
-                for (int i = 0; i < WAIT_MILLIS; i++) {
-                    // `count` is only incremented if another thread is blocking the counter.
-                    // This ensures that both calls are running concurrently.
-                    count = counter.IncrementIfBusy();
-                    Thread.Sleep(1);
-                }
-            }));
+            Thread countingThread = new Thread(
+                new ThreadStart(() =>
+                {
+                    for (int i = 0; i < WAIT_MILLIS; i++)
+                    {
+                        // `count` is only incremented if another thread is blocking the counter.
+                        // This ensures that both calls are running concurrently.
+                        count = counter.IncrementIfBusy();
+                        Thread.Sleep(1);
+                    }
+                })
+            );
 
             blockingThread.Start();
             countingThread.Start();
@@ -171,9 +197,11 @@ public class TestCoverall {
     }
 
     [Fact]
-    public void TestBytes() {
-        using (var coveralls = new Coveralls("test_bytes")) {
-            Assert.Equal(new byte[] { 3, 2, 1 }, coveralls.Reverse(new byte[] { 1, 2, 3}));
+    public void TestBytes()
+    {
+        using (var coveralls = new Coveralls("test_bytes"))
+        {
+            Assert.Equal(new byte[] { 3, 2, 1 }, coveralls.Reverse(new byte[] { 1, 2, 3 }));
         }
     }
 }
