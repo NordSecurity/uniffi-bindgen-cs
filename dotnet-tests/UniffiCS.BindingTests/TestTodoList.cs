@@ -7,9 +7,11 @@ using uniffi.todolist;
 
 namespace UniffiCS.BindingTests;
 
-public class TestTodoList {
+public class TestTodoList
+{
     [Fact]
-    public void TodoListWorks() {
+    public void TodoListWorks()
+    {
         var todo = new TodoList();
 
         Assert.Throws<TodoException.EmptyTodoList>(() => todo.GetLast());
@@ -36,11 +38,11 @@ public class TestTodoList {
 
         Assert.Equal(5, todo.GetEntries().Count);
 
-        todo.AddEntries(new List<TodoEntry>() {new TodoEntry("foo"), new TodoEntry("bar")});
+        todo.AddEntries(new List<TodoEntry>() { new TodoEntry("foo"), new TodoEntry("bar") });
         Assert.Equal(7, todo.GetEntries().Count);
         Assert.Equal("bar", todo.GetLastEntry().text);
 
-        todo.AddItems(new List<string>() {"bobo", "fofo"});
+        todo.AddItems(new List<string>() { "bobo", "fofo" });
         Assert.Equal(9, todo.GetItems().Count);
         Assert.Equal("bobo", todo.GetItems()[7]);
 
@@ -52,16 +54,19 @@ public class TestTodoList {
         // Note that each individual object instance needs to be explicitly destroyed,
         // either by using the `.use` helper or explicitly calling its `.destroy` method.
         // Failure to do so will leak the underlying Rust object.
-        using (var todo2 = new TodoList()) {
+        using (var todo2 = new TodoList())
+        {
             TodolistMethods.SetDefaultList(todo);
-            using (var defaultList = TodolistMethods.GetDefaultList()) {
+            using (var defaultList = TodolistMethods.GetDefaultList())
+            {
                 Assert.NotNull(defaultList);
                 Assert.Equal(todo.GetEntries(), defaultList.GetEntries());
                 Assert.NotEqual(todo2.GetEntries(), defaultList.GetEntries());
             }
 
             todo2.MakeDefault();
-            using (var defaultList = TodolistMethods.GetDefaultList()) {
+            using (var defaultList = TodolistMethods.GetDefaultList())
+            {
                 Assert.NotEqual(todo.GetEntries(), defaultList.GetEntries());
                 Assert.Equal(todo2.GetEntries(), defaultList.GetEntries());
             }
@@ -70,7 +75,8 @@ public class TestTodoList {
             Assert.Equal("Test liveness after being demoted from default", todo.GetLast());
 
             todo2.AddItem("Test shared state through local vs default reference");
-            using (var defaultList = TodolistMethods.GetDefaultList()) {
+            using (var defaultList = TodolistMethods.GetDefaultList())
+            {
                 Assert.Equal("Test shared state through local vs default reference", defaultList.GetLast());
             }
         }

@@ -6,9 +6,11 @@ using uniffi.global_methods_class_name;
 
 namespace UniffiCS.BindingTests;
 
-public class TestGlobalMethodsClassName {
+public class TestGlobalMethodsClassName
+{
     [Fact]
-    public void GlobalMethodsClassNameWorks() {
+    public void GlobalMethodsClassNameWorks()
+    {
         Assert.Equal("Hello, world!", LibGreeter.HelloWorld());
     }
 }

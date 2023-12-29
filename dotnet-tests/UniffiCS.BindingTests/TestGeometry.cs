@@ -6,9 +6,11 @@ using uniffi.geometry;
 
 namespace UniffiCS.BindingTests;
 
-public class TestGeometry {
+public class TestGeometry
+{
     [Fact]
-    public void GeometryWorks() {
+    public void GeometryWorks()
+    {
         var ln1 = new Line(new Point(0, 0), new Point(1, 2));
         var ln2 = new Line(new Point(1, 1), new Point(2, 2));
 

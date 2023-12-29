@@ -8,9 +8,11 @@ using uniffi.custom_types_builtin;
 
 namespace UniffiCS.BindingTests;
 
-public class TestCustomTypesBuiltin {
+public class TestCustomTypesBuiltin
+{
     [Fact]
-    public void CustomTypesWork() {
+    public void CustomTypesWork()
+    {
         var demo = CustomTypesBuiltinMethods.GetCustomTypesBuiltin();
         AssertDemo(demo);
 
@@ -18,10 +20,11 @@ public class TestCustomTypesBuiltin {
         AssertDemo(demo);
     }
 
-    void AssertDemo(CustomTypesBuiltin demo) {
+    void AssertDemo(CustomTypesBuiltin demo)
+    {
         Assert.Equal("Hello, world!", demo.@string);
         Assert.Equal(new List<String> { "Hello, world!" }, demo.array);
-        Assert.Equal(new Dictionary<String, String> { {"hello", "world"} }, demo.table);
+        Assert.Equal(new Dictionary<String, String> { { "hello", "world" } }, demo.table);
         Assert.True(demo.boolean);
         Assert.Equal(SByte.MaxValue, demo.int8);
         Assert.Equal(Int16.MaxValue, demo.int16);

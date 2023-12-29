@@ -7,9 +7,11 @@ using ArithmeticException = uniffi.arithmetic.ArithmeticException;
 
 namespace UniffiCS.BindingTests;
 
-public class TestArithmetic {
+public class TestArithmetic
+{
     [Fact]
-    public void ArithmeticWorks() {
+    public void ArithmeticWorks()
+    {
         Assert.Equal(6ul, ArithmeticMethods.Add(2, 4));
         Assert.Equal(12ul, ArithmeticMethods.Add(4, 8));
 

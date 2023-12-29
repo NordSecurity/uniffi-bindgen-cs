@@ -6,17 +6,22 @@ using uniffi.trait_methods;
 
 namespace UniffiCS.BindingTests;
 
-public class TestTraitMethods {
+public class TestTraitMethods
+{
     [Fact]
-    public void TraitMethodsWork() {
-        using (var methods = new TraitMethods("yo")) {
+    public void TraitMethodsWork()
+    {
+        using (var methods = new TraitMethods("yo"))
+        {
             Assert.Equal("TraitMethods(yo)", methods.ToString());
         }
     }
 
     [Fact]
-    public void TraitMethodsProcMacro() {
-        using (var methods = new ProcTraitMethods("yo")) {
+    public void TraitMethodsProcMacro()
+    {
+        using (var methods = new ProcTraitMethods("yo"))
+        {
             Assert.Equal("ProcTraitMethods(yo)", methods.ToString());
         }
     }
