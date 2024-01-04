@@ -2,14 +2,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-namespace UniffiCS.Tests;
-
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
+using uniffi.arithmetic;
+
+namespace UniffiCS.BindingTests;
 
 public class TestBigEndianStream
 {
