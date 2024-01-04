@@ -45,7 +45,7 @@ public class TestChronological
     {
         Assert.Equal(DateTime.MinValue, ChronologicalMethods.ReturnTimestamp(DateTime.MinValue));
 
-        Assert.Equal(DateTime.MaxValue, ChronologicalMethods.ReturnTimestamp(DateTime.MaxValue));
+        Assert.Equal(DateTime.MaxValue.ToUniversalTime(), ChronologicalMethods.ReturnTimestamp(DateTime.MaxValue));
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class TestChronological
         );
 
         Assert.Equal(
-            DateTime.Parse("1955-11-05T00:06:01.283000200Z"),
+            DateTime.Parse("1955-11-05T00:06:01.283000200Z").ToUniversalTime(),
             ChronologicalMethods.Add(DateTime.Parse("1955-11-05T00:06:00.283000100Z"), TimeSpanSecond(1, 100))
         );
     }
@@ -86,11 +86,11 @@ public class TestChronological
     public void TestDateTimeWorksLikeRustSystemTime()
     {
         // Sleep inbetween to make sure that the clock has enough resolution
-        var before = DateTime.Now;
+        var before = DateTime.UtcNow;
         Thread.Sleep(1);
         var now = ChronologicalMethods.Now();
         Thread.Sleep(1);
-        var after = DateTime.Now;
+        var after = DateTime.UtcNow;
         Assert.Equal(-1, before.CompareTo(now));
         Assert.Equal(1, after.CompareTo(now));
     }

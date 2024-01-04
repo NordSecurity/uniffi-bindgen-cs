@@ -17,7 +17,7 @@ class FfiConverterTimestamp: FfiConverterRustBuffer<DateTime> {
         }
         var ticks = seconds * TimeSpan.TicksPerSecond;
         ticks += (nanoseconds / NanosecondsPerTick) * sign;
-        return DateTime.UnixEpoch.AddTicks(ticks);
+        return DateTime.UnixEpoch.ToUniversalTime().AddTicks(ticks);
     }
 
     public override int AllocationSize(DateTime value) {
@@ -26,7 +26,7 @@ class FfiConverterTimestamp: FfiConverterRustBuffer<DateTime> {
     }
 
     public override void Write(DateTime value, BigEndianStream stream) {
-        var epochOffset = value.Subtract(DateTime.UnixEpoch);
+        var epochOffset = value.ToUniversalTime().Subtract(DateTime.UnixEpoch);
 
         int sign = 1;
         if (epochOffset.Ticks < 0) {
