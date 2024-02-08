@@ -1192,6 +1192,7 @@ dependencies = [
  "uniffi-cs-custom-types-builtin",
  "uniffi-cs-disposable-fixture",
  "uniffi-cs-optional-parameters-fixture",
+ "uniffi-cs-stringify",
  "uniffi-example-arithmetic",
  "uniffi-example-callbacks",
  "uniffi-example-custom-types",
@@ -1231,6 +1232,15 @@ dependencies = [
 name = "uniffi-cs-optional-parameters-fixture"
 version = "1.0.0"
 dependencies = [
+ "uniffi",
+ "uniffi_macros",
+]
+
+[[package]]
+name = "uniffi-cs-stringify"
+version = "1.0.0"
+dependencies = [
+ "paste",
  "uniffi",
  "uniffi_macros",
 ]

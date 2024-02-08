@@ -21,4 +21,5 @@ mod uniffi_fixtures {
     uniffi_cs_custom_types_builtin::uniffi_reexport_scaffolding!();
     uniffi_cs_disposable::uniffi_reexport_scaffolding!();
     uniffi_cs_optional_parameters::uniffi_reexport_scaffolding!();
+    stringify::uniffi_reexport_scaffolding!();
 }
