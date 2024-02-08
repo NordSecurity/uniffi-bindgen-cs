@@ -7,7 +7,7 @@
 // https://github.com/mozilla/uniffi-rs/blob/0dc031132d9493ca812c3af6e7dd60ad2ea95bf0/uniffi_bindgen/src/bindings/kotlin/templates/ObjectRuntime.kt#L31
 // https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.criticalhandle
 
-public abstract class FFIObject<THandle>: IDisposable where THandle : FFISafeHandle {
+{{ config.access_modifier() }} abstract class FFIObject<THandle>: IDisposable where THandle : FFISafeHandle {
     private THandle handle;
 
     public FFIObject(THandle handle) {
@@ -23,7 +23,7 @@ public abstract class FFIObject<THandle>: IDisposable where THandle : FFISafeHan
     }
 }
 
-public abstract class FFISafeHandle: SafeHandle {
+{{ config.access_modifier() }} abstract class FFISafeHandle: SafeHandle {
     public FFISafeHandle(): base(new IntPtr(0), true) {
     }
 

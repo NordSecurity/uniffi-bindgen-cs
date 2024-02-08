@@ -37,6 +37,7 @@ pub struct Config {
     #[serde(default)]
     external_packages: HashMap<String, String>,
     global_methods_class_name: Option<String>,
+    access_modifier: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -77,6 +78,13 @@ impl Config {
             .expect("`cdylib_name` not specified")
             .clone()
     }
+
+    pub fn access_modifier(&self) -> String {
+        match self.access_modifier.as_ref() {
+            Some(value) => value.clone(),
+            None => "internal".to_string(),
+        }
+    }
 }
 
 // Generate C# bindings for the given ComponentInterface, as a string.
@@ -93,7 +101,7 @@ pub fn generate_bindings(config: &Config, ci: &ComponentInterface) -> Result<Str
 #[derive(Template)]
 #[template(syntax = "cs", escape = "none", path = "Types.cs")]
 pub struct TypeRenderer<'a> {
-    cs_config: &'a Config,
+    config: &'a Config,
     ci: &'a ComponentInterface,
     // Track included modules for the `include_once()` macro
     include_once_names: RefCell<HashSet<String>>,
@@ -110,9 +118,9 @@ pub struct TypeAlias {
 }
 
 impl<'a> TypeRenderer<'a> {
-    fn new(cs_config: &'a Config, ci: &'a ComponentInterface) -> Self {
+    fn new(config: &'a Config, ci: &'a ComponentInterface) -> Self {
         Self {
-            cs_config,
+            config,
             ci,
             include_once_names: RefCell::new(HashSet::new()),
             imports: RefCell::new(BTreeSet::new()),
@@ -124,7 +132,7 @@ impl<'a> TypeRenderer<'a> {
     fn external_type_package_name(&self, module_path: &str, namespace: &str) -> String {
         // config overrides are keyed by the crate name, default fallback is the namespace.
         let crate_name = module_path.split("::").next().unwrap();
-        match self.cs_config.external_packages.get(crate_name) {
+        match self.config.external_packages.get(crate_name) {
             Some(name) => name.clone(),
             // unreachable in library mode - all deps are in our config with correct namespace.
             None => format!("uniffi.{namespace}"),
