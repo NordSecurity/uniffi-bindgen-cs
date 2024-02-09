@@ -13,7 +13,7 @@
 /// future ordering changes.
 /// </remarks>
 {%- endif %}
-public record {{ type_name }} (
+{{ config.access_modifier() }} record {{ type_name }} (
     {%- for field in ordered_fields %}
     {%- call cs::docstring(field, 4) %}
     {{ field|type_name }} {{ field.name()|var_name -}}

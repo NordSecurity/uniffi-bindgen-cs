@@ -7,7 +7,7 @@
 {%- if self.include_once_check("ObjectRuntime.cs") %}{% include "ObjectRuntime.cs" %}{% endif %}
 
 {%- call cs::docstring(obj, 0) %}
-public interface I{{ type_name }} {
+{{ config.access_modifier() }} interface I{{ type_name }} {
     {% for meth in obj.methods() -%}
     {%- call cs::docstring(meth, 4) %}
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
@@ -15,7 +15,7 @@ public interface I{{ type_name }} {
     {% endfor %}
 }
 
-public class {{ safe_handle_type }}: FFISafeHandle {
+{{ config.access_modifier() }} class {{ safe_handle_type }}: FFISafeHandle {
     public {{ safe_handle_type }}(): base() {
     }
     public {{ safe_handle_type }}(IntPtr pointer): base(pointer) {
@@ -29,7 +29,7 @@ public class {{ safe_handle_type }}: FFISafeHandle {
 }
 
 {%- call cs::docstring(obj, 0) %}
-public class {{ type_name }}: FFIObject<{{ safe_handle_type }}>, I{{ type_name }} {
+{{ config.access_modifier() }} class {{ type_name }}: FFIObject<{{ safe_handle_type }}>, I{{ type_name }} {
     public {{ type_name }}({{ safe_handle_type }} pointer): base(pointer) {}
 
     {%- match obj.primary_constructor() %}

@@ -8,7 +8,7 @@
 
 {% if e.is_flat() %}
 {%- call cs::docstring(e, 0) %}
-public class {{ type_name }}: UniffiException {
+{{ config.access_modifier() }} class {{ type_name }}: UniffiException {
     {{ type_name }}(string message): base(message) {}
 
     // Each variant is a nested class
@@ -54,7 +54,7 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
 
 {%- else %}
 {%- call cs::docstring(e, 0) %}
-public class {{ type_name }}: UniffiException{% if contains_object_references %}, IDisposable {% endif %} {
+{{ config.access_modifier() }} class {{ type_name }}: UniffiException{% if contains_object_references %}, IDisposable {% endif %} {
     // Each variant is a nested class
     {% for variant in e.variants() -%}
     {%- call cs::docstring(variant, 4) %}

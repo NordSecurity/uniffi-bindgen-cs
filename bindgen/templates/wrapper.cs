@@ -53,9 +53,9 @@ using {{ alias.alias }} = {{ alias.original_type }};
 
 {%- match config.global_methods_class_name %}
 {%- when Some(class_name) %}
-public static class {{ class_name }} {
+{{ config.access_modifier() }} static class {{ class_name }} {
 {%- when None %}
-public static class {{ ci.namespace().to_upper_camel_case() }}Methods {
+{{ config.access_modifier() }} static class {{ ci.namespace().to_upper_camel_case() }}Methods {
 {%- endmatch %}
 {%- for func in ci.function_definitions() %}
 {%- include "TopLevelFunctionTemplate.cs" %}

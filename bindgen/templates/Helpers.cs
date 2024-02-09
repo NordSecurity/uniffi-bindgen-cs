@@ -24,38 +24,38 @@ struct RustCallStatus {
 }
 
 // Base class for all uniffi exceptions
-public class UniffiException: Exception {
+{{ config.access_modifier() }} class UniffiException: Exception {
     public UniffiException(): base() {}
     public UniffiException(string message): base(message) {}
 }
 
-public class UndeclaredErrorException: UniffiException {
+{{ config.access_modifier() }} class UndeclaredErrorException: UniffiException {
     public UndeclaredErrorException(string message): base(message) {}
 }
 
-public class PanicException: UniffiException {
+{{ config.access_modifier() }} class PanicException: UniffiException {
     public PanicException(string message): base(message) {}
 }
 
-public class AllocationException: UniffiException {
+{{ config.access_modifier() }} class AllocationException: UniffiException {
     public AllocationException(string message): base(message) {}
 }
 
-public class InternalException: UniffiException {
+{{ config.access_modifier() }} class InternalException: UniffiException {
     public InternalException(string message): base(message) {}
 }
 
-public class InvalidEnumException: InternalException {
+{{ config.access_modifier() }} class InvalidEnumException: InternalException {
     public InvalidEnumException(string message): base(message) {
     }
 }
 
-public class UniffiContractVersionException: UniffiException {
+{{ config.access_modifier() }} class UniffiContractVersionException: UniffiException {
     public UniffiContractVersionException(string message): base(message) {
     }
 }
 
-public class UniffiContractChecksumException: UniffiException {
+{{ config.access_modifier() }} class UniffiContractChecksumException: UniffiException {
     public UniffiContractChecksumException(string message): base(message) {
     }
 }

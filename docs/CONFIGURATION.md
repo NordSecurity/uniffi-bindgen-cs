@@ -53,3 +53,5 @@ uniffi-bindgen-cs path/to/definitions.udl --config path/to/uniffi.toml
     [bindings.csharp]
     namespace = "LibGreeter"
     ```
+
+- `access_modifier` - override the default `internal` access modifier for "exported" uniffi symbols.
