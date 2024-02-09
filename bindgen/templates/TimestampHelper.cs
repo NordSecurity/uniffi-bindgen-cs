@@ -8,6 +8,9 @@ class FfiConverterTimestamp: FfiConverterRustBuffer<DateTime> {
     // https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/TimeSpan.cs
     private const uint NanosecondsPerTick = 100;
 
+    // DateTime.UnixEpoch is not available in net48
+    private static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
     public override DateTime Read(BigEndianStream stream) {
         var seconds = stream.ReadLong();
         var nanoseconds = stream.ReadUInt();
@@ -17,7 +20,7 @@ class FfiConverterTimestamp: FfiConverterRustBuffer<DateTime> {
         }
         var ticks = seconds * TimeSpan.TicksPerSecond;
         ticks += (nanoseconds / NanosecondsPerTick) * sign;
-        return DateTime.UnixEpoch.AddTicks(ticks);
+        return UnixEpoch.AddTicks(ticks);
     }
 
     public override int AllocationSize(DateTime value) {
@@ -26,7 +29,7 @@ class FfiConverterTimestamp: FfiConverterRustBuffer<DateTime> {
     }
 
     public override void Write(DateTime value, BigEndianStream stream) {
-        var epochOffset = value.Subtract(DateTime.UnixEpoch);
+        var epochOffset = value.Subtract(UnixEpoch);
 
         int sign = 1;
         if (epochOffset.Ticks < 0) {

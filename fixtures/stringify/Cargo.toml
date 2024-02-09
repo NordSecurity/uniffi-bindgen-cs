@@ -1,0 +1,17 @@
+[package]
+name = "uniffi-cs-stringify"
+version = "1.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["lib", "cdylib"]
+name = "stringify"
+
+[dependencies]
+paste = "1.0"
+uniffi = {path = "../../3rd-party/uniffi-rs/uniffi", features=["build"]}
+uniffi_macros = {path = "../../3rd-party/uniffi-rs/uniffi_macros"}
+
+[build-dependencies]
+uniffi = {path = "../../3rd-party/uniffi-rs/uniffi", features=["bindgen-tests"]}

@@ -63,7 +63,9 @@ class BigEndianStream {
     }
 
     public void WriteFloat(float value) {
-        WriteInt(BitConverter.SingleToInt32Bits(value));
+        unsafe {
+            WriteInt(*((int*)&value));
+        }
     }
 
     public void WriteLong(long value) {
@@ -116,7 +118,10 @@ class BigEndianStream {
     }
 
     public float ReadFloat() {
-        return BitConverter.Int32BitsToSingle(ReadInt());
+        unsafe {
+            int value = ReadInt();
+            return *((float*)&value);
+        }
     }
 
     public long ReadLong() {

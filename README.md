@@ -23,18 +23,26 @@ Generates bindings file `path/to/definitions.cs`
 # How to integrate bindings
 
 To integrate the bindings into your projects, simply add the generated bindings file to your project.
-There are a couple of requirements to compile the generated bindings file:
-- .NET core `6.0` or higher
-- allow `unsafe` code
-- allow `Nullable`
+There are a few requirements depending on your target framework version.
 
-```xml
-<PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Nullable>enable</Nullable>
-</PropertyGroup>
-```
+- .NET core `6.0` or higher
+    ```xml
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    ```
+
+- .NET framework `4.8`
+    ```xml
+    <PropertyGroup>
+        <TargetFramework>net48</TargetFramework>
+        <LangVersion>10.0</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <PackageReference Include="IsExternalInit" Version="1.0.3"/>
+        <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    </PropertyGroup>
+    ```
 
 # Unsupported features
 

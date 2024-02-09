@@ -43,8 +43,9 @@ class ConcurrentHandleMap<T> where T: notnull {
         lock (lock_) {
             // Possible null reference assignment
             #pragma warning disable 8601
-            if (leftMap.Remove(handle, out result)) {
+            if (leftMap.TryGetValue(handle, out result)) {
             #pragma warning restore 8601
+                leftMap.Remove(handle);
                 rightMap.Remove(result);
                 return true;
             } else {
