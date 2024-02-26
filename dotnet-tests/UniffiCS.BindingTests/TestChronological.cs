@@ -61,7 +61,7 @@ public class TestChronological
     {
         Assert.Equal(
             "1969-12-12T00:00:00.000000000Z",
-            ChronologicalMethods.ToStringTimestamp(DateTime.Parse("1969-12-12T00:00:00.000000000Z"))
+            ChronologicalMethods.ToStringTimestamp(DateTime.Parse("1969-12-12T00:00:00.000000000Z").ToUniversalTime())
         );
 
         // [-999_999_999; 0) is unrepresentable
@@ -73,7 +73,7 @@ public class TestChronological
 
         Assert.Equal(
             "1969-12-31T23:59:58.999999900Z",
-            ChronologicalMethods.ToStringTimestamp(DateTime.Parse("1969-12-31T23:59:58.999999900Z"))
+            ChronologicalMethods.ToStringTimestamp(DateTime.Parse("1969-12-31T23:59:58.999999900Z").ToUniversalTime())
         );
 
         Assert.Equal(
@@ -86,11 +86,11 @@ public class TestChronological
     public void TestDateTimeWorksLikeRustSystemTime()
     {
         // Sleep inbetween to make sure that the clock has enough resolution
-        var before = DateTime.Now;
+        var before = DateTime.UtcNow;
         Thread.Sleep(1);
         var now = ChronologicalMethods.Now();
         Thread.Sleep(1);
-        var after = DateTime.Now;
+        var after = DateTime.UtcNow;
         Assert.Equal(-1, before.CompareTo(now));
         Assert.Equal(1, after.CompareTo(now));
     }
