@@ -4,15 +4,14 @@
 
 pub mod gen_cs;
 
-use anyhow::{bail, Result};
-use camino::{Utf8Path, Utf8PathBuf};
+use anyhow::Result;
+use camino::Utf8PathBuf;
 use clap::Parser;
 use fs_err::File;
 pub use gen_cs::generate_bindings;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::io::Write;
-use uniffi_bindgen::{interface::ComponentInterface, BindingsConfig};
+use uniffi_bindgen::{Component, GenerationSettings};
 
 #[derive(Parser)]
 #[clap(name = "uniffi-bindgen")]
@@ -59,67 +58,122 @@ pub struct ConfigBindings {
     csharp: gen_cs::Config,
 }
 
-impl BindingsConfig for ConfigRoot {
-    fn update_from_ci(&mut self, ci: &ComponentInterface) {
-        self.bindings.csharp.update_from_ci(ci);
-    }
+// impl BindingsConfig for ConfigRoot {
+//     fn update_from_ci(&mut self, ci: &ComponentInterface) {
+//         self.bindings.csharp.update_from_ci(ci);
+//     }
 
-    fn update_from_cdylib_name(&mut self, cdylib_name: &str) {
-        self.bindings.csharp.update_from_cdylib_name(cdylib_name);
-    }
+//     fn update_from_cdylib_name(&mut self, cdylib_name: &str) {
+//         self.bindings.csharp.update_from_cdylib_name(cdylib_name);
+//     }
 
-    fn update_from_dependency_configs(&mut self, config_map: HashMap<&str, &Self>) {
-        self.bindings.csharp.update_from_dependency_configs(
-            config_map
-                .iter()
-                .map(|(key, config)| (*key, &config.bindings.csharp))
-                .collect(),
-        );
-    }
-}
+//     fn update_from_dependency_configs(&mut self, config_map: HashMap<&str, &Self>) {
+//         self.bindings.csharp.update_from_dependency_configs(
+//             config_map
+//                 .iter()
+//                 .map(|(key, config)| (*key, &config.bindings.csharp))
+//                 .collect(),
+//         );
+//     }
+// }
 
 struct BindingGenerator {
     try_format_code: bool,
 }
 
 impl uniffi_bindgen::BindingGenerator for BindingGenerator {
-    type Config = ConfigRoot;
+    type Config = gen_cs::Config;
+
+    fn new_config(&self, root_toml: &toml::Value) -> Result<Self::Config> {
+        Ok(
+            match root_toml.get("bindings").and_then(|b| b.get("csharp")) {
+                Some(v) => v.clone().try_into()?,
+                None => Default::default(),
+            },
+        )
+    }
 
     fn write_bindings(
         &self,
-        ci: &ComponentInterface,
-        config: &Self::Config,
-        out_dir: &Utf8Path,
+        settings: &GenerationSettings,
+        components: &[Component<Self::Config>],
     ) -> anyhow::Result<()> {
-        let bindings_file = out_dir.join(format!("{}.cs", ci.namespace()));
-        let mut f = File::create(&bindings_file)?;
+        for Component { ci, config, .. } in components {
+            let bindings_file = settings.out_dir.join(format!("{}.cs", ci.namespace()));
+            println!("Writing bindings file {}", bindings_file);
+            let mut f = File::create(&bindings_file)?;
 
-        let mut bindings = generate_bindings(&config.bindings.csharp, &ci)?;
+            let mut bindings = generate_bindings(&config, &ci)?;
 
-        if self.try_format_code {
-            match gen_cs::formatting::format(bindings.clone()) {
-                Ok(formatted) => bindings = formatted,
-                Err(e) => {
-                    println!(
-                        "Warning: Unable to auto-format {} using CSharpier (hint: 'dotnet tool install -g csharpier'): {e:?}",
-                        bindings_file.file_name().unwrap(),
-                    );
+            if self.try_format_code {
+                match gen_cs::formatting::format(bindings.clone()) {
+                    Ok(formatted) => bindings = formatted,
+                    Err(e) => {
+                        println!(
+                            "Warning: Unable to auto-format {} using CSharpier (hint: 'dotnet tool install -g csharpier'): {e:?}",
+                            bindings_file.file_name().unwrap(),
+                        );
+                    }
                 }
             }
-        }
 
-        bindings = gen_cs::formatting::add_header(bindings);
-        write!(f, "{}", bindings)?;
-
-        Ok(())
-    }
-
-    fn check_library_path(&self, library_path: &Utf8Path, cdylib_name: Option<&str>) -> Result<()> {
-        if cdylib_name.is_none() {
-            bail!("Generate bindings for C# requires a cdylib, but {library_path} was given");
+            bindings = gen_cs::formatting::add_header(bindings);
+            write!(f, "{}", bindings)?;
         }
         Ok(())
     }
+
+    fn update_component_configs(
+        &self,
+        settings: &GenerationSettings,
+        components: &mut Vec<Component<Self::Config>>,
+    ) -> Result<()> {
+        for c in &mut *components {
+            c.config
+                .namespace
+                .get_or_insert_with(|| format!("uniffi.{}", c.ci.namespace()));
+
+            c.config.cdylib_name = c.config.cdylib_name.clone().or(settings.cdylib.clone())
+            // TODO fixme, I don't like the default if nothing is found
+            // c.config.cdylib_name.get_or_insert_with(|| {
+            //     settings
+            //         .cdylib
+            //         .clone()
+            //         .unwrap_or_else(|| format!("uniffi_{}", c.ci.namespace()))
+            // });
+            // c.config.cdylib_name.get_or_insert_with(|| {
+            //     settings
+            //         .cdylib
+            //         .clone()
+            //         .unwrap_or_else(|| format!("uniffi_{}", c.ci.namespace()))
+            // });
+        }
+        // TODO: external types are not supported
+        // let packages = HashMap::<String, String>::from_iter(
+        //     components
+        //         .iter()
+        //         .map(|c| (c.ci.crate_name().to_string(), c.config.package_name())),
+        // );
+        // for c in components {
+        //     for (ext_crate, ext_package) in &packages {
+        //         if ext_crate != c.ci.crate_name()
+        //             && !c.config.external_packages.contains_key(ext_crate)
+        //         {
+        //             c.config
+        //                 .external_packages
+        //                 .insert(ext_crate.to_string(), ext_package.clone());
+        //         }
+        //     }
+        // }
+        Ok(())
+    }
+
+    // fn check_library_path(&self, library_path: &Utf8Path, cdylib_name: Option<&str>) -> Result<()> {
+    //     if cdylib_name.is_none() {
+    //         bail!("Generate bindings for C# requires a cdylib, but {library_path} was given");
+    //     }
+    //     Ok(())
+    // }
 }
 
 pub fn main() -> Result<()> {
@@ -129,19 +183,20 @@ pub fn main() -> Result<()> {
         let out_dir = cli
             .out_dir
             .expect("--out-dir is required when using --library");
-        uniffi_bindgen::library_mode::generate_external_bindings(
-            BindingGenerator {
-                try_format_code: !cli.no_format,
-            },
+        uniffi_bindgen::library_mode::generate_bindings(
             &cli.source,
             cli.crate_name,
+            &BindingGenerator {
+                try_format_code: !cli.no_format,
+            },
             cli.config.as_deref(),
             &out_dir,
+            !cli.no_format,
         )
         .map(|_| ())
     } else {
         uniffi_bindgen::generate_external_bindings(
-            BindingGenerator {
+            &BindingGenerator {
                 try_format_code: !cli.no_format,
             },
             &cli.source,
@@ -149,6 +204,7 @@ pub fn main() -> Result<()> {
             cli.out_dir.as_deref(),
             cli.lib_file.as_deref(),
             cli.crate_name.as_deref(),
+            !cli.no_format,
         )
     }
 }

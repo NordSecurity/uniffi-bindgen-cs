@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
 {%- let cbi = ci.get_callback_interface_definition(name).unwrap() %}
-{%- let type_name = cbi|type_name %}
+{%- let type_name = cbi|type_name(ci) %}
 {%- let foreign_callback = format!("ForeignCallback{}", canonical_type_name) %}
 
 {% if self.include_once_check("CallbackInterfaceRuntime.cs") %}{% include "CallbackInterfaceRuntime.cs" %}{% endif %}
@@ -15,7 +15,7 @@
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
     {%- match meth.return_type() %}
     {%- when Some with (return_type) %}
-    {{ return_type|type_name }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
+    {{ return_type|type_name(ci) }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
     {%- else %}
     void {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
     {%- endmatch %}
@@ -52,7 +52,7 @@ class {{ foreign_callback }} {
                     try {
                         outBuf = {{ method_name }}(cb, RustBuffer.MemoryStream(argsData, argsLength));
                         return UniffiCallbackResponseCode.SUCCESS;
-                    } catch ({{ error_type|type_name }} e) {
+                    } catch ({{ error_type|type_name(ci) }} e) {
                         outBuf = {{ error_type|lower_fn }}(e);
                         return UniffiCallbackResponseCode.ERROR;
                     }

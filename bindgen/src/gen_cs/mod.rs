@@ -5,13 +5,14 @@
 use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::collections::{BTreeSet, HashMap, HashSet};
+use std::fmt::Debug;
 
 use anyhow::{Context, Result};
 use askama::Template;
 use heck::{ToLowerCamelCase, ToUpperCamelCase};
 use serde::{Deserialize, Serialize};
 
-use uniffi_bindgen::backend::{CodeType, TemplateExpression, Type};
+use uniffi_bindgen::backend::{TemplateExpression, Type};
 use uniffi_bindgen::interface::*;
 use uniffi_bindgen::ComponentInterface;
 
@@ -27,11 +28,51 @@ mod object;
 mod primitives;
 mod record;
 
+trait CodeType: Debug {
+    /// The language specific label used to reference this type. This will be used in
+    /// method signatures and property declarations.
+    fn type_label(&self, ci: &ComponentInterface) -> String;
+
+    /// A representation of this type label that can be used as part of another
+    /// identifier. e.g. `read_foo()`, or `FooInternals`.
+    ///
+    /// This is especially useful when creating specialized objects or methods to deal
+    /// with this type only.
+    fn canonical_name(&self) -> String;
+
+    fn literal(&self, _literal: &Literal, ci: &ComponentInterface) -> String {
+        unimplemented!("Unimplemented for {}", self.type_label(ci))
+    }
+
+    /// Name of the FfiConverter
+    ///
+    /// This is the object that contains the lower, write, lift, and read methods for this type.
+    /// Depending on the binding this will either be a singleton or a class with static methods.
+    ///
+    /// This is the newer way of handling these methods and replaces the lower, write, lift, and
+    /// read CodeType methods.  Currently only used by Kotlin, but the plan is to move other
+    /// backends to using this.
+    fn ffi_converter_name(&self) -> String {
+        format!("FfiConverter{}", self.canonical_name())
+    }
+
+    /// A list of imports that are needed if this type is in use.
+    /// Classes are imported exactly once.
+    fn imports(&self) -> Option<Vec<String>> {
+        None
+    }
+
+    /// Function to run at startup
+    fn initialization_fn(&self) -> Option<String> {
+        None
+    }
+}
+
 // config options to customize the generated C# bindings.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Config {
-    namespace: Option<String>,
-    cdylib_name: Option<String>,
+    pub(super) namespace: Option<String>,
+    pub(super) cdylib_name: Option<String>,
     #[serde(default)]
     custom_types: HashMap<String, CustomTypeConfig>,
     #[serde(default)]
@@ -47,22 +88,6 @@ pub struct CustomTypeConfig {
     type_name: Option<String>,
     into_custom: TemplateExpression,
     from_custom: TemplateExpression,
-}
-
-impl uniffi_bindgen::BindingsConfig for Config {
-    fn update_from_ci(&mut self, ci: &ComponentInterface) {
-        self.namespace
-            .get_or_insert_with(|| format!("uniffi.{}", ci.namespace()));
-    }
-
-    fn update_from_cdylib_name(&mut self, cdylib_name: &str) {
-        self.cdylib_name
-            .get_or_insert_with(|| cdylib_name.to_string());
-    }
-
-    fn update_from_dependency_configs(&mut self, _config_map: HashMap<&str, &Self>) {
-        // TODO
-    }
 }
 
 impl Config {
@@ -230,7 +255,7 @@ impl<'a> CsWrapper<'a> {
     }
 }
 
-pub trait AsCodeType {
+pub(self) trait AsCodeType {
     fn as_codetype(&self) -> Box<dyn CodeType>;
 }
 
@@ -267,7 +292,6 @@ impl<T: AsType> AsCodeType for T {
             Type::CallbackInterface { name, .. } => {
                 Box::new(callback_interface::CallbackInterfaceCodeType::new(name))
             }
-            Type::ForeignExecutor => panic!("TODO implement async"),
             Type::Optional { inner_type } => {
                 Box::new(compounds::OptionalCodeType::new(*inner_type))
             }
@@ -312,6 +336,16 @@ impl CsCodeOracle {
         nm.to_string().to_upper_camel_case()
     }
 
+    /// Get the idiomatic C# rendering of an FFI callback function name
+    fn ffi_callback_name(&self, nm: &str) -> String {
+        format!("Uniffi{}", nm.to_upper_camel_case())
+    }
+
+    /// Get the idiomatic C# rendering of an FFI struct name
+    fn ffi_struct_name(&self, nm: &str) -> String {
+        format!("Uniffi{}", nm.to_upper_camel_case())
+    }
+
     /// Get the idiomatic C# rendering of an exception name
     ///
     /// This replaces "Error" at the end of the name with "Exception".  Rust code typically uses
@@ -341,12 +375,12 @@ impl CsCodeOracle {
             FfiType::RustArcPtr(_) => "IntPtr".to_string(),
             FfiType::RustBuffer(_) => "RustBuffer".to_string(),
             FfiType::ForeignBytes => "ForeignBytes".to_string(),
-            FfiType::ForeignCallback => "ForeignCallback".to_string(),
-            FfiType::ForeignExecutorHandle => panic!("TODO implement async"),
-            FfiType::ForeignExecutorCallback => panic!("TODO implement async"),
-            FfiType::RustFutureHandle => "IntPtr".to_string(),
-            FfiType::RustFutureContinuationCallback => "IntPtr".to_string(),
-            FfiType::RustFutureContinuationData => "IntPtr".to_string(),
+            FfiType::Callback(name) => self.ffi_callback_name(name),
+            FfiType::Handle => "Handle_NotImplemented".to_string(),
+            FfiType::Reference(typ) => format!("ref {}", self.ffi_type_label(typ)),
+            FfiType::RustCallStatus => panic!("FfiType::RustCallStatus not implemented"),
+            FfiType::Struct(name) => self.ffi_struct_name(name),
+            FfiType::VoidPointer => panic!("FfiType::VoidPointer not implemented"),
         }
     }
 }
@@ -358,11 +392,17 @@ pub mod filters {
         &CsCodeOracle
     }
 
-    pub fn type_name(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
-        Ok(as_ct.as_codetype().type_label())
+    pub(super) fn type_name(
+        as_ct: &impl AsCodeType,
+        ci: &ComponentInterface,
+    ) -> Result<String, askama::Error> {
+        Ok(as_ct.as_codetype().type_label(ci))
     }
 
-    pub fn type_name_custom(typ: &Type) -> Result<String, askama::Error> {
+    pub(super) fn type_name_custom(
+        typ: &Type,
+        ci: &ComponentInterface,
+    ) -> Result<String, askama::Error> {
         // Lowercasing numeric types introduces a problem. In C# custom types are
         // implemented with `using` directive, and the `using` directive expects
         // and identifier on the right side of `=`. Lowercase numeric types are
@@ -382,97 +422,108 @@ pub mod filters {
             Type::UInt64 => Ok("UInt64".to_string()),
             Type::Float32 => Ok("Single".to_string()),
             Type::Float64 => Ok("Double".to_string()),
-            _ => type_name(typ),
+            _ => type_name(typ, ci),
         }
     }
 
-    pub fn canonical_name(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
+    pub(super) fn canonical_name(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
         Ok(as_ct.as_codetype().canonical_name())
     }
 
-    pub fn ffi_converter_name(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
+    pub(super) fn ffi_converter_name(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
         Ok(as_ct.as_codetype().ffi_converter_name())
     }
 
-    pub fn lower_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
+    pub(super) fn lower_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
         Ok(format!(
             "{}.INSTANCE.Lower",
             as_ct.as_codetype().ffi_converter_name()
         ))
     }
 
-    pub fn allocation_size_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
+    pub(super) fn allocation_size_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
         Ok(format!(
             "{}.INSTANCE.AllocationSize",
             as_ct.as_codetype().ffi_converter_name()
         ))
     }
 
-    pub fn write_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
+    pub(super) fn write_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
         Ok(format!(
             "{}.INSTANCE.Write",
             as_ct.as_codetype().ffi_converter_name()
         ))
     }
 
-    pub fn lift_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
+    pub(super) fn lift_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
         Ok(format!(
             "{}.INSTANCE.Lift",
             as_ct.as_codetype().ffi_converter_name()
         ))
     }
 
-    pub fn read_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
+    pub(super) fn read_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
         Ok(format!(
             "{}.INSTANCE.Read",
             as_ct.as_codetype().ffi_converter_name()
         ))
     }
 
-    pub fn render_literal(
+    pub(super) fn render_literal(
         literal: &Literal,
         as_ct: &impl AsCodeType,
+        ci: &ComponentInterface,
     ) -> Result<String, askama::Error> {
-        Ok(as_ct.as_codetype().literal(literal))
+        Ok(as_ct.as_codetype().literal(literal, ci))
     }
 
-    pub fn ffi_type(type_: &impl AsType) -> Result<FfiType, askama::Error> {
+    pub(super) fn ffi_type(type_: &impl AsType) -> Result<FfiType, askama::Error> {
         Ok(type_.as_type().into())
     }
 
     /// Get the C# syntax for representing a given low-level `FFIType`.
-    pub fn ffi_type_name(type_: &FfiType) -> Result<String, askama::Error> {
+    pub(super) fn ffi_type_name(type_: &FfiType) -> Result<String, askama::Error> {
         Ok(oracle().ffi_type_label(type_))
     }
 
     /// Get the idiomatic C# rendering of a class name (for enums, records, errors, etc).
-    pub fn class_name(nm: &str) -> Result<String, askama::Error> {
+    pub(super) fn class_name(nm: &str) -> Result<String, askama::Error> {
         Ok(oracle().class_name(nm))
     }
 
     /// Get the idiomatic C# rendering of a function name.
-    pub fn fn_name(nm: &str) -> Result<String, askama::Error> {
+    pub(super) fn fn_name(nm: &str) -> Result<String, askama::Error> {
         Ok(oracle().fn_name(nm))
     }
 
     /// Get the idiomatic C# rendering of a variable name.
-    pub fn var_name(nm: &str) -> Result<String, askama::Error> {
+    pub(super) fn var_name(nm: &str) -> Result<String, askama::Error> {
         Ok(oracle().var_name(nm))
     }
 
     /// Get the idiomatic C# rendering of an individual enum variant.
-    pub fn enum_variant(nm: &str) -> Result<String, askama::Error> {
+    pub(super) fn enum_variant(nm: &str) -> Result<String, askama::Error> {
         Ok(oracle().enum_variant_name(nm))
     }
 
     /// Get the idiomatic C# rendering of an exception name, replacing
     /// `Error` with `Exception`.
-    pub fn exception_name(nm: &str) -> Result<String, askama::Error> {
+    pub(super) fn exception_name(nm: &str) -> Result<String, askama::Error> {
         Ok(oracle().error_name(nm))
     }
 
+    /// Get the idiomatic C# rendering of an FFI callback function name
+    pub(super) fn ffi_callback_name(nm: &str) -> Result<String, askama::Error> {
+        Ok(oracle().ffi_callback_name(nm))
+    }
+
+    /// Get the idiomatic C# rendering of an FFI struct name
+    pub(super) fn ffi_struct_name(nm: &str) -> Result<String, askama::Error> {
+        Ok(oracle().ffi_struct_name(nm))
+    }
+
     // Get C# error code type representation.
-    pub fn as_error(type_: &Type) -> Result<error::ErrorCodeTypeProvider, askama::Error> {
+    pub(super) fn as_error(type_: &Type) -> Result<error::ErrorCodeTypeProvider, askama::Error> {
         match type_ {
             Type::Enum { name, .. } => Ok(error::ErrorCodeTypeProvider { name }),
             // XXX - not sure how we are supposed to return askama::Error?
@@ -481,7 +532,7 @@ pub mod filters {
     }
 
     /// Get the idiomatic C# rendering of docstring
-    pub fn docstring(docstring: &str, spaces: &i32) -> Result<String, askama::Error> {
+    pub(super) fn docstring(docstring: &str, spaces: &i32) -> Result<String, askama::Error> {
         let middle = textwrap::indent(&textwrap::dedent(docstring), "/// ");
         let wrapped = format!("/// <summary>\n{middle}\n/// </summary>");
 
@@ -490,7 +541,7 @@ pub mod filters {
     }
 
     /// Orders fields in a way that avoids CS1737 errors
-    pub fn order_fields(fields: &[Field]) -> Result<(Vec<Field>, bool), askama::Error> {
+    pub(super) fn order_fields(fields: &[Field]) -> Result<(Vec<Field>, bool), askama::Error> {
         let original_fields = fields.to_vec();
         let mut fields = original_fields.clone();
         // fields with default values must come after fields without default values
@@ -501,7 +552,7 @@ pub mod filters {
     }
 
     /// Panic with message
-    pub fn panic(message: &str) -> Result<String, askama::Error> {
+    pub(super) fn panic(message: &str) -> Result<String, askama::Error> {
         panic!("{}", message)
     }
 }

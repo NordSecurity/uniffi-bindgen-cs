@@ -2,7 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-use uniffi_bindgen::backend::{CodeType, Literal};
+use super::CodeType;
+use uniffi_bindgen::{backend::Literal, ComponentInterface};
 
 #[derive(Debug)]
 pub struct RecordCodeType {
@@ -16,7 +17,7 @@ impl RecordCodeType {
 }
 
 impl CodeType for RecordCodeType {
-    fn type_label(&self) -> String {
+    fn type_label(&self, _ci: &ComponentInterface) -> String {
         super::CsCodeOracle.class_name(&self.id)
     }
 
@@ -24,7 +25,7 @@ impl CodeType for RecordCodeType {
         format!("Type{}", self.id)
     }
 
-    fn literal(&self, _literal: &Literal) -> String {
+    fn literal(&self, _literal: &Literal, _ci: &ComponentInterface) -> String {
         unreachable!();
     }
 }

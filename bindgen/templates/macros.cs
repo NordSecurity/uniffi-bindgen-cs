@@ -45,9 +45,9 @@
 
 {% macro arg_list_decl(func) %}
     {%- for arg in func.arguments() -%}
-        {{ arg|type_name }} {{ arg.name()|var_name -}}
+        {{ arg|type_name(ci) }} {{ arg.name()|var_name -}}
         {%- match arg.default_value() %}
-        {%- when Some with(literal) %} = {{ literal|render_literal(arg) }}
+        {%- when Some with(literal) %} = {{ literal|render_literal(arg, ci) }}
         {%- else %}
         {%- endmatch %}
         {%- if !loop.last %}, {% endif -%}
@@ -56,7 +56,7 @@
 
 {% macro arg_list_protocol(func) %}
     {%- for arg in func.arguments() -%}
-        {{ arg|type_name }} {{ arg.name()|var_name -}}
+        {{ arg|type_name(ci) }} {{ arg.name()|var_name -}}
         {%- if !loop.last %}, {% endif -%}
     {%- endfor %}
 {%- endmacro %}
@@ -92,13 +92,13 @@ fun {{ func.name()|fn_name }}(
 {%- macro method_throws_annotation(throwable_type) %}
     {%- match throwable_type -%}
     {%- when Some with (throwable) %}
-    /// <exception cref="{{ throwable|as_error|type_name }}"></exception>
+    /// <exception cref="{{ throwable|as_error|type_name(ci) }}"></exception>
     {%- else -%}
     {%- endmatch %}
 {%- endmacro %}
 
-{%- macro docstring(defn, indent_spaces) %}
-{%- match defn.docstring() %}
+{%- macro docstring_value(maybe_docstring, indent_spaces) %}
+{%- match maybe_docstring %}
 {%- when Some(docstring) %}
 {{ docstring|docstring(indent_spaces) }}
 {%- else %}
@@ -139,4 +139,8 @@ void
 {%- if param_type_name == enum_name %}{{ config.namespace() }}.{{ param_type_name }}
 {%- else %}{{ param_type_name }}
 {%- endif %}
+{%- endmacro %}
+
+{%- macro docstring(defn, indent_spaces) %}
+{%- call docstring_value(defn.docstring(), indent_spaces) %}
 {%- endmacro %}
