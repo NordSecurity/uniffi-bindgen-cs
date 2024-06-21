@@ -14,7 +14,7 @@
     _UniffiHelpers.RustCallWithError({{ e|as_error|ffi_converter_name}}.INSTANCE,
     {%- else %}
     _UniffiHelpers.RustCall(
-    {%- endmatch %} (ref RustCallStatus _status) =>
+    {%- endmatch %} (ref UniffiRustCallStatus _status) =>
     _UniFFILib.{{ func.ffi_func().name() }}({% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
 )
 {%- endmacro -%}
@@ -25,7 +25,7 @@
     _UniffiHelpers.RustCallWithError({{ e|as_error|ffi_converter_name}}.INSTANCE,
     {%- else %}
     _UniffiHelpers.RustCall(
-    {%- endmatch %} (ref RustCallStatus _status) =>
+    {%- endmatch %} (ref UniffiRustCallStatus _status) =>
     _UniFFILib.{{ func.ffi_func().name() }}(
         {{- prefix }}, {% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
 )
@@ -72,7 +72,7 @@
         {{- arg.type_().borrow()|ffi_type_name }} {{ arg.name()|var_name -}}{%- if !loop.last || func.has_rust_call_status_arg() -%},{%- endif -%}
     {%- endfor %}
     {%- endif %}
-    {%- if func.has_rust_call_status_arg() %}ref RustCallStatus _uniffi_out_err{% endif %}
+    {%- if func.has_rust_call_status_arg() %}ref UniffiRustCallStatus _uniffi_out_err{% endif %}
 {%- endmacro -%}
 
 // Macro for destroying fields
