@@ -2,9 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
-{%- let type_name = type_|as_error|type_name %}
-{%- let ffi_converter_name = type_|as_error|ffi_converter_name %}
-{%- let canonical_type_name = type_|as_error|canonical_name %}
+{%- let type_name = type_|type_name(ci) %}
+{%- let ffi_converter_name = type_|ffi_converter_name %}
+{%- let canonical_type_name = type_|canonical_name %}
 
 {% if e.is_flat() %}
 {%- call cs::docstring(e, 0) %}
@@ -15,8 +15,8 @@
     // Flat enums carries a string error message, so no special implementation is necessary.
     {% for variant in e.variants() -%}
     {%- call cs::docstring(variant, 4) %}
-    public class {{ variant.name()|exception_name }}: {{ type_name }} {
-        public {{ variant.name()|exception_name }}(string message): base(message) {}
+    public class {{ variant|error_variant_name }}: {{ type_name }} {
+        public {{ variant|error_variant_name }}(string message): base(message) {}
     }
     {% endfor %}
 }
@@ -28,7 +28,7 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
         var value = stream.ReadInt();
         switch (value) {
             {%- for variant in e.variants() %}
-            case {{ loop.index }}: return new {{ type_name }}.{{ variant.name()|exception_name }}({{ Type::String.borrow()|read_fn }}(stream));
+            case {{ loop.index }}: return new {{ type_name }}.{{ variant|error_variant_name }}({{ Type::String.borrow()|read_fn }}(stream));
             {%- endfor %}
             default:
                 throw new InternalException(String.Format("invalid error value '{0}' in {{ ffi_converter_name }}.Read()", value));
@@ -42,7 +42,7 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
     public override void Write({{ type_name }} value, BigEndianStream stream) {
         switch (value) {
             {%- for variant in e.variants() %}
-            case {{ type_name }}.{{ variant.name()|exception_name }}:
+            case {{ type_name }}.{{ variant|error_variant_name }}:
                 stream.WriteInt({{ loop.index }});
                 break;
             {%- endfor %}
@@ -59,18 +59,18 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
     {% for variant in e.variants() -%}
     {%- call cs::docstring(variant, 4) %}
     {% if !variant.has_fields() -%}
-    public class {{ variant.name()|exception_name }} : {{ type_name }} {}
+    public class {{ variant|error_variant_name }} : {{ type_name }} {}
     {% else %}
-    public class {{ variant.name()|exception_name }} : {{ type_name }} {
+    public class {{ variant|error_variant_name }} : {{ type_name }} {
         // Members
         {%- for field in variant.fields() %}
-        public {% call cs::enum_parameter_type_name(field|type_name, variant.name()|exception_name) %} {{ field.name()|var_name }};
+        public {% call cs::enum_parameter_type_name(field|type_name(ci), variant|error_variant_name) %} {{ field.name()|var_name }};
         {%- endfor %}
 
         // Constructor
-        public {{ variant.name()|exception_name }}(
+        public {{ variant|error_variant_name }}(
                 {%- for field in variant.fields() %}
-                {% call cs::enum_parameter_type_name(field|type_name, variant.name()|exception_name) %} {{ field.name()|var_name }}{% if loop.last %}{% else %}, {% endif %}
+                {% call cs::enum_parameter_type_name(field|type_name(ci), variant|error_variant_name) %} {{ field.name()|var_name }}{% if loop.last %}{% else %}, {% endif %}
                 {%- endfor %}) {
             {%- for field in variant.fields() %}
             this.{{ field.name()|var_name }} = {{ field.name()|var_name }};
@@ -84,7 +84,7 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
     public void Dispose() {
         switch (this) {
             {%- for variant in e.variants() %}
-            case {{ type_name }}.{{ variant.name()|exception_name }} variant_value:
+            case {{ type_name }}.{{ variant|error_variant_name }} variant_value:
                 {%- if variant.has_fields() %}
                 {% call cs::destroy_fields(variant, "variant_value") %}
                 {%- endif %}
@@ -105,7 +105,7 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
         switch (value) {
             {%- for variant in e.variants() %}
             case {{ loop.index }}:
-                return new {{ type_name }}.{{ variant.name()|exception_name }}(
+                return new {{ type_name }}.{{ variant|error_variant_name }}(
                     {%- for field in variant.fields() %}
                     {{ field|read_fn }}(stream){% if !loop.last %},{% endif %}
                     {%- endfor %});
@@ -118,7 +118,7 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
     public override int AllocationSize({{ type_name }} value) {
         switch (value) {
             {%- for variant in e.variants() %}
-            case {{ type_name }}.{{ variant.name()|exception_name }} variant_value:
+            case {{ type_name }}.{{ variant.name()|error_variant_name }} variant_value:
                 return 4
                     {%- for field in variant.fields() %}
                     + {{ field|allocation_size_fn }}(variant_value.{{ field.name()|var_name }})
@@ -132,7 +132,7 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
     public override void Write({{ type_name }} value, BigEndianStream stream) {
         switch (value) {
             {%- for variant in e.variants() %}
-            case {{ type_name }}.{{ variant.name()|exception_name }} variant_value:
+            case {{ type_name }}.{{ variant.name()|error_variant_name }} variant_value:
                 stream.WriteInt({{ loop.index }});
                 {%- for field in variant.fields() %}
                 {{ field|write_fn }}(variant_value.{{ field.name()|var_name }}, stream);

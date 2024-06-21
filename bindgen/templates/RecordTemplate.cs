@@ -28,9 +28,10 @@
 {%- endif %}
 {{ config.access_modifier() }} record {{ type_name }} (
     {%- for field in ordered_fields %}
-    {{ field|type_name }} {{ field.name()|var_name -}}
+    {%- call cs::docstring(field, 4) %}
+    {{ field|type_name(ci) }} {{ field.name()|var_name -}}
     {%- match field.default_value() %}
-        {%- when Some with(literal) %} = {{ literal|render_literal(field) }}
+        {%- when Some with(literal) %} = {{ literal|render_literal(field, ci) }}
         {%- else %}
     {%- endmatch -%}
     {% if !loop.last %}, {% endif %}

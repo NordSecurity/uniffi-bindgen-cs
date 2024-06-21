@@ -10,7 +10,7 @@
  * is needed because the UDL type name is used in function/method signatures.
  * It's also what we have an external type that references a custom type.
  */
-{{- self.add_type_alias(name, builtin|type_name_custom) }}
+{{- self.add_type_alias(name, builtin|type_name_custom(ci)) }}
 {{- self.add_type_alias(ffi_converter_name, builtin|ffi_converter_name) }}
 
 {%- when Some with (config) %}

@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
-{%- let inner_type_name = inner_type|type_name %}
+{%- let inner_type_name = inner_type|type_name(ci) %}
 
 class {{ ffi_converter_name }}: FfiConverterRustBuffer<List<{{ inner_type_name }}>> {
     public static {{ ffi_converter_name }} INSTANCE = new {{ ffi_converter_name }}();

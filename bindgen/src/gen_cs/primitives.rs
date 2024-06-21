@@ -2,52 +2,53 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+use super::CodeType;
 use paste::paste;
-use uniffi_bindgen::backend::{CodeType, Literal};
 use uniffi_bindgen::interface::{Radix, Type};
+use uniffi_bindgen::{backend::Literal, ComponentInterface};
 
 fn render_literal(literal: &Literal) -> String {
     fn typed_number(type_: &Type, num_str: String) -> String {
-        match type_ {
-            // The following types are implicitly converted from literal
-            // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/integral-numeric-types
-            Type::Int8
-            | Type::UInt8
-            | Type::Int16
-            | Type::UInt16
-            | Type::Int32
-            | Type::UInt32
-            | Type::UInt64
-            | Type::Float64 => num_str,
+        let unwrapped_type = match type_ {
+            Type::Optional { inner_type } => inner_type,
+            t => t,
+        };
+        match unwrapped_type {
+            // Bytes, Shorts and Ints can all be inferred from the type.
+            Type::Int8 | Type::Int16 | Type::Int32 => num_str,
+            Type::Int64 => format!("{num_str}L"),
 
-            Type::Int64 => format!("{}L", num_str),
-            Type::Float32 => format!("{}f", num_str),
-            _ => panic!("Unexpected literal: {} is not a number", num_str),
+            Type::UInt8 | Type::UInt16 | Type::UInt32 => format!("{num_str}u"),
+            Type::UInt64 => format!("{num_str}uL"),
+
+            Type::Float32 => format!("{num_str}f"),
+            Type::Float64 => num_str,
+            _ => panic!("Unexpected literal: {num_str} for type: {type_:?}"),
         }
     }
 
     match literal {
-        Literal::Boolean(v) => format!("{}", v),
-        Literal::String(s) => format!("\"{}\"", s),
+        Literal::Boolean(v) => format!("{v}"),
+        Literal::String(s) => format!("\"{s}\""),
         Literal::Int(i, radix, type_) => typed_number(
             type_,
             match radix {
-                Radix::Octal => format!("{:#x}", i),
-                Radix::Decimal => format!("{}", i),
-                Radix::Hexadecimal => format!("{:#x}", i),
+                Radix::Octal => format!("{i:#x}"),
+                Radix::Decimal => format!("{i}"),
+                Radix::Hexadecimal => format!("{i:#x}"),
             },
         ),
         Literal::UInt(i, radix, type_) => typed_number(
             type_,
             match radix {
-                Radix::Octal => format!("{:#x}", i),
-                Radix::Decimal => format!("{}", i),
-                Radix::Hexadecimal => format!("{:#x}", i),
+                Radix::Octal => format!("{i:#x}"),
+                Radix::Decimal => format!("{i}"),
+                Radix::Hexadecimal => format!("{i:#x}"),
             },
         ),
         Literal::Float(string, type_) => typed_number(type_, string.clone()),
 
-        _ => unreachable!("Literal"),
+        _ => unreachable!("Literal: {:?}", literal),
     }
 }
 
@@ -58,7 +59,7 @@ macro_rules! impl_code_type_for_primitive {
             pub struct $T;
 
             impl CodeType for $T  {
-                fn type_label(&self) -> String {
+                fn type_label(&self, _ci: &ComponentInterface) -> String {
                     $type_label.into()
                 }
 
@@ -66,7 +67,7 @@ macro_rules! impl_code_type_for_primitive {
                     $canonical_name.into()
                 }
 
-                fn literal(&self, literal: &Literal) -> String {
+                fn literal(&self, literal: &Literal, _ci: &ComponentInterface) -> String {
                     render_literal(&literal)
                 }
             }
