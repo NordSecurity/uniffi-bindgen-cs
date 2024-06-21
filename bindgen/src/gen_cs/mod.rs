@@ -364,7 +364,7 @@ impl CsCodeOracle {
         match ffi_type {
             FfiType::Int16 => "short".to_string(),
             FfiType::Int32 => "int".to_string(),
-            FfiType::Int64 => "long".to_string(),
+            FfiType::Int64 | FfiType::Handle => "long".to_string(),
             FfiType::Int8 => "sbyte".to_string(),
             FfiType::UInt16 => "ushort".to_string(),
             FfiType::UInt32 => "uint".to_string(),
@@ -376,11 +376,10 @@ impl CsCodeOracle {
             FfiType::RustBuffer(_) => "RustBuffer".to_string(),
             FfiType::ForeignBytes => "ForeignBytes".to_string(),
             FfiType::Callback(name) => self.ffi_callback_name(name),
-            FfiType::Handle => "Handle_NotImplemented".to_string(),
             FfiType::Reference(typ) => format!("ref {}", self.ffi_type_label(typ)),
-            FfiType::RustCallStatus => panic!("FfiType::RustCallStatus not implemented"),
+            FfiType::RustCallStatus => "UniffiRustCallStatus".to_string(),
             FfiType::Struct(name) => self.ffi_struct_name(name),
-            FfiType::VoidPointer => panic!("FfiType::VoidPointer not implemented"),
+            FfiType::VoidPointer => "IntPtr".to_string(),
         }
     }
 }

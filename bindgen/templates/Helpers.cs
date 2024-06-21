@@ -6,7 +6,7 @@
 // This would be a good candidate for isolating in its own ffi-support lib.
 // Error runtime.
 [StructLayout(LayoutKind.Sequential)]
-struct RustCallStatus {
+struct UniffiRustCallStatus {
     public sbyte code;
     public RustBuffer error_buf;
 
@@ -79,14 +79,14 @@ class NullCallStatusErrorHandler: CallStatusErrorHandler<UniffiException> {
 // In practice we usually need to be synchronized to call this safely, so it doesn't
 // synchronize itself
 class _UniffiHelpers {
-    public delegate void RustCallAction(ref RustCallStatus status);
-    public delegate U RustCallFunc<out U>(ref RustCallStatus status);
+    public delegate void RustCallAction(ref UniffiRustCallStatus status);
+    public delegate U RustCallFunc<out U>(ref UniffiRustCallStatus status);
 
     // Call a rust function that returns a Result<>.  Pass in the Error class companion that corresponds to the Err
     public static U RustCallWithError<U, E>(CallStatusErrorHandler<E> errorHandler, RustCallFunc<U> callback)
         where E: UniffiException
     {
-        var status = new RustCallStatus();
+        var status = new UniffiRustCallStatus();
         var return_value = callback(ref status);
         if (status.IsSuccess()) {
             return return_value;
@@ -110,7 +110,7 @@ class _UniffiHelpers {
     public static void RustCallWithError<E>(CallStatusErrorHandler<E> errorHandler, RustCallAction callback)
         where E: UniffiException
     {
-        _UniffiHelpers.RustCallWithError(errorHandler, (ref RustCallStatus status) => {
+        _UniffiHelpers.RustCallWithError(errorHandler, (ref UniffiRustCallStatus status) => {
             callback(ref status);
             return 0;
         });
@@ -123,7 +123,7 @@ class _UniffiHelpers {
 
     // Call a rust function that returns a plain value
     public static void RustCall(RustCallAction callback) {
-        _UniffiHelpers.RustCall((ref RustCallStatus status) => {
+        _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
             callback(ref status);
             return 0;
         });

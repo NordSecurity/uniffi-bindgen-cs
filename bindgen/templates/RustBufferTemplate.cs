@@ -13,7 +13,7 @@ internal struct RustBuffer {
     public IntPtr data;
 
     public static RustBuffer Alloc(int size) {
-        return _UniffiHelpers.RustCall((ref RustCallStatus status) => {
+        return _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
             var buffer = _UniFFILib.{{ ci.ffi_rustbuffer_alloc().name() }}(size, ref status);
             if (buffer.data == IntPtr.Zero) {
                 throw new AllocationException($"RustBuffer.Alloc() returned null data pointer (size={size})");
@@ -23,7 +23,7 @@ internal struct RustBuffer {
     }
 
     public static void Free(RustBuffer buffer) {
-        _UniffiHelpers.RustCall((ref RustCallStatus status) => {
+        _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
             _UniFFILib.{{ ci.ffi_rustbuffer_free().name() }}(buffer, ref status);
         });
     }

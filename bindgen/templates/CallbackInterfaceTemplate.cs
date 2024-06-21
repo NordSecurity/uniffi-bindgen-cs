@@ -114,7 +114,7 @@ class {{ ffi_converter_name }}: FfiConverterCallbackInterface<{{ type_name }}> {
     public static {{ ffi_converter_name }} INSTANCE = new {{ ffi_converter_name }}();
 
     public override void Register() {
-        _UniffiHelpers.RustCall((ref RustCallStatus status) => {
+        _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
             _UniFFILib.{{ cbi.ffi_init_callback().name() }}({{ foreign_callback }}.INSTANCE, ref status);
         });
     }
