@@ -118,7 +118,8 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
     public override int AllocationSize({{ type_name }} value) {
         switch (value) {
             {%- for variant in e.variants() %}
-            case {{ type_name }}.{{ variant.name()|error_variant_name }} variant_value:
+
+            case {{ type_name }}.{{ variant|error_variant_name }} variant_value:
                 return 4
                     {%- for field in variant.fields() %}
                     + {{ field|allocation_size_fn }}(variant_value.{{ field.name()|var_name }})
@@ -132,7 +133,7 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
     public override void Write({{ type_name }} value, BigEndianStream stream) {
         switch (value) {
             {%- for variant in e.variants() %}
-            case {{ type_name }}.{{ variant.name()|error_variant_name }} variant_value:
+            case {{ type_name }}.{{ variant|error_variant_name }} variant_value:
                 stream.WriteInt({{ loop.index }});
                 {%- for field in variant.fields() %}
                 {{ field|write_fn }}(variant_value.{{ field.name()|var_name }}, stream);

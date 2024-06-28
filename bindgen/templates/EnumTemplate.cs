@@ -45,11 +45,11 @@ class {{ e|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
     {% for variant in e.variants() -%}
     {%- call cs::docstring(variant, 4) %}
     {% if !variant.has_fields() -%}
-    public record {{ variant.name()|class_name }}: {{ type_name }} {}
+    public record {{ variant.name()|class_name(ci) }}: {{ type_name }} {}
     {% else -%}
-    public record {{ variant.name()|class_name }} (
+    public record {{ variant.name()|class_name(ci) }} (
         {%- for field in variant.fields() %}
-        {% call cs::enum_parameter_type_name(field|type_name(ci), variant.name()|class_name) %} {{ field.name()|var_name }}{% if !loop.last %},{% endif %}
+        {% call cs::enum_parameter_type_name(field|type_name(ci), variant.name()|class_name(ci)) %} {{ field.name()|var_name }}{% if !loop.last %},{% endif %}
         {%- endfor %}
     ) : {{ type_name }} {}
     {%- endif %}
@@ -59,7 +59,7 @@ class {{ e|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
     public void Dispose() {
         switch (this) {
             {%- for variant in e.variants() %}
-            case {{ type_name }}.{{ variant.name()|class_name }} variant_value:
+            case {{ type_name }}.{{ variant.name()|class_name(ci) }} variant_value:
                 {%- if variant.has_fields() %}
                 {% call cs::destroy_fields(variant, "variant_value") %}
                 {%- endif %}
@@ -80,7 +80,7 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>{
         switch (value) {
             {%- for variant in e.variants() %}
             case {{ loop.index }}:
-                return new {{ type_name }}.{{ variant.name()|class_name }}(
+                return new {{ type_name }}.{{ variant.name()|class_name(ci) }}(
                     {%- for field in variant.fields() %}
                     {{ field|read_fn }}(stream){% if !loop.last %},{% endif %}
                     {%- endfor %}
@@ -94,7 +94,7 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>{
     public override int AllocationSize({{ type_name }} value) {
         switch (value) {
             {%- for variant in e.variants() %}
-            case {{ type_name }}.{{ variant.name()|class_name }} variant_value:
+            case {{ type_name }}.{{ variant.name()|class_name(ci) }} variant_value:
                 return 4
                     {%- for field in variant.fields() %}
                     + {{ field|allocation_size_fn }}(variant_value.{{ field.name()|var_name }})
@@ -108,7 +108,7 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>{
     public override void Write({{ type_name }} value, BigEndianStream stream) {
         switch (value) {
             {%- for variant in e.variants() %}
-            case {{ type_name }}.{{ variant.name()|class_name }} variant_value:
+            case {{ type_name }}.{{ variant.name()|class_name(ci) }} variant_value:
                 stream.WriteInt({{ loop.index }});
                 {%- for field in variant.fields() %}
                 {{ field|write_fn }}(variant_value.{{ field.name()|var_name }}, stream);
