@@ -48,7 +48,6 @@ class {{ foreign_callback }} {
                 try {
                     {%- match meth.throws_type() %}
                     {%- when Some(error_type) %}
-                    {%- let error_type = error_type|as_error %}
                     try {
                         outBuf = {{ method_name }}(cb, RustBuffer.MemoryStream(argsData, argsLength));
                         return UniffiCallbackResponseCode.SUCCESS;

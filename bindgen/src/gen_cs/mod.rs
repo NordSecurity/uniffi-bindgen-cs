@@ -20,7 +20,6 @@ mod callback_interface;
 mod compounds;
 mod custom;
 mod enum_;
-mod error;
 mod external;
 pub mod formatting;
 mod miscellany;
@@ -317,8 +316,19 @@ impl CsCodeOracle {
     }
 
     /// Get the idiomatic C# rendering of a class name (for enums, records, errors, etc).
-    fn class_name(&self, nm: &str) -> String {
-        nm.to_string().to_upper_camel_case()
+    fn class_name(&self, nm: &str, ci: &ComponentInterface) -> String {
+        let name = nm.to_string().to_upper_camel_case();
+        // fixup errors.
+        ci.is_name_used_as_error(nm)
+            .then(|| self.convert_error_suffix(&name))
+            .unwrap_or(name)
+    }
+
+    fn convert_error_suffix(&self, nm: &str) -> String {
+        match nm.strip_suffix("Error") {
+            None => nm.to_string(),
+            Some(stripped) => format!("{stripped}Exception"),
+        }
     }
 
     /// Get the idiomatic C# rendering of a function name.
@@ -344,20 +354,6 @@ impl CsCodeOracle {
     /// Get the idiomatic C# rendering of an FFI struct name
     fn ffi_struct_name(&self, nm: &str) -> String {
         format!("Uniffi{}", nm.to_upper_camel_case())
-    }
-
-    /// Get the idiomatic C# rendering of an exception name
-    ///
-    /// This replaces "Error" at the end of the name with "Exception".  Rust code typically uses
-    /// "Error" for any type of error, but in C# errors are implemented as exceptions, so the
-    /// naming should match that.
-    fn error_name(&self, nm: &str) -> String {
-        // errors are a class in C#.
-        let name = self.class_name(nm);
-        match name.strip_suffix("Error") {
-            None => name,
-            Some(stripped) => format!("{}Exception", stripped),
-        }
     }
 
     fn ffi_type_label(&self, ffi_type: &FfiType) -> String {
@@ -486,8 +482,8 @@ pub mod filters {
     }
 
     /// Get the idiomatic C# rendering of a class name (for enums, records, errors, etc).
-    pub(super) fn class_name(nm: &str) -> Result<String, askama::Error> {
-        Ok(oracle().class_name(nm))
+    pub(super) fn class_name(nm: &str, ci: &ComponentInterface) -> Result<String, askama::Error> {
+        Ok(oracle().class_name(nm, ci))
     }
 
     /// Get the idiomatic C# rendering of a function name.
@@ -507,8 +503,9 @@ pub mod filters {
 
     /// Get the idiomatic C# rendering of an exception name, replacing
     /// `Error` with `Exception`.
-    pub(super) fn exception_name(nm: &str) -> Result<String, askama::Error> {
-        Ok(oracle().error_name(nm))
+    pub fn error_variant_name(v: &Variant) -> Result<String, askama::Error> {
+        let name = v.name().to_string().to_upper_camel_case();
+        Ok(oracle().convert_error_suffix(&name))
     }
 
     /// Get the idiomatic C# rendering of an FFI callback function name
@@ -519,15 +516,6 @@ pub mod filters {
     /// Get the idiomatic C# rendering of an FFI struct name
     pub(super) fn ffi_struct_name(nm: &str) -> Result<String, askama::Error> {
         Ok(oracle().ffi_struct_name(nm))
-    }
-
-    // Get C# error code type representation.
-    pub(super) fn as_error(type_: &Type) -> Result<error::ErrorCodeTypeProvider, askama::Error> {
-        match type_ {
-            Type::Enum { name, .. } => Ok(error::ErrorCodeTypeProvider { name }),
-            // XXX - not sure how we are supposed to return askama::Error?
-            _ => panic!("unsupported type for error: {type_:?}"),
-        }
     }
 
     /// Get the idiomatic C# rendering of docstring

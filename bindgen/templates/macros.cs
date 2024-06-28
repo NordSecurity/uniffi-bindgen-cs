@@ -11,7 +11,7 @@
 {%- macro to_ffi_call(func) -%}
     {%- match func.throws_type() %}
     {%- when Some with (e) %}
-    _UniffiHelpers.RustCallWithError({{ e|as_error|ffi_converter_name}}.INSTANCE,
+    _UniffiHelpers.RustCallWithError({{ e|ffi_converter_name}}.INSTANCE,
     {%- else %}
     _UniffiHelpers.RustCall(
     {%- endmatch %} (ref UniffiRustCallStatus _status) =>
@@ -22,7 +22,7 @@
 {%- macro to_ffi_call_with_prefix(prefix, func) %}
     {%- match func.throws_type() %}
     {%- when Some with (e) %}
-    _UniffiHelpers.RustCallWithError({{ e|as_error|ffi_converter_name}}.INSTANCE,
+    _UniffiHelpers.RustCallWithError({{ e|ffi_converter_name}}.INSTANCE,
     {%- else %}
     _UniffiHelpers.RustCall(
     {%- endmatch %} (ref UniffiRustCallStatus _status) =>
@@ -92,7 +92,7 @@ fun {{ func.name()|fn_name }}(
 {%- macro method_throws_annotation(throwable_type) %}
     {%- match throwable_type -%}
     {%- when Some with (throwable) %}
-    /// <exception cref="{{ throwable|as_error|type_name(ci) }}"></exception>
+    /// <exception cref="{{ throwable|type_name(ci) }}"></exception>
     {%- else -%}
     {%- endmatch %}
 {%- endmacro %}

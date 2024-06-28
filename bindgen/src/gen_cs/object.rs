@@ -17,8 +17,8 @@ impl ObjectCodeType {
 }
 
 impl CodeType for ObjectCodeType {
-    fn type_label(&self, _ci: &ComponentInterface) -> String {
-        super::CsCodeOracle.class_name(&self.id)
+    fn type_label(&self, ci: &ComponentInterface) -> String {
+        super::CsCodeOracle.class_name(&self.id, ci)
     }
 
     fn canonical_name(&self) -> String {
