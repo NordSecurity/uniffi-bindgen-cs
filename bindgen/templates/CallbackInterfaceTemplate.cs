@@ -29,7 +29,7 @@
 class {{ foreign_callback }} {
     {%- for (ffi_callback, meth) in vtable_methods.iter() %}
 
-    static {% call cs::func_return_type(ffi_callback) %} {{ meth.name()|var_name }}({% call cs::arg_list_ffi_decl_xx(ffi_callback) %}) {
+    static {% call cs::ffi_return_type(ffi_callback) %} {{ meth.name()|var_name }}({% call cs::arg_list_ffi_decl_xx(ffi_callback) %}) {
 
     }
     {%- endfor %}
