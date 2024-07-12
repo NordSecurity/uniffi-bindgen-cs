@@ -67,13 +67,25 @@
 {%- macro arg_list_ffi_decl(func) %}
     {%- if func.is_object_free_function() %}
     IntPtr ptr,
+    {%- if func.has_rust_call_status_arg() %}ref UniffiRustCallStatus _uniffi_out_err{% endif %}
     {%- else %}
+    {%- call arg_list_ffi_decl_xx(func) %}
+    {%- endif %}
+{%- endmacro -%}
+
+{%- macro arg_list_ffi_decl_xx(func) %}
     {%- for arg in func.arguments() %}
         {{- arg.type_().borrow()|ffi_type_name }} {{ arg.name()|var_name -}}{%- if !loop.last || func.has_rust_call_status_arg() -%},{%- endif -%}
     {%- endfor %}
-    {%- endif %}
     {%- if func.has_rust_call_status_arg() %}ref UniffiRustCallStatus _uniffi_out_err{% endif %}
 {%- endmacro -%}
+
+{%- macro func_return_type(func) %}
+    {%- match func.return_type() %}
+    {%- when Some(return_type) %}{{ return_type|ffi_type_name }}
+    {%- when None %}{{ "void" }}
+    {%- endmatch %}
+{%- endmacro %}
 
 // Macro for destroying fields
 {%- macro destroy_fields(member, prefix) %}
