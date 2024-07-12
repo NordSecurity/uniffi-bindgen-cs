@@ -40,7 +40,7 @@ internal abstract class FfiConverter<CsType, FfiType> {
         try {
             var stream = rbuf.AsWriteableStream();
             Write(value, stream);
-            rbuf.len = Convert.ToInt32(stream.Position);
+            rbuf.len = Convert.ToUInt64(stream.Position);
             return rbuf;
         } catch {
             RustBuffer.Free(rbuf);
