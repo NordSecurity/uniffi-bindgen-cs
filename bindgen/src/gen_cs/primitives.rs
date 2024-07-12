@@ -15,10 +15,10 @@ fn render_literal(literal: &Literal) -> String {
         };
         match unwrapped_type {
             // Bytes, Shorts and Ints can all be inferred from the type.
-            Type::Int8 | Type::Int16 | Type::Int32 => num_str,
+            Type::Int8 | Type::UInt8 | Type::Int16 | Type::UInt16 | Type::Int32 => num_str,
             Type::Int64 => format!("{num_str}L"),
 
-            Type::UInt8 | Type::UInt16 | Type::UInt32 => format!("{num_str}u"),
+            Type::UInt32 => format!("{num_str}u"),
             Type::UInt64 => format!("{num_str}uL"),
 
             Type::Float32 => format!("{num_str}f"),

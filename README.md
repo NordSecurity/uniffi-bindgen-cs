@@ -50,6 +50,16 @@ The following uniffi features are unsupported.
 
 - External types [#40](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/40)
 
+# Known Limitations
+
+### String/byte[]/lists size limit
+
+Currently size of strings/byte[]/lists is limited to `i32: 2^31`. Exceeding this limit will result in exceptions.
+
+### The following valid Rust type definitions fail to be converted properly, but a simple work-around is given:
+
+- Enum variants having the same name as their member type [#60](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/60)
+
 # Configuration options
 
 It's possible to [configure some settings](docs/CONFIGURATION.md) by passing `--config`

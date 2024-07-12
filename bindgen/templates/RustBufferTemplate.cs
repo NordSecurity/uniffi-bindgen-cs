@@ -8,13 +8,13 @@
 
 [StructLayout(LayoutKind.Sequential)]
 internal struct RustBuffer {
-    public int capacity;
-    public int len;
+    public ulong capacity;
+    public ulong len;
     public IntPtr data;
 
     public static RustBuffer Alloc(int size) {
         return _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
-            var buffer = _UniFFILib.{{ ci.ffi_rustbuffer_alloc().name() }}(size, ref status);
+            var buffer = _UniFFILib.{{ ci.ffi_rustbuffer_alloc().name() }}(Convert.ToUInt64(size), ref status);
             if (buffer.data == IntPtr.Zero) {
                 throw new AllocationException($"RustBuffer.Alloc() returned null data pointer (size={size})");
             }
@@ -28,21 +28,36 @@ internal struct RustBuffer {
         });
     }
 
-    public static BigEndianStream MemoryStream(IntPtr data, int length) {
-        unsafe {
+    public static BigEndianStream MemoryStream(IntPtr data, long length)
+    {
+        unsafe
+        {
             return new BigEndianStream(new UnmanagedMemoryStream((byte*)data.ToPointer(), length));
         }
     }
 
-    public BigEndianStream AsStream() {
-        unsafe {
-            return new BigEndianStream(new UnmanagedMemoryStream((byte*)data.ToPointer(), len));
+    public BigEndianStream AsStream()
+    {
+        unsafe
+        {
+            return new BigEndianStream(
+                new UnmanagedMemoryStream((byte*)data.ToPointer(), Convert.ToInt64(len))
+            );
         }
     }
 
-    public BigEndianStream AsWriteableStream() {
-        unsafe {
-            return new BigEndianStream(new UnmanagedMemoryStream((byte*)data.ToPointer(), capacity, capacity, FileAccess.Write));
+    public BigEndianStream AsWriteableStream()
+    {
+        unsafe
+        {
+            return new BigEndianStream(
+                new UnmanagedMemoryStream(
+                    (byte*)data.ToPointer(),
+                    Convert.ToInt64(capacity),
+                    Convert.ToInt64(capacity),
+                    FileAccess.Write
+                )
+            );
         }
     }
 }
