@@ -80,7 +80,7 @@
     {%- if func.has_rust_call_status_arg() %}ref UniffiRustCallStatus _uniffi_out_err{% endif %}
 {%- endmacro -%}
 
-{%- macro func_return_type(func) %}
+{%- macro ffi_return_type(func) %}
     {%- match func.return_type() %}
     {%- when Some(return_type) %}{{ return_type|ffi_type_name }}
     {%- when None %}{{ "void" }}

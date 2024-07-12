@@ -8,13 +8,8 @@ static class _UniFFILib {
     {%- match def %}
     {%- when FfiDefinition::CallbackFunction(callback) %}
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate {% if callback.return_type().is_some() %}{{ callback.return_type().unwrap()|ffi_type_name }}{% else %}void{% endif %} {{ callback.name()|ffi_callback_name }}(
-        {%- for arg in callback.arguments() %}
-        {{ arg.type_().borrow()|ffi_type_name }} {{ arg.name().borrow()|var_name }}{%- if !loop.last || callback.has_rust_call_status_arg() -%},{%- endif -%}
-        {%- endfor %}
-        {%- if callback.has_rust_call_status_arg() %}
-        ref UniffiRustCallStatus uniffiCallStatus
-        {%- endif %}
+    public delegate {% call cs::ffi_return_type(callback) %} {{ callback.name()|ffi_callback_name }}(
+        {% call cs::arg_list_ffi_decl_xx(callback) %}
     );
     {%- when FfiDefinition::Struct(ffi_struct) %}
     [StructLayout(LayoutKind.Sequential)]
