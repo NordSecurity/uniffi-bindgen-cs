@@ -1,6 +1,13 @@
 # TODO 0.28
 
+### Implement:
+- interface errors
+- trait interfaces (callbacks are interchangeable between foreign and native)
+
 ### Fix:
+- callbacks
+
+### Fix tests:
 - TestCallbacks.cs
 - TestCallbacksFixture.cs
 - TestCustomTypes.cs
