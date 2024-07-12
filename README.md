@@ -1,3 +1,10 @@
+# TODO 0.28
+
+### Fix:
+- TestCallbacks.cs
+- TestCallbacksFixture.cs
+- TestCustomTypes.cs
+
 # uniffi-bindgen-cs - UniFFI C# bindings generator
 
 Generate [UniFFI](https://github.com/mozilla/uniffi-rs) bindings for C#. `uniffi-bindgen-cs` lives

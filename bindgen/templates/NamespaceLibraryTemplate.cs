@@ -13,7 +13,7 @@ static class _UniFFILib {
         {{ arg.type_().borrow()|ffi_type_name }} {{ arg.name().borrow()|var_name }}{%- if !loop.last || callback.has_rust_call_status_arg() -%},{%- endif -%}
         {%- endfor %}
         {%- if callback.has_rust_call_status_arg() %}
-        UniffiRustCallStatus uniffiCallStatus
+        ref UniffiRustCallStatus uniffiCallStatus
         {%- endif %}
     );
     {%- when FfiDefinition::Struct(ffi_struct) %}
@@ -21,7 +21,7 @@ static class _UniFFILib {
     public struct {{ ffi_struct.name()|ffi_struct_name }}
     {
         {%- for field in ffi_struct.fields() %}
-        {{ field.type_().borrow()|ffi_type_name }} {{ field.name()|var_name }};
+        public {{ field.type_().borrow()|ffi_type_name }} {{ field.name()|var_name }};
         {%- endfor %}
     }
     {%- when FfiDefinition::Function(_) %}
