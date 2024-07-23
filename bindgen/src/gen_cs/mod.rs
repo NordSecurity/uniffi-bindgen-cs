@@ -38,6 +38,7 @@ pub struct Config {
     external_packages: HashMap<String, String>,
     global_methods_class_name: Option<String>,
     access_modifier: Option<String>,
+    null_string_to_empty: Option<bool>,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]

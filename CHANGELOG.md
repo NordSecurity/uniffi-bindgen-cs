@@ -1,3 +1,7 @@
+### v0.8.1+v0.25.0
+
+- Add a configuration option `null_string_to_empty` to convert non-optional null strings to empty strings
+
 ----
 
 ### v0.8.0+v0.25.0
