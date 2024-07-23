@@ -55,3 +55,5 @@ uniffi-bindgen-cs path/to/definitions.udl --config path/to/uniffi.toml
     ```
 
 - `access_modifier` - override the default `internal` access modifier for "exported" uniffi symbols.
+
+- `null_string_to_empty` - when set to `true`, `null` strings will be converted to empty strings even if they are not optional.

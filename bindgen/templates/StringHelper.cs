@@ -24,6 +24,13 @@ class FfiConverterString: FfiConverter<string, RustBuffer> {
     }
 
     public override RustBuffer Lower(string value) {
+        {%- match config.null_string_to_empty %}
+        {%- when Some(true) %}
+        if (value == null) {
+            value = "";
+        }
+        {%- when _ %}
+        {%- endmatch %}
         var bytes = System.Text.Encoding.UTF8.GetBytes(value);
         var rbuf = RustBuffer.Alloc(bytes.Length);
         rbuf.AsWriteableStream().WriteBytes(bytes);
