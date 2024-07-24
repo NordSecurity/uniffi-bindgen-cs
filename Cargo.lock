@@ -636,6 +636,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "null-to-empty-string"
+version = "1.0.0"
+dependencies = [
+ "once_cell",
+ "thiserror",
+ "uniffi",
+ "uniffi_macros",
+]
+
+[[package]]
 name = "num-integer"
 version = "0.1.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1189,6 +1199,7 @@ name = "uniffi-bindgen-cs-fixtures"
 version = "0.1.0"
 dependencies = [
  "global-methods-class-name",
+ "null-to-empty-string",
  "uniffi-cs-custom-types-builtin",
  "uniffi-cs-disposable-fixture",
  "uniffi-cs-optional-parameters-fixture",
