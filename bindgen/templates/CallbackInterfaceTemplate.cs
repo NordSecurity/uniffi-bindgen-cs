@@ -24,12 +24,12 @@
 
 // The ForeignCallback that is passed to Rust.
 class {{ foreign_callback }} {
-    // This cannot be a static method. Although C# supports implicitly using a static method as a
-    // delegate, the behaviour is incorrect for this use case. Using static method as a delegate
-    // argument creates an implicit delegate object, that is later going to be collected by GC. Any
-    // attempt to invoke a garbage collected delegate results in an error:
-    //   > A callback was made on a garbage collected delegate of type 'ForeignCallback::..'
-    public static ForeignCallback INSTANCE = (ulong handle, uint method, IntPtr argsData, int argsLength, ref RustBuffer outBuf) => {
+    public static readonly ForeignCallback INSTANCE = INSTANCE_FUNC;
+
+#if IOS
+    [ObjCRuntime.MonoPInvokeCallback(typeof(ForeignCallback))]
+#endif
+    private static int INSTANCE_FUNC(ulong handle, uint method, IntPtr argsData, int argsLength, ref RustBuffer outBuf) {
         var cb = {{ type_|lift_fn }}(handle);
         switch (method) {
             case 0: {
@@ -80,7 +80,7 @@ class {{ foreign_callback }} {
                 return UniffiCallbackResponseCode.UNEXPECTED_ERROR;
             }
         }
-    };
+    }
 
     {% for meth in cbi.methods() -%}
     {% let method_name = meth.name()|fn_name -%}
