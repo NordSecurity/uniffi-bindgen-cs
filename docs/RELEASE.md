@@ -5,8 +5,8 @@ out the version to be made. If there were any breaking changes since last versio
 component. If there weren't any breaking changes, bump the patch component.
 
 The version follows semver, and consists of `uniffi-bindgen-cs` base version, followed by
-upstream `uniffi-rs` version in the build metadata component (denoted as `+`). The upstream explicit
-upstream `uniffi-rs` aids consumer to target the same upstream version when mixing multiple
+upstream `uniffi-rs` version in the build metadata component (denoted as `+`). The explicit upstream
+`uniffi-rs` version aids the consumer to target the same upstream version when mixing multiple
 generators, e.g. `uniffi-bindgen-cs` and `uniffi-bindgen-go`.
 ```
 v0.6.0+v0.25.0
