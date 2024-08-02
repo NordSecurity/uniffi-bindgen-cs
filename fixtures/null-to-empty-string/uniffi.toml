@@ -1,0 +1,4 @@
+[bindings.csharp]
+cdylib_name = "uniffi_fixtures"
+global_methods_class_name = "LibGreeter"
+null_string_to_empty = true
