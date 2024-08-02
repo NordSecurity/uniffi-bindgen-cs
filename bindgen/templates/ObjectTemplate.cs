@@ -69,7 +69,7 @@
             // Error
             {%- match meth.throws_type() %}
             {%- when Some(e)  %}
-            {{ e|as_error|ffi_converter_name }}.INSTANCE
+            {{ e|ffi_converter_name }}.INSTANCE
             {%- when None %}
             NullCallStatusErrorHandler.INSTANCE
             {% endmatch %}
@@ -126,6 +126,12 @@
     }
     {% endfor %}
     {% endif %}
+
+    public IntPtr _uniffiClonePointer() {
+        return _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
+            return _UniFFILib.{{ obj.ffi_object_clone().name() }}(this.GetHandle(), ref status);
+        });
+    }
 }
 
 class {{ obj|ffi_converter_name }}: FfiConverter<{{ type_name }}, IntPtr> {

@@ -29,7 +29,7 @@
             // Error
             {%- match func.throws_type() %}
             {%- when Some(e)  %}
-            {{ e|as_error|ffi_converter_name }}.INSTANCE
+            {{ e|ffi_converter_name }}.INSTANCE
             {%- when None %}
             NullCallStatusErrorHandler.INSTANCE
             {% endmatch %}
