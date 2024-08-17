@@ -6,6 +6,19 @@
 {%- let (ordered_fields, is_reordered) = rec.fields()|order_fields %}
 
 {%- call cs::docstring(rec, 0) %}
+{%- for field in ordered_fields %}
+{%- match field.docstring() %}
+{%- when Some with(docstring) %}
+/// <param name="{{ field.name() }}">
+{%- let docstring = textwrap::dedent(docstring) %}
+{%- for line in docstring.lines() %}
+/// {{ line.trim_end() }}
+{%- endfor %}
+/// </param>
+{%- else %}
+{%- endmatch %}
+{%- endfor %}
+{%- let (ordered_fields, is_reordered) = rec.fields()|order_fields %}
 {%- if is_reordered %}
 /// <remarks>
 /// <b>UniFFI Warning:</b> Optional parameters have been reordered because
@@ -15,7 +28,6 @@
 {%- endif %}
 {{ config.access_modifier() }} record {{ type_name }} (
     {%- for field in ordered_fields %}
-    {%- call cs::docstring(field, 4) %}
     {{ field|type_name }} {{ field.name()|var_name -}}
     {%- match field.default_value() %}
         {%- when Some with(literal) %} = {{ literal|render_literal(field) }}
