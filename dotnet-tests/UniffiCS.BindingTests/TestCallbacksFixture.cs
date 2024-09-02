@@ -189,4 +189,20 @@ public class TestCallbacksFixture
             );
         }
     }
+
+    [Fact]
+    public void ShortLivedCallbackDoesNotInvalidateLongerLivedCallback()
+    {
+        var stringifier = new CsharpStringifier();
+        using (var rustStringifier1 = new RustStringifier(stringifier))
+        {
+            using (var rustStringifier2 = new RustStringifier(stringifier))
+            {
+                Assert.Equal("C#: 123", rustStringifier2.FromSimpleType(123));
+            }
+            // `stringifier` must remain valid after `rustStringifier2` drops the reference
+
+            Assert.Equal("C#: 123", rustStringifier1.FromSimpleType(123));
+        }
+    }
 }

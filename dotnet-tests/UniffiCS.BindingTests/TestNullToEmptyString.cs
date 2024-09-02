@@ -12,6 +12,8 @@ public class TestNullToEmptyString
     public void NullToEmptyStringWorks()
     {
         Assert.Equal("hello", LibGreeter.HelloWorld("hello"));
+        #pragma warning disable 8625 // Cannot convert null literal to non-nullable reference type
         Assert.Equal("", LibGreeter.HelloWorld(null));
+        #pragma warning restore 8625
     }
 }
