@@ -10,6 +10,7 @@ static class UniffiCallbackResponseCode {
 
 class ConcurrentHandleMap<T> where T: notnull {
     Dictionary<ulong, T> leftMap = new Dictionary<ulong, T>();
+    Dictionary<ulong, ulong> refCount = new Dictionary<ulong, ulong>();
     Dictionary<T, ulong> rightMap = new Dictionary<T, ulong>();
 
     Object lock_ = new Object();
@@ -17,22 +18,24 @@ class ConcurrentHandleMap<T> where T: notnull {
 
     public ulong Insert(T obj) {
         lock (lock_) {
-            ulong existingHandle = 0;
-            if (rightMap.TryGetValue(obj, out existingHandle)) {
+            if (rightMap.TryGetValue(obj, out ulong existingHandle)) {
+                refCount[existingHandle] += 1;
                 return existingHandle;
             }
             currentHandle += 1;
             leftMap[currentHandle] = obj;
+            refCount[currentHandle] = 1;
             rightMap[obj] = currentHandle;
             return currentHandle;
         }
     }
 
     public bool TryGet(ulong handle, out T result) {
-        // Possible null reference assignment
-        #pragma warning disable 8601
-        return leftMap.TryGetValue(handle, out result);
-        #pragma warning restore 8601
+        lock (lock_) {
+            #pragma warning disable 8601 // Possible null reference assignment
+            return leftMap.TryGetValue(handle, out result);
+            #pragma warning restore 8601
+        }
     }
 
     public bool Remove(ulong handle) {
@@ -41,17 +44,19 @@ class ConcurrentHandleMap<T> where T: notnull {
 
     public bool Remove(ulong handle, out T result) {
         lock (lock_) {
-            // Possible null reference assignment
-            #pragma warning disable 8601
+            #pragma warning disable 8601 // Possible null reference assignment
             if (leftMap.TryGetValue(handle, out result)) {
             #pragma warning restore 8601
-                leftMap.Remove(handle);
-                rightMap.Remove(result);
+                if ((refCount[handle] -= 1) < 1) {
+                    leftMap.Remove(handle);
+                    refCount.Remove(handle);
+                    rightMap.Remove(result);
+                }
                 return true;
-            } else {
-                return false;
             }
         }
+
+        return false;
     }
 }
 

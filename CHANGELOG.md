@@ -1,3 +1,7 @@
+### UNRELEASED
+
+- **IMPORTANT**: Fix short-lived callback lifetimes (#79)
+
 ### v0.8.2+v0.25.0
 
 - Update C# callback syntax to work on iOS (#84)
