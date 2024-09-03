@@ -9,30 +9,25 @@ static class UniffiCallbackResponseCode {
 }
 
 class ConcurrentHandleMap<T> where T: notnull {
-    Dictionary<ulong, T> leftMap = new Dictionary<ulong, T>();
-    Dictionary<T, ulong> rightMap = new Dictionary<T, ulong>();
+    Dictionary<ulong, T> map = new Dictionary<ulong, T>();
 
     Object lock_ = new Object();
     ulong currentHandle = 0;
 
     public ulong Insert(T obj) {
         lock (lock_) {
-            ulong existingHandle = 0;
-            if (rightMap.TryGetValue(obj, out existingHandle)) {
-                return existingHandle;
-            }
             currentHandle += 1;
-            leftMap[currentHandle] = obj;
-            rightMap[obj] = currentHandle;
+            map[currentHandle] = obj;
             return currentHandle;
         }
     }
 
     public bool TryGet(ulong handle, out T result) {
-        // Possible null reference assignment
-        #pragma warning disable 8601
-        return leftMap.TryGetValue(handle, out result);
-        #pragma warning restore 8601
+        lock (lock_) {
+            #pragma warning disable 8601 // Possible null reference assignment
+            return map.TryGetValue(handle, out result);
+            #pragma warning restore 8601
+        }
     }
 
     public bool Remove(ulong handle) {
@@ -43,10 +38,9 @@ class ConcurrentHandleMap<T> where T: notnull {
         lock (lock_) {
             // Possible null reference assignment
             #pragma warning disable 8601
-            if (leftMap.TryGetValue(handle, out result)) {
+            if (map.TryGetValue(handle, out result)) {
             #pragma warning restore 8601
-                leftMap.Remove(handle);
-                rightMap.Remove(result);
+                map.Remove(handle);
                 return true;
             } else {
                 return false;
