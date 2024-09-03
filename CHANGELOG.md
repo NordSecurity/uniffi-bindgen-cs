@@ -1,10 +1,11 @@
-### UNRELEASED
+### v0.8.3+v0.25.0
 
-- **IMPORTANT**: Fix short-lived callback lifetimes (#79)
+- **IMPORTANT**: Fix short-lived callback lifetimes [#79](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/79)
+- Fix xml doc generation for fields in a record (#87)
 
 ### v0.8.2+v0.25.0
 
-- Update C# callback syntax to work on iOS (#84)
+- Update C# callback syntax to work on iOS [#84](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/84)
 
 ### v0.8.1+v0.25.0
 
