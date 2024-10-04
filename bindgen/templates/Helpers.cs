@@ -24,7 +24,7 @@ struct RustCallStatus {
 }
 
 // Base class for all uniffi exceptions
-{{ config.access_modifier() }} class UniffiException: Exception {
+{{ config.access_modifier() }} class UniffiException: System.Exception {
     public UniffiException(): base() {}
     public UniffiException(string message): base(message) {}
 }
@@ -61,7 +61,7 @@ struct RustCallStatus {
 }
 
 // Each top-level error class has a companion object that can lift the error from the call status's rust buffer
-interface CallStatusErrorHandler<E> where E: Exception {
+interface CallStatusErrorHandler<E> where E: System.Exception {
     E Lift(RustBuffer error_buf);
 }
 
