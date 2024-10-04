@@ -55,9 +55,9 @@ class {{ rec|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
     }
 
     public override int AllocationSize({{ type_name }} value) {
-        return
+        return 0
         {%- for field in rec.fields() %}
-            {{ field|allocation_size_fn }}(value.{{ field.name()|var_name }}){% if !loop.last %} +{% endif%}
+            + {{ field|allocation_size_fn }}(value.{{ field.name()|var_name }})
         {%- endfor -%};
     }
 
