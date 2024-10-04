@@ -537,6 +537,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "issue-60"
+version = "1.0.0"
+dependencies = [
+ "thiserror",
+ "uniffi",
+ "uniffi_macros",
+]
+
+[[package]]
 name = "issue-75"
 version = "1.0.0"
 dependencies = [
@@ -1227,6 +1236,7 @@ version = "0.1.0"
 dependencies = [
  "global-methods-class-name",
  "issue-28",
+ "issue-60",
  "issue-75",
  "issue-76",
  "null-to-empty-string",

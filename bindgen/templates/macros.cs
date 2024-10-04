@@ -122,3 +122,21 @@ void
 {%- endmatch -%}
 {%- endif -%}
 {%- endmacro -%}
+
+{#
+// Break the following cycle, where `Rectangle` case name shadow top level `Rectangle` type name.
+// If param type name matches the enum name, prefix the param type name with top level namespace.
+// https://github.com/NordSecurity/uniffi-bindgen-cs/issues/60
+//     public record Rectangle(double @width, double @height) { }
+//     public record Shape
+//     {                    ____________
+//                          ∨          ∧
+//         public record Rectangle(Rectangle @s) : Shape { }
+//         public record Ellipse(Ellipse @s) : Shape { }
+//     }
+#}
+{%- macro enum_parameter_type_name(param_type_name, enum_name) %}
+{%- if param_type_name == enum_name %}{{ config.namespace() }}.{{ param_type_name }}
+{%- else %}{{ param_type_name }}
+{%- endif %}
+{%- endmacro %}
