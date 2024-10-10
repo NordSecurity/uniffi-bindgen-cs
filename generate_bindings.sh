@@ -6,11 +6,9 @@ GEN_DIR="dotnet-tests/UniffiCS/gen"
 rm -rf "$GEN_DIR"
 mkdir -p "$GEN_DIR"
 
-osname=$(uname)
-
 libname=""
 
-if [[ "$osname" == "Darwin" ]]; then
+if [[ $(uname) == "Darwin" ]]; then
   libname="libuniffi_fixtures.dylib"
 else
   libname="libuniffi_fixtures.so"
