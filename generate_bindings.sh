@@ -12,7 +12,7 @@ libname=""
 
 if [[ "$osname" == "Darwin" ]]; then
   libname="libuniffi_fixtures.dylib"
-elif [[ "$osname" == "Linux" ]]; then
+else
   libname="libuniffi_fixtures.so"
 fi
 
