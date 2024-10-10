@@ -74,10 +74,25 @@ impl Config {
     }
 
     pub fn cdylib_name(&self) -> String {
-        self.cdylib_name
+        #[cfg(target_os = "macos")]
+        return self
+            .cdylib_name
             .as_ref()
             .expect("`cdylib_name` not specified")
             .clone()
+            + ".dylib";
+        #[cfg(target_os = "windows")]
+        return self
+            .cdylib_name
+            .as_ref()
+            .expect("`cdylib_name` not specified")
+            .clone();
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        return self
+            .cdylib_name
+            .as_ref()
+            .expect("`cdylib_name` not specified")
+            .clone();
     }
 
     pub fn access_modifier(&self) -> String {
