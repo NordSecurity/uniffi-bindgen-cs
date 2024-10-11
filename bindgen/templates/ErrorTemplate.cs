@@ -64,13 +64,13 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
     public class {{ variant.name()|exception_name }} : {{ type_name }} {
         // Members
         {%- for field in variant.fields() %}
-        public {{ field|type_name}} {{ field.name()|var_name }};
+        public {% call cs::enum_parameter_type_name(field|type_name, variant.name()|exception_name) %} {{ field.name()|var_name }};
         {%- endfor %}
 
         // Constructor
         public {{ variant.name()|exception_name }}(
                 {%- for field in variant.fields() %}
-                {{ field|type_name}} {{ field.name()|var_name }}{% if loop.last %}{% else %}, {% endif %}
+                {% call cs::enum_parameter_type_name(field|type_name, variant.name()|exception_name) %} {{ field.name()|var_name }}{% if loop.last %}{% else %}, {% endif %}
                 {%- endfor %}) {
             {%- for field in variant.fields() %}
             this.{{ field.name()|var_name }} = {{ field.name()|var_name }};
