@@ -529,6 +529,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "issue-75"
+version = "1.0.0"
+dependencies = [
+ "once_cell",
+ "thiserror",
+ "uniffi",
+ "uniffi_macros",
+]
+
+[[package]]
 name = "issue-76"
 version = "1.0.0"
 dependencies = [
@@ -1208,6 +1218,7 @@ name = "uniffi-bindgen-cs-fixtures"
 version = "0.1.0"
 dependencies = [
  "global-methods-class-name",
+ "issue-75",
  "issue-76",
  "null-to-empty-string",
  "uniffi-cs-custom-types-builtin",
