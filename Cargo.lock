@@ -529,6 +529,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "issue-76"
+version = "1.0.0"
+dependencies = [
+ "thiserror",
+ "uniffi",
+ "uniffi_macros",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1199,6 +1208,7 @@ name = "uniffi-bindgen-cs-fixtures"
 version = "0.1.0"
 dependencies = [
  "global-methods-class-name",
+ "issue-76",
  "null-to-empty-string",
  "uniffi-cs-custom-types-builtin",
  "uniffi-cs-disposable-fixture",

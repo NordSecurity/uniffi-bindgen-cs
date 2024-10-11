@@ -60,7 +60,7 @@ class {{ foreign_callback }} {
                     outBuf = {{ method_name }}(cb, RustBuffer.MemoryStream(argsData, argsLength));
                     return UniffiCallbackResponseCode.SUCCESS;
                     {%- endmatch %}
-                } catch (Exception e) {
+                } catch (System.Exception e) {
                     // Unexpected error
                     try {
                         // Try to serialize the error into a string

@@ -5,7 +5,7 @@
 // Big endian streams are not yet available in dotnet :'(
 // https://github.com/dotnet/runtime/issues/26904
 
-class StreamUnderflowException: Exception {
+class StreamUnderflowException: System.Exception {
     public StreamUnderflowException() {
     }
 }
