@@ -82,16 +82,6 @@
         if (obj is null || !(obj is {{type_name}})) return false;
         return Equals(obj as {{type_name}});
     }
-    public static bool operator == ({{type_name}}? a, {{type_name}}? b)
-    {
-        if (a is null || b is null) return Object.Equals(a, b);
-        return a.Equals(b);
-    }
-    public static bool operator != ({{type_name}}? a, {{type_name}}? b)
-    {
-        if (a is null || b is null) return !Object.Equals(a, b);
-        return !(a.Equals(b));
-    }
     {%- when UniffiTrait::Hash  { hash }  %}
     public override int GetHashCode() { 
         return (int){{ Type::UInt64.borrow()|lift_fn }}({%- call cs::to_ffi_call_with_prefix("this.GetHandle()", hash)  %});

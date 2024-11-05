@@ -24,20 +24,17 @@ public class TestTraitMethods
     {
         using (var methods = new TraitMethods("yo"))
         {
+            // Values are equal if input is the same
             Assert.Equal(methods, new TraitMethods("yo"));
-            Assert.True(methods == new TraitMethods("yo"));
-
-            Assert.Equal(methods, methods);
-
             Assert.NotEqual(methods, new TraitMethods("yoyo"));
-            Assert.True(methods != new TraitMethods("yoyo"));
-        }
 
-        Assert.False(new TraitMethods("yo") == null);
+            // Values are not referentially equal
+            Assert.False(methods == new TraitMethods("yo"));
+        }
     }
 
     [Fact]
-    public void TestEqNulls()
+    public void TestEqNull()
     {
         TraitMethods? t1 = null;
         TraitMethods? t2 = null;
@@ -54,8 +51,10 @@ public class TestTraitMethods
     public void TestEqContains() 
     {
         var tm = new TraitMethods("yo");
-        var list = new List<TraitMethods>();
-        list.Add(tm);
+        var list = new List<TraitMethods>
+        {
+            tm
+        };
 
         Assert.Contains(tm, list);
         Assert.Contains(new TraitMethods("yo"), list);
@@ -90,20 +89,17 @@ public class TestProcMacroTraitMethods
     {
         using (var methods = new ProcTraitMethods("yo"))
         {
+            // Values are equal if input is the same
             Assert.Equal(methods, new ProcTraitMethods("yo"));
-            Assert.True(methods == new ProcTraitMethods("yo"));
-
-            Assert.Equal(methods, methods);
-
             Assert.NotEqual(methods, new ProcTraitMethods("yoyo"));
-            Assert.True(methods != new ProcTraitMethods("yoyo"));
-        }
 
-        Assert.False(new ProcTraitMethods("yo") == null);
+            // Values are not referentially equal
+            Assert.False(methods == new ProcTraitMethods("yo"));
+        }
     }
 
     [Fact]
-    public void TestEqNulls()
+    public void TestEqNull()
     {
         ProcTraitMethods? t1 = null;
         ProcTraitMethods? t2 = null;
@@ -116,8 +112,10 @@ public class TestProcMacroTraitMethods
     public void TestEqContains() 
     {
         var tm = new ProcTraitMethods("yo");
-        var list = new List<ProcTraitMethods>();
-        list.Add(tm);
+        var list = new List<ProcTraitMethods>
+        {
+            tm
+        };
 
         Assert.Contains(tm, list);
         Assert.Contains(new ProcTraitMethods("yo"), list);
