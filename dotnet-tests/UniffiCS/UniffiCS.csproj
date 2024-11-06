@@ -12,4 +12,19 @@
     <PackageReference Include="IsExternalInit" Version="1.0.3"/>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
   </ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::IsOsPlatform('Windows')) == 'true'">
+    <Content Include="../../target/debug/uniffi_fixtures.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+	</ItemGroup>
+	<ItemGroup Condition="$([MSBuild]::IsOsPlatform('OSX')) == 'true'">
+		<Content Include="../../target/debug/libuniffi_fixtures.dylib">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+	<ItemGroup Condition="$([MSBuild]::IsOsPlatform('Linux')) == 'true'">
+		<Content Include="../../target/debug/libuniffi_fixtures.so">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 </Project>
