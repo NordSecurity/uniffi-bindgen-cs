@@ -45,6 +45,10 @@ using {{ alias.alias }} = {{ alias.original_type }};
 // and the FFI Function declarations in a com.sun.jna.Library.
 {% include "NamespaceLibraryTemplate.cs" %}
 
+{%- if ci.has_async_fns() %}
+{% include "Async.cs" %}
+{%- endif %}
+
 // Public interface members begin here.
 {# details/1-empty-list-as-default-method-parameter.md #}
 #pragma warning disable 8625
@@ -57,6 +61,7 @@ using {{ alias.alias }} = {{ alias.original_type }};
 {%- when None %}
 {{ config.access_modifier() }} static class {{ ci.namespace().to_upper_camel_case() }}Methods {
 {%- endmatch %}
+
 {%- for func in ci.function_definitions() %}
 {%- include "TopLevelFunctionTemplate.cs" %}
 {%- endfor %}

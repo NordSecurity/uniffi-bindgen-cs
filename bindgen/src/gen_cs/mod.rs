@@ -185,6 +185,7 @@ pub struct CsWrapper<'a> {
     type_helper_code: String,
     type_imports: RefCell<BTreeSet<String>>,
     type_aliases: BTreeSet<TypeAlias>,
+    has_async_fns: bool,
 }
 
 impl<'a> CsWrapper<'a> {
@@ -199,6 +200,7 @@ impl<'a> CsWrapper<'a> {
             type_helper_code,
             type_imports,
             type_aliases,
+            has_async_fns: ci.has_async_fns(),
         }
     }
 
@@ -207,6 +209,10 @@ impl<'a> CsWrapper<'a> {
             .iter_types()
             .map(|t| CsCodeOracle.find(t))
             .filter_map(|ct| ct.initialization_fn())
+            .chain(
+                self.has_async_fns
+                    .then(|| "_UniFFIAsync.UniffiRustFutureContinuationCallback.Register".into()),
+            )
             .collect()
     }
 
@@ -503,5 +509,13 @@ pub mod filters {
     /// Panic with message
     pub fn panic(message: &str) -> Result<String, askama::Error> {
         panic!("{}", message)
+    }
+
+    pub fn is_pointer(t: &&&Type) -> Result<bool, askama::Error> {
+        Ok(matches!(FfiType::from(*t), FfiType::RustArcPtr(_)))
+    }
+
+    pub fn error_ffi_converter_name(err: &impl AsCodeType) -> Result<String, askama::Error> {
+        Ok(err.as_codetype().ffi_converter_name())
     }
 }
