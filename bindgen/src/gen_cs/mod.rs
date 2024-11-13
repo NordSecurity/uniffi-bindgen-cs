@@ -514,8 +514,4 @@ pub mod filters {
     pub fn is_pointer(t: &&&Type) -> Result<bool, askama::Error> {
         Ok(matches!(FfiType::from(*t), FfiType::RustArcPtr(_)))
     }
-
-    pub fn error_ffi_converter_name(err: &impl AsCodeType) -> Result<String, askama::Error> {
-        Ok(err.as_codetype().ffi_converter_name())
-    }
 }

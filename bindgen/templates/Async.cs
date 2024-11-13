@@ -24,10 +24,14 @@ internal static class _UniFFIAsync {
         }
     }
 
+    public delegate F CompleteFuncDelegate<F>(IntPtr ptr, ref RustCallStatus status);
+
+    public delegate void CompleteActionDelegate(IntPtr ptr, ref RustCallStatus status);
+
     public static async Task<T> UniffiRustCallAsync<T, F, E>(
         IntPtr rustFuture,
         Action<IntPtr, IntPtr> pollFunc,
-        Func<IntPtr, RustCallStatus, F> completeFunc,
+        CompleteFuncDelegate<F> completeFunc,
         Action<IntPtr> freeFunc,
         Func<F, T> liftFunc,
         CallStatusErrorHandler<E> errorHandler
@@ -44,7 +48,7 @@ internal static class _UniFFIAsync {
             }
             while(pollResult != UNIFFI_RUST_FUTURE_POLL_READY);
 
-            var result = _UniffiHelpers.RustCallWithError(errorHandler, (ref RustCallStatus status) => completeFunc(rustFuture, status));
+            var result = _UniffiHelpers.RustCallWithError(errorHandler, (ref RustCallStatus status) => completeFunc(rustFuture, ref status));
             return liftFunc(result);
         }
         finally
@@ -56,7 +60,7 @@ internal static class _UniFFIAsync {
     public static async Task UniffiRustCallAsync<E>(
         IntPtr rustFuture,
         Action<IntPtr, IntPtr> pollFunc,
-        Action<IntPtr, RustCallStatus> completeFunc,
+        CompleteActionDelegate completeFunc,
         Action<IntPtr> freeFunc,
         CallStatusErrorHandler<E> errorHandler
     ) where E : UniffiException
@@ -72,7 +76,7 @@ internal static class _UniFFIAsync {
             }
             while(pollResult != UNIFFI_RUST_FUTURE_POLL_READY);
 
-            _UniffiHelpers.RustCallWithError(errorHandler, (ref RustCallStatus status) => completeFunc(rustFuture, status));
+            _UniffiHelpers.RustCallWithError(errorHandler, (ref RustCallStatus status) => completeFunc(rustFuture, ref status));
 
         }
         finally

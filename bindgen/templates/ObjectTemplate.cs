@@ -66,36 +66,28 @@
                 );
             }),
             // Poll
-            (IntPtr future, IntPtr continuation) => _UniffiHelpers.RustCall((ref RustCallStatus _status) => {
-                _UniFFILib.{{ func.ffi_rust_future_poll(ci) }}(future, continuation);
-            }),
+            (IntPtr future, IntPtr continuation) => _UniFFILib.{{ func.ffi_rust_future_poll(ci) }}(future, continuation),
             // Complete
-            (IntPtr future, RustCallStatus status) =>  _UniffiHelpers.RustCall((ref RustCallStatus _status) => {
+            (IntPtr future, ref RustCallStatus status) => {
                 {%- match func.return_type() %}
                 {%- when Some(return_type) %}
-                return 
-                {% else %}
-                {% endmatch -%}
-                 _UniFFILib.{{ func.ffi_rust_future_complete(ci) }}(future, ref status);
-            }),
+                return {% else %}{% endmatch %}_UniFFILib.{{ func.ffi_rust_future_complete(ci) }}(future, ref status);
+            },
             // Free
-            (IntPtr future) =>  _UniffiHelpers.RustCall((ref RustCallStatus _status) => {
-                _UniFFILib.{{ func.ffi_rust_future_free(ci) }}(future);
-            }),
+            (IntPtr future) => _UniFFILib.{{ func.ffi_rust_future_free(ci) }}(future),
             {%- match func.return_type() %}
             {%- when Some(return_type) %}
             // Lift
             (result) => {{ return_type|lift_fn }}(
                 {%- if return_type|is_pointer %}
                 ({{return_type|type_name}}SafeHandle)
-                {%- endif -%} result
-            ),
+                {%- endif -%} result),
             {% else %}
-            {% endmatch %}
+            {% endmatch -%}
             // Error
             {%- match func.throws_type() %}
             {%- when Some(e)  %}
-            {{ e|as_error|error_ffi_converter_name }}.INSTANCE
+            {{ e|as_error|ffi_converter_name }}.INSTANCE
             {%- when None %}
             NullCallStatusErrorHandler.INSTANCE
             {% endmatch %}
