@@ -9,10 +9,9 @@
 {%- call cs::docstring(obj, 0) %}
 {{ config.access_modifier() }} interface I{{ type_name }}
     {%- for tm in obj.uniffi_traits() -%}
-    {%- if loop.first -%} : {% endif -%}
     {%- match tm -%}
     {%- when UniffiTrait::Eq { eq, ne } -%}
-    IEquatable<{{type_name}}>
+    : IEquatable<{{type_name}}>
     {%- else -%}
     {%- endmatch -%}
     {%- endfor %} {
