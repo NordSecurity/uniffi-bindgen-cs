@@ -25,10 +25,7 @@
             {%- match func.return_type() %}
             {%- when Some(return_type) %}
             // Lift
-            (result) => {{ return_type|lift_fn }}(
-                {%- if return_type|is_pointer %}
-                ({{return_type|type_name}}SafeHandle)
-                {%- endif -%} result),
+            (result) => {{ return_type|lift_fn }}(result),
             {% else %}
             {% endmatch -%}
             // Error

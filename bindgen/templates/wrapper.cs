@@ -24,6 +24,7 @@
 {{- self.add_import("System.IO") }}
 {{- self.add_import("System.Linq") }}
 {{- self.add_import("System.Runtime.InteropServices") }}
+{{- self.add_import("System.Threading")}}
 
 {%- for imported_class in self.imports() %}
 using {{ imported_class }};

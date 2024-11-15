@@ -2,87 +2,112 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
-// `SafeHandle` implements the semantics outlined below, i.e. its thread safe, and the dispose
-// method will only be called once, once all outstanding native calls have completed.
-// https://github.com/mozilla/uniffi-rs/blob/0dc031132d9493ca812c3af6e7dd60ad2ea95bf0/uniffi_bindgen/src/bindings/kotlin/templates/ObjectRuntime.kt#L31
-// https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.criticalhandle
+internal abstract class FFIObject: IDisposable { 
+    protected IntPtr pointer;
 
-{{ config.access_modifier() }} abstract class FFIObject<THandle>: IDisposable where THandle : FFISafeHandle {
-    private THandle handle;
+    private readonly AtomicBoolean _wasDestroyed = new AtomicBoolean(false);
+    private readonly AtomicLong _callCounter = new AtomicLong(1L);
 
-    public FFIObject(THandle handle) {
-        this.handle = handle;
+    protected FFIObject(IntPtr pointer) {
+        this.pointer = pointer;
     }
 
-    public THandle GetHandle() {
-        return handle;
-    }
+    protected abstract void FreeRustArcPtr();
 
-    public void Dispose() {
-        handle.Dispose();
-    }
-}
-
-{{ config.access_modifier() }} abstract class FFISafeHandle: SafeHandle {
-    public FFISafeHandle(): base(new IntPtr(0), true) {
-    }
-
-    public FFISafeHandle(IntPtr pointer): this() {
-        this.SetHandle(pointer);
-    }
-
-    public override bool IsInvalid {
-        get {
-            return handle.ToInt64() == 0;
-        }
-    }
-
-    // TODO(CS) this completely breaks any guarantees offered by SafeHandle.. Extracting
-    // raw value from SafeHandle puts responsiblity on the consumer of this function to
-    // ensure that SafeHandle outlives the stream, and anyone who might have read the raw
-    // value from the stream and are holding onto it. Otherwise, the result might be a use
-    // after free, or free while method calls are still in flight.
-    //
-    // This is also relevant for Kotlin.
-    //
-    public IntPtr DangerousGetRawFfiValue() {
-        return handle;
-    }
-}
-
-static class FFIObjectUtil {
-    public static void DisposeAll(params Object?[] list) {
-        foreach (var obj in list) {
-            Dispose(obj);
-        }
-    }
-
-    // Dispose is implemented by recursive type inspection at runtime. This is because
-    // generating correct Dispose calls for recursive complex types, e.g. List<List<int>>
-    // is quite cumbersome.
-    private static void Dispose(dynamic? obj) {
-        if (obj == null) {
-            return;
-        }
-
-        if (obj is IDisposable disposable) {
-            disposable.Dispose();
-            return;
-        }
-
-        var type = obj.GetType();
-        if (type != null) {
-            if (type.IsGenericType) {
-                if (type.GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))) {
-                    foreach (var value in obj) {
-                        Dispose(value);
-                    }
-                } else if (type.GetGenericTypeDefinition().IsAssignableFrom(typeof(Dictionary<,>))) {
-                    foreach (var value in obj.Values) {
-                        Dispose(value);
-                    }
-                }
+    public void Destroy()
+    {
+        // Only allow a single call to this method.
+        if (_wasDestroyed.CompareAndSet(false, true))
+        {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (_callCounter.DecrementAndGet() == 0)
+            {
+                FreeRustArcPtr();
             }
         }
     }
+
+    public void Dispose()
+    {
+        Destroy();
+        GC.SuppressFinalize(this); // Suppress finalization to avoid unnecessary GC overhead.
+    }
+
+    ~FFIObject() {
+        Destroy();
+    }
+
+    private void IncrementCallCounter() {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        long count;
+        do
+        {
+            count = _callCounter.Get();
+            if (count == 0L) throw new System.ObjectDisposedException(String.Format("'{0}' object has already been destroyed", this.GetType().Name));
+            if (count == long.MaxValue) throw new System.OverflowException(String.Format("'{0}' call counter would overflow", this.GetType().Name));
+
+        } while(!_callCounter.CompareAndSet(count, count + 1L));
+    }
+
+    private void DecrementCallCounter() {
+        // This decrement always matches the increment we performed above.
+        if (_callCounter.DecrementAndGet() == 0L) {
+            Dispose();
+        }
+    }
+
+    internal void CallWithPointer(Action<IntPtr> action)
+    {
+        IncrementCallCounter();
+         try {
+            action(this.pointer);
+         }
+         finally {
+            DecrementCallCounter();
+         }
+    }
+
+    internal T CallWithPointer<T>(Func<IntPtr, T> func)
+    {   
+        IncrementCallCounter();
+         try {
+            return func(this.pointer);
+         }
+         finally {
+            DecrementCallCounter();
+         }
+    }
+}
+
+class AtomicBoolean
+{
+    private int _value;
+
+    public AtomicBoolean(bool initialValue) => _value = initialValue ? 1 : 0;
+    public bool CompareAndSet(bool expected, bool newValue)
+    {
+        int expectedInt = expected ? 1 : 0;
+        int newInt = newValue ? 1 : 0;
+        return Interlocked.CompareExchange(ref _value, newInt, expectedInt) == expectedInt;
+    }
+
+    public bool Get() => _value == 1;
+}
+
+
+class AtomicLong
+{
+    private long _value;
+
+    public AtomicLong(long initialValue) => _value = initialValue;
+
+    public bool CompareAndSet(long expected, long newValue)
+    {
+        return Interlocked.CompareExchange(ref _value, newValue, expected) == expected;
+    }
+
+    public long Get() => _value;
+
+    public long DecrementAndGet() => Interlocked.Decrement(ref _value);
 }

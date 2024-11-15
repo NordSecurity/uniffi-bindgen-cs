@@ -105,6 +105,5 @@
 {%- endfor %}
 
 {%- if ci.has_async_fns() %}
-{{ self.add_import("System.Threading")}}
 {{ self.add_import("System.Threading.Tasks")}}
 {%- endif %}
