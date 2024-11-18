@@ -20,7 +20,7 @@ internal static class _UniFFIAsync {
         public static void Register()
         {
             IntPtr fn = Marshal.GetFunctionPointerForDelegate(callback);
-            _UniFFILib.ffi_uniffi_futures_rust_future_continuation_callback_set(fn);
+            _UniFFILib.{{ ci.ffi_rust_future_continuation_callback_set().name() }}(fn);
         }
     }
 
