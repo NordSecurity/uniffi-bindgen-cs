@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
-internal abstract class FFIObject: IDisposable { 
+{{ config.access_modifier() }} abstract class FFIObject: IDisposable { 
     protected IntPtr pointer;
 
     private readonly AtomicBoolean _wasDestroyed = new AtomicBoolean(false);
