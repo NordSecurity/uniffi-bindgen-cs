@@ -7,7 +7,14 @@
 {%- if self.include_once_check("ObjectRuntime.cs") %}{% include "ObjectRuntime.cs" %}{% endif %}
 
 {%- call cs::docstring(obj, 0) %}
-{{ config.access_modifier() }} interface I{{ type_name }} {
+{{ config.access_modifier() }} interface I{{ type_name }}
+    {%- for tm in obj.uniffi_traits() -%}
+    {%- match tm -%}
+    {%- when UniffiTrait::Eq { eq, ne } -%}
+    : IEquatable<{{type_name}}>
+    {%- else -%}
+    {%- endmatch -%}
+    {%- endfor %} {
     {% for meth in obj.methods() -%}
     {%- call cs::docstring(meth, 4) %}
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
@@ -62,6 +69,21 @@
     {%- when UniffiTrait::Display { fmt } %}
     public override string ToString() {
         return {{ Type::String.borrow()|lift_fn }}({%- call cs::to_ffi_call_with_prefix("this.GetHandle()", fmt) %});
+    }
+    {%- when UniffiTrait::Eq { eq, ne } %}
+    public bool Equals({{type_name}}? other)
+    {
+        if (other is null) return false;
+        return {{ Type::Boolean.borrow()|lift_fn }}({%- call cs::to_ffi_call_with_prefix("this.GetHandle()", eq) %});
+    }
+    public override bool Equals(object? obj)
+    {
+        if (obj is null || !(obj is {{type_name}})) return false;
+        return Equals(obj as {{type_name}});
+    }
+    {%- when UniffiTrait::Hash  { hash }  %}
+    public override int GetHashCode() { 
+        return (int){{ Type::UInt64.borrow()|lift_fn }}({%- call cs::to_ffi_call_with_prefix("this.GetHandle()", hash)  %});
     }
     {%- else %}
     {%- endmatch %}
