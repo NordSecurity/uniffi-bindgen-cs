@@ -185,7 +185,6 @@ pub struct CsWrapper<'a> {
     type_helper_code: String,
     type_imports: RefCell<BTreeSet<String>>,
     type_aliases: BTreeSet<TypeAlias>,
-    has_async_fns: bool,
 }
 
 impl<'a> CsWrapper<'a> {
@@ -200,7 +199,6 @@ impl<'a> CsWrapper<'a> {
             type_helper_code,
             type_imports,
             type_aliases,
-            has_async_fns: ci.has_async_fns(),
         }
     }
 
@@ -210,7 +208,8 @@ impl<'a> CsWrapper<'a> {
             .map(|t| CsCodeOracle.find(t))
             .filter_map(|ct| ct.initialization_fn())
             .chain(
-                self.has_async_fns
+                self.ci
+                    .has_async_fns()
                     .then(|| "_UniFFIAsync.UniffiRustFutureContinuationCallback.Register".into()),
             )
             .collect()
