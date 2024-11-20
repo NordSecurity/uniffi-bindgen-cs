@@ -34,6 +34,19 @@ internal static class _UniFFIAsync {
 
     public delegate void CompleteActionDelegate(IntPtr ptr, ref RustCallStatus status);
 
+    private static async Task PollFuture(IntPtr rustFuture, Action<IntPtr, IntPtr> pollFunc)
+    {
+        byte pollResult;
+        do 
+        {
+            var tcs = new TaskCompletionSource<byte>();
+            var handle = GCHandle.Alloc(tcs);
+            pollFunc(rustFuture, GCHandle.ToIntPtr(handle));
+            pollResult = await tcs.Task;
+        }
+        while(pollResult != UNIFFI_RUST_FUTURE_POLL_READY);
+    }
+
     public static async Task<T> UniffiRustCallAsync<T, F, E>(
         IntPtr rustFuture,
         Action<IntPtr, IntPtr> pollFunc,
@@ -44,16 +57,7 @@ internal static class _UniFFIAsync {
     ) where E : UniffiException
     {
         try {
-            byte pollResult;
-            do 
-            {
-                var tcs = new TaskCompletionSource<byte>();
-                var handle = GCHandle.Alloc(tcs);
-                pollFunc(rustFuture, GCHandle.ToIntPtr(handle));
-                pollResult = await tcs.Task;
-            }
-            while(pollResult != UNIFFI_RUST_FUTURE_POLL_READY);
-
+            await PollFuture(rustFuture, pollFunc);
             var result = _UniffiHelpers.RustCallWithError(errorHandler, (ref RustCallStatus status) => completeFunc(rustFuture, ref status));
             return liftFunc(result);
         }
@@ -72,16 +76,7 @@ internal static class _UniFFIAsync {
     ) where E : UniffiException
     {
          try {
-            byte pollResult;
-            do 
-            {
-                var tcs = new TaskCompletionSource<byte>();
-                var handle = GCHandle.Alloc(tcs);
-                pollFunc(rustFuture, GCHandle.ToIntPtr(handle));
-                pollResult = await tcs.Task;
-            }
-            while(pollResult != UNIFFI_RUST_FUTURE_POLL_READY);
-
+            await PollFuture(rustFuture, pollFunc);
             _UniffiHelpers.RustCallWithError(errorHandler, (ref RustCallStatus status) => completeFunc(rustFuture, ref status));
 
         }

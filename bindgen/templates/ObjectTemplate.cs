@@ -44,12 +44,8 @@
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
     {%- if meth.is_async() %}
     public async {% call cs::return_type(meth) %} {{ meth.name()|fn_name }}({%- call cs::arg_list_decl(meth) -%}) {
-        {%- match meth.return_type() %}
-        {%- when Some(return_type) %}
-        return 
-        {% else %}
-        {% endmatch -%}
-         await _UniFFIAsync.UniffiRustCallAsync(
+        {% match meth.return_type() %}{% when Some(return_type) %}
+        return {% else %}{% endmatch %}await _UniFFIAsync.UniffiRustCallAsync(
             // Get rust future
             CallWithPointer(thisPtr => {
                 return _UniFFILib.{{ meth.ffi_func().name()  }}(thisPtr{%- if meth.arguments().len() > 0 %}, {% endif -%}{% call cs::lower_arg_list(meth) %});

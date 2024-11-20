@@ -69,7 +69,6 @@ public class TestFutures {
     public async void TestConcurrentFutures() {
         await ReturnsIn(100, async () => {
             List<Task> tasks = new List<Task>();
-            // The performance is really bad.. It takes around 1ms to execute single async function.
             for (int i = 0; i < 100; i++) {
                 var index = i;
                 Func<Task> task = async () => {
@@ -112,18 +111,17 @@ public class TestFutures {
         });
     }
 
-    // TODO: This test intermittently returns a few milliseconds over the threshold, but sometimes it's way over. Not sure what's going on here.
-    // [Fact]
-    // public async void TestAsyncFallibleFunctions() {
-    //     await ReturnsImmediately(async () => {
-    //         await FuturesMethods.FallibleMe(false);
-    //         await Assert.ThrowsAsync<MyException.Foo>(() => FuturesMethods.FallibleMe(true));
-    //          using (var megaphone = FuturesMethods.NewMegaphone()) {
-    //             Assert.Equal(42, await megaphone.FallibleMe(false));
-    //             await Assert.ThrowsAsync<MyException.Foo>(() => megaphone.FallibleMe(true));
-    //         }
-    //     });
-    // }
+    [Fact]
+    public async void TestAsyncFallibleFunctions() {
+        await ReturnsImmediately(async () => {
+            await FuturesMethods.FallibleMe(false);
+            await Assert.ThrowsAsync<MyException.Foo>(() => FuturesMethods.FallibleMe(true));
+             using (var megaphone = FuturesMethods.NewMegaphone()) {
+                Assert.Equal(42, await megaphone.FallibleMe(false));
+                await Assert.ThrowsAsync<MyException.Foo>(() => megaphone.FallibleMe(true));
+            }
+        });
+    }
 
     [Fact]
     public async void TestAsyncFallibleStruct() {

@@ -510,8 +510,4 @@ pub mod filters {
     pub fn panic(message: &str) -> Result<String, askama::Error> {
         panic!("{}", message)
     }
-
-    pub fn is_pointer(t: &&&Type) -> Result<bool, askama::Error> {
-        Ok(matches!(FfiType::from(*t), FfiType::RustArcPtr(_)))
-    }
 }
