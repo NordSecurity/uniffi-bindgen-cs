@@ -13,8 +13,14 @@ internal static class _UniFFIAsync {
         public static void Callback(IntPtr continuationHandle, byte pollResult)
         {
             GCHandle handle = GCHandle.FromIntPtr(continuationHandle);
-            TaskCompletionSource<byte> tcs = (TaskCompletionSource<byte>)handle.Target;
-            tcs.SetResult(pollResult);
+            if (handle.Target is TaskCompletionSource<byte> tcs) 
+            {
+                tcs.SetResult(pollResult);
+            }
+            else 
+            {
+                throw new InternalException("Unable to cast unmanaged IntPtr to TaskCompletionSource<byte>");
+            }
         }
 
         public static void Register()
