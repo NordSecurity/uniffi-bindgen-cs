@@ -14,6 +14,15 @@ cd uniffi-bindgen-cs
 git submodule update --init --recursive
 ```
 
+
+# Committing rules
+
+[DCO](https://probot.github.io/apps/dco/) sign off is enforced for all commits. Be sure to use the `-s` option to add a `Signed-off-by` line to your commit messages.
+
+```
+git commit -s -m 'This is my commit message'
+```
+
 # Run tests
 
 To run tests, `dotnet` installation is required. Unlike `uniffi-rs`, there is no integration with
