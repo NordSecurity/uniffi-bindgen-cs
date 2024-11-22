@@ -33,10 +33,10 @@ There are a few requirements depending on your target framework version.
     </PropertyGroup>
     ```
 
-- .NET framework `4.8`
+- .NET framework `4.6.1`
     ```xml
     <PropertyGroup>
-        <TargetFramework>net48</TargetFramework>
+        <TargetFramework>net461</TargetFramework>
         <LangVersion>10.0</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PackageReference Include="IsExternalInit" Version="1.0.3"/>
