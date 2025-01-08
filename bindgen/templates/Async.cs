@@ -39,7 +39,7 @@ internal static class _UniFFIAsync {
         byte pollResult;
         do 
         {
-            var tcs = new TaskCompletionSource<byte>();
+            var tcs = new TaskCompletionSource<byte>(TaskCreationOptions.RunContinuationsAsynchronously);
             var handle = GCHandle.Alloc(tcs);
             pollFunc(rustFuture, GCHandle.ToIntPtr(handle));
             pollResult = await tcs.Task;
