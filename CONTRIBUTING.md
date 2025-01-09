@@ -47,6 +47,15 @@ Running tests in Docker containers is easier, because manual `dotnet` installati
 ./docker_test_bindings.sh
 ```
 
+# Hanging tests
+
+To print test case names when a test starts, update `diagnosticMessages` to `true` in
+[xunit.runner.json](dotnet-tests/UniffiCS.BindingTests/xunit.runner.json). Xunit, the test framework
+used by this project, does not provide functionality to print test case names when a test starts,
+making it difficult to debug hanging tests without using a debugger.
+[CustomTestFramework.cs](dotnet-tests/UniffiCS.BindingTests/CustomTestFramework.cs) plugs into Xunit
+to print test case names when the tests start.
+
 # Directory structure
 
 | Directory                                | Description                                      |

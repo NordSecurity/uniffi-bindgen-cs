@@ -23,4 +23,10 @@
   <ItemGroup>
     <ProjectReference Include="..\UniffiCS\UniffiCS.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

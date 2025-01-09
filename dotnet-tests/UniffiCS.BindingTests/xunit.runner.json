@@ -1,0 +1,5 @@
+{
+  "diagnosticMessages": false,
+  "parallelizeAssembly": false,
+  "parallelizeTestCollections": false
+}
