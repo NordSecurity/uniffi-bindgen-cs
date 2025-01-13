@@ -5,6 +5,10 @@ internal static class _UniFFIAsync {
     internal const byte UNIFFI_RUST_FUTURE_POLL_READY = 0;
     // internal const byte UNIFFI_RUST_FUTURE_POLL_MAYBE_READY = 1;
 
+    static _UniFFIAsync() {
+        UniffiRustFutureContinuationCallback.Register();
+    }
+
     // FFI type for Rust future continuations
     internal class UniffiRustFutureContinuationCallback
     {

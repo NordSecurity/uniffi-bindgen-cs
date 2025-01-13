@@ -207,11 +207,6 @@ impl<'a> CsWrapper<'a> {
             .iter_types()
             .map(|t| CsCodeOracle.find(t))
             .filter_map(|ct| ct.initialization_fn())
-            .chain(
-                self.ci
-                    .has_async_fns()
-                    .then(|| "_UniFFIAsync.UniffiRustFutureContinuationCallback.Register".into()),
-            )
             .collect()
     }
 
