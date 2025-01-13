@@ -7,18 +7,16 @@
 {%- if func.is_async() %}
    public static async {% call cs::return_type(func) %} {{ func.name()|fn_name }}({%- call cs::arg_list_decl(func) -%}) 
    {
-        {%- match func.return_type() %}
-        {%- when Some(return_type) %}
-        return {% else %}{% endmatch -%} await _UniFFIAsync.UniffiRustCallAsync(
+        {%- if func.return_type().is_some() %}
+        return {% endif %} await _UniFFIAsync.UniffiRustCallAsync(
             // Get rust future
            _UniFFILib.{{ func.ffi_func().name() }}({% call cs::lower_arg_list(func) %}),
             // Poll
             (IntPtr future, IntPtr continuation) => _UniFFILib.{{ func.ffi_rust_future_poll(ci) }}(future, continuation),
             // Complete
             (IntPtr future, ref RustCallStatus status) => {
-                {%- match func.return_type() %}
-                {%- when Some(return_type) %}
-                return {% else %}{% endmatch %}_UniFFILib.{{ func.ffi_rust_future_complete(ci) }}(future, ref status);
+                {%- if func.return_type().is_some() %}
+                return {% endif %}_UniFFILib.{{ func.ffi_rust_future_complete(ci) }}(future, ref status);
             },
             // Free
             (IntPtr future) => _UniFFILib.{{ func.ffi_rust_future_free(ci) }}(future),

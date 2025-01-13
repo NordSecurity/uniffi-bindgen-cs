@@ -44,8 +44,8 @@
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
     {%- if meth.is_async() %}
     public async {% call cs::return_type(meth) %} {{ meth.name()|fn_name }}({%- call cs::arg_list_decl(meth) -%}) {
-        {% match meth.return_type() %}{% when Some(return_type) %}
-        return {% else %}{% endmatch %}await _UniFFIAsync.UniffiRustCallAsync(
+        {%- if meth.return_type().is_some() %}
+        return {% endif %}await _UniFFIAsync.UniffiRustCallAsync(
             // Get rust future
             CallWithPointer(thisPtr => {
                 return _UniFFILib.{{ meth.ffi_func().name()  }}(thisPtr{%- if meth.arguments().len() > 0 %}, {% endif -%}{% call cs::lower_arg_list(meth) %});
@@ -54,9 +54,8 @@
             (IntPtr future, IntPtr continuation) => _UniFFILib.{{ meth.ffi_rust_future_poll(ci) }}(future, continuation),
             // Complete
             (IntPtr future, ref RustCallStatus status) => {
-                {%- match meth.return_type() %}
-                {%- when Some(return_type) %}
-                return {% else %}{% endmatch %}_UniFFILib.{{ meth.ffi_rust_future_complete(ci) }}(future, ref status);
+                {%- if meth.return_type().is_some() %}
+                return {% endif %}{% endmatch %}_UniFFILib.{{ meth.ffi_rust_future_complete(ci) }}(future, ref status);
             },
             // Free
             (IntPtr future) => _UniFFILib.{{ meth.ffi_rust_future_free(ci) }}(future),
