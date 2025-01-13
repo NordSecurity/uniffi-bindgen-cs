@@ -55,7 +55,7 @@
             // Complete
             (IntPtr future, ref RustCallStatus status) => {
                 {%- if meth.return_type().is_some() %}
-                return {% endif %}{% endmatch %}_UniFFILib.{{ meth.ffi_rust_future_complete(ci) }}(future, ref status);
+                return {% endif %}_UniFFILib.{{ meth.ffi_rust_future_complete(ci) }}(future, ref status);
             },
             // Free
             (IntPtr future) => _UniFFILib.{{ meth.ffi_rust_future_free(ci) }}(future),
