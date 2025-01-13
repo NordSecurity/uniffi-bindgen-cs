@@ -5,8 +5,8 @@
 {{ config.access_modifier() }} abstract class FFIObject: IDisposable { 
     protected IntPtr pointer;
 
-    private readonly AtomicBoolean _wasDestroyed = new AtomicBoolean(false);
-    private readonly AtomicLong _callCounter = new AtomicLong(1L);
+    private int _wasDestroyed = 0;
+    private long _callCounter = 1;
 
     protected FFIObject(IntPtr pointer) {
         this.pointer = pointer;
@@ -17,10 +17,10 @@
     public void Destroy()
     {
         // Only allow a single call to this method.
-        if (_wasDestroyed.CompareAndSet(false, true))
+        if (Interlocked.CompareExchange(ref _wasDestroyed, 1, 0) == 0)
         {
             // This decrement always matches the initial count of 1 given at creation time.
-            if (_callCounter.DecrementAndGet() == 0)
+            if (Interlocked.Decrement(ref _callCounter) == 0)
             {
                 FreeRustArcPtr();
             }
@@ -33,81 +33,52 @@
         GC.SuppressFinalize(this); // Suppress finalization to avoid unnecessary GC overhead.
     }
 
-    ~FFIObject() {
+    ~FFIObject() 
+    {
         Destroy();
     }
 
-    private void IncrementCallCounter() {
+    private void IncrementCallCounter() 
+    {
         // Check and increment the call counter, to keep the object alive.
         // This needs a compare-and-set retry loop in case of concurrent updates.
         long count;
         do
         {
-            count = _callCounter.Get();
+            count = Interlocked.Read(ref _callCounter);
             if (count == 0L) throw new System.ObjectDisposedException(String.Format("'{0}' object has already been destroyed", this.GetType().Name));
             if (count == long.MaxValue) throw new System.OverflowException(String.Format("'{0}' call counter would overflow", this.GetType().Name));
 
-        } while(!_callCounter.CompareAndSet(count, count + 1L));
+        } while (Interlocked.CompareExchange(ref _callCounter, count + 1, count) != count);
     }
 
-    private void DecrementCallCounter() {
+    private void DecrementCallCounter() 
+    {
         // This decrement always matches the increment we performed above.
-        if (_callCounter.DecrementAndGet() == 0L) {
-            Dispose();
+        if (Interlocked.Decrement(ref _callCounter) == 0) {
+            FreeRustArcPtr();
         }
     }
 
     internal void CallWithPointer(Action<IntPtr> action)
     {
         IncrementCallCounter();
-         try {
+        try {
             action(this.pointer);
-         }
-         finally {
+        }
+        finally {
             DecrementCallCounter();
-         }
+        }
     }
 
     internal T CallWithPointer<T>(Func<IntPtr, T> func)
     {   
         IncrementCallCounter();
-         try {
+        try {
             return func(this.pointer);
-         }
-         finally {
+        }
+        finally {
             DecrementCallCounter();
-         }
+        }
     }
-}
-
-class AtomicBoolean
-{
-    private int _value;
-
-    public AtomicBoolean(bool initialValue) => _value = initialValue ? 1 : 0;
-    public bool CompareAndSet(bool expected, bool newValue)
-    {
-        int expectedInt = expected ? 1 : 0;
-        int newInt = newValue ? 1 : 0;
-        return Interlocked.CompareExchange(ref _value, newInt, expectedInt) == expectedInt;
-    }
-
-    public bool Get() => _value == 1;
-}
-
-
-class AtomicLong
-{
-    private long _value;
-
-    public AtomicLong(long initialValue) => _value = initialValue;
-
-    public bool CompareAndSet(long expected, long newValue)
-    {
-        return Interlocked.CompareExchange(ref _value, newValue, expected) == expected;
-    }
-
-    public long Get() => _value;
-
-    public long DecrementAndGet() => Interlocked.Decrement(ref _value);
 }
