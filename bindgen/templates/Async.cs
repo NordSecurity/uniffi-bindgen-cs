@@ -1,3 +1,5 @@
+{{ self.add_import("System.Threading.Tasks")}}
+
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 delegate void UniFfiFutureCallback(IntPtr continuationHandle, byte pollResult);
 
