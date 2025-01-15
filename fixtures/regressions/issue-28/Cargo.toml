@@ -1,0 +1,17 @@
+[package]
+name = "issue-28"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["lib", "cdylib"]
+name = "issue_28"
+
+[dependencies]
+uniffi = {path = "../../../3rd-party/uniffi-rs/uniffi", features=["build"]}
+uniffi_macros = {path = "../../../3rd-party/uniffi-rs/uniffi_macros"}
+
+[build-dependencies]
+uniffi = {path = "../../../3rd-party/uniffi-rs/uniffi", features=["bindgen-tests"]}

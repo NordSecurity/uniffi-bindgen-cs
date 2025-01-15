@@ -1,0 +1,7 @@
+namespace issue_28 {
+
+};
+
+interface ASDFObject {
+    constructor();
+};

@@ -338,7 +338,7 @@ impl CsCodeOracle {
             FfiType::UInt8 => "byte".to_string(),
             FfiType::Float32 => "float".to_string(),
             FfiType::Float64 => "double".to_string(),
-            FfiType::RustArcPtr(name) => format!("{}SafeHandle", name),
+            FfiType::RustArcPtr(name) => format!("{}SafeHandle", self.class_name(name).as_str()),
             FfiType::RustBuffer(_) => "RustBuffer".to_string(),
             FfiType::ForeignBytes => "ForeignBytes".to_string(),
             FfiType::ForeignCallback => "ForeignCallback".to_string(),
