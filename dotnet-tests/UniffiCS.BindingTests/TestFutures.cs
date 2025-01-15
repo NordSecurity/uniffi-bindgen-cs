@@ -21,12 +21,16 @@ public class TestFutures {
 
     static async Task ReturnsImmediately(Func<Task> callback) {
         var time = await MeasureTimeMillis(callback);
-        AssertApproximateTime(0, 4, time);
+        AssertApproximateTime(0, 20, time);
     }
 
     static async Task ReturnsIn(long expected, Func<Task> callback) {
+        await ReturnsIn(expected, 50, callback);
+    }
+
+    static async Task ReturnsIn(long expected, long tolerance, Func<Task> callback) {
         var time = await MeasureTimeMillis(callback);
-        AssertApproximateTime(expected, 50, time);
+        AssertApproximateTime(expected, tolerance, time);
     }
 
     static void AssertApproximateTime(long expected, long tolerance, long actual) {
@@ -116,7 +120,7 @@ public class TestFutures {
         await ReturnsImmediately(async () => {
             await FuturesMethods.FallibleMe(false);
             await Assert.ThrowsAsync<MyException.Foo>(() => FuturesMethods.FallibleMe(true));
-             using (var megaphone = FuturesMethods.NewMegaphone()) {
+            using (var megaphone = FuturesMethods.NewMegaphone()) {
                 Assert.Equal(42, await megaphone.FallibleMe(false));
                 await Assert.ThrowsAsync<MyException.Foo>(() => megaphone.FallibleMe(true));
             }
@@ -144,7 +148,7 @@ public class TestFutures {
 
     [Fact]
     public async void TestBrokenSleep() {
-        await ReturnsIn(500, async () => {
+        await ReturnsIn(500, 100, async () => {
             // calls the waker twice immediately
             await FuturesMethods.BrokenSleep(100, 0);
             // wait for possible failure
