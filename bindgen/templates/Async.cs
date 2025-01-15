@@ -49,6 +49,7 @@ internal static class _UniFFIAsync {
             var handle = GCHandle.Alloc(tcs);
             pollFunc(rustFuture, GCHandle.ToIntPtr(handle));
             pollResult = await tcs.Task;
+            handle.Free();
         }
         while(pollResult != UNIFFI_RUST_FUTURE_POLL_READY);
     }
