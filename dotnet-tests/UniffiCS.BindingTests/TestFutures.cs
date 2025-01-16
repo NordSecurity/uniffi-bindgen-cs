@@ -75,11 +75,11 @@ public class TestFutures {
             List<Task> tasks = new List<Task>();
             for (int i = 0; i < 100; i++) {
                 var index = i;
-                Func<Task> task = async () => {
+                var task = Task.Run(async () => {
                     var result = await FuturesMethods.SayAfter(100, index.ToString());
                     Assert.Equal($"Hello, {index}!", result);
-                };
-                tasks.Add(task());
+                });
+                tasks.Add(task);
             }
             await Task.WhenAll(tasks);
         });
