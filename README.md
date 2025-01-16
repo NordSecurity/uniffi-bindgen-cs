@@ -10,7 +10,7 @@ Minimum Rust version required to install `uniffi-bindgen-cs` is `1.72`.
 Newer Rust versions should also work fine.
 
 ```bash
-cargo install uniffi-bindgen-cs --git https://github.com/NordSecurity/uniffi-bindgen-cs --tag v0.8.3+v0.25.0
+cargo install uniffi-bindgen-cs --git https://github.com/NordSecurity/uniffi-bindgen-cs --tag v0.8.4+v0.25.0
 ```
 
 # How to generate bindings
@@ -49,8 +49,6 @@ There are a few requirements depending on your target framework version.
 The following uniffi features are unsupported.
 
 - External types [#40](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/40)
-
-- Async functions [#41](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/41)
 
 # Configuration options
 
