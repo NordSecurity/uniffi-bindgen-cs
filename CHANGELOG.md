@@ -1,3 +1,13 @@
+
+### v0.8.4+v0.25.0
+
+- **NEW**: Implement async methods [#101](https://github.com/NordSecurity/uniffi-bindgen-cs/pull/101)
+- Fix enums/errors case names shadowing parameters to top level type names [#95](https://github.com/NordSecurity/uniffi-bindgen-cs/pull/95)
+- Ensure type names are generated uniformly independent of capitalization [#103](https://github.com/NordSecurity/uniffi-bindgen-cs/pull/103)
+- Implement Eq and Hash trait methods [#97](https://github.com/NordSecurity/uniffi-bindgen-cs/pull/97)
+- Fix empty struct [#94](https://github.com/NordSecurity/uniffi-bindgen-cs/pull/94)
+- Fix error type named "Error" [#93](https://github.com/NordSecurity/uniffi-bindgen-cs/pull/93)
+
 ### v0.8.3+v0.25.0
 
 - **IMPORTANT**: Fix short-lived callback lifetimes [#79](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/79)
