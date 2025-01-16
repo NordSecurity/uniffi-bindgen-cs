@@ -57,6 +57,7 @@ using {{ alias.alias }} = {{ alias.original_type }};
 {%- when None %}
 {{ config.access_modifier() }} static class {{ ci.namespace().to_upper_camel_case() }}Methods {
 {%- endmatch %}
+
 {%- for func in ci.function_definitions() %}
 {%- include "TopLevelFunctionTemplate.cs" %}
 {%- endfor %}

@@ -11,12 +11,12 @@ namespace UniffiCS.BindingTests;
 public class TestCoverall
 {
     [Fact]
-    public void FFIObjectSafeHandleDropsNativeReferenceOutsideOfUsingBlock()
+    public void ObjectDecrementsReference()
     {
         Assert.Equal(0UL, CoverallMethods.GetNumAlive());
         var closure = () =>
         {
-            var coveralls = new Coveralls("safe_handle_drops_native_reference");
+            var coveralls = new Coveralls("FFIObject_drops_native_reference");
             Assert.Equal(1UL, CoverallMethods.GetNumAlive());
         };
         closure();

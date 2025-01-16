@@ -5,7 +5,7 @@
 {#
 // Template to call into rust. Used in several places.
 // Variable names in `arg_list_decl` should match up with arg lists
-// passed to rust via `_arg_list_ffi_call`
+// passed to rust via `lower_arg_list`
 #}
 
 {%- macro to_ffi_call(func) -%}
@@ -15,7 +15,7 @@
     {%- else %}
     _UniffiHelpers.RustCall(
     {%- endmatch %} (ref RustCallStatus _status) =>
-    _UniFFILib.{{ func.ffi_func().name() }}({% call _arg_list_ffi_call(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
+    _UniFFILib.{{ func.ffi_func().name() }}({% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
 )
 {%- endmacro -%}
 
@@ -27,11 +27,11 @@
     _UniffiHelpers.RustCall(
     {%- endmatch %} (ref RustCallStatus _status) =>
     _UniFFILib.{{ func.ffi_func().name() }}(
-        {{- prefix }}, {% call _arg_list_ffi_call(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
+        {{- prefix }}, {% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
 )
 {%- endmacro -%}
 
-{%- macro _arg_list_ffi_call(func) %}
+{%- macro lower_arg_list(func) %}
     {%- for arg in func.arguments() %}
         {{- arg|lower_fn }}({{ arg.name()|var_name }})
         {%- if !loop.last %}, {% endif %}
@@ -104,3 +104,21 @@ fun {{ func.name()|fn_name }}(
 {%- else %}
 {%- endmatch %}
 {%- endmacro %}
+
+{%- macro return_type(func) -%}
+{%- if func.is_async() -%}
+{%- match func.return_type() -%}
+{%- when Some(return_type) -%}
+Task<{{ return_type|type_name }}>
+{%- when None -%}
+Task
+{%- endmatch -%}
+{%- else -%}
+{%- match func.return_type() -%}
+{%- when Some(return_type) -%}
+{{ return_type|type_name }}
+{%- when None -%}
+void
+{%- endmatch -%}
+{%- endif -%}
+{%- endmacro -%}

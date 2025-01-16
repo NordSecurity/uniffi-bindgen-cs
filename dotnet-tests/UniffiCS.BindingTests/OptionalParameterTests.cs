@@ -5,7 +5,7 @@
 using uniffi.uniffi_cs_optional_parameters;
 using static uniffi.uniffi_cs_optional_parameters.UniffiCsOptionalParametersMethods;
 
-namespace UniffiCS.binding_tests;
+namespace UniffiCS.BindingTests;
 
 public class OptionalParameterTests
 {
