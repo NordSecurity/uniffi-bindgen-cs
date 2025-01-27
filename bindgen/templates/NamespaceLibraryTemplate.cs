@@ -2,8 +2,28 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
-// This is an implementation detail which will be called internally by the public API.
+// This is an implementation detail that will be called internally by the public API.
 static class _UniFFILib {
+    {%- for def in ci.ffi_definitions() %}
+    {%- match def %}
+    {%- when FfiDefinition::CallbackFunction(callback) %}
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate {% call cs::ffi_return_type(callback) %} {{ callback.name()|ffi_callback_name }}(
+        {% call cs::arg_list_ffi_decl_xx(callback) %}
+    );
+    {%- when FfiDefinition::Struct(ffi_struct) %}
+    [StructLayout(LayoutKind.Sequential)]
+    public struct {{ ffi_struct.name()|ffi_struct_name }}
+    {
+        {%- for field in ffi_struct.fields() %}
+        public {{ field.type_().borrow()|ffi_type_name }} {{ field.name()|var_name }};
+        {%- endfor %}
+    }
+    {%- when FfiDefinition::Function(_) %}
+    {# functions are handled below #}
+    {%- endmatch %}
+    {%- endfor %}
+
     static _UniFFILib() {
         _UniFFILib.uniffiCheckContractApiVersion();
         _UniFFILib.uniffiCheckApiChecksums();

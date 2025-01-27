@@ -14,7 +14,7 @@
             // Poll
             (IntPtr future, IntPtr continuation) => _UniFFILib.{{ func.ffi_rust_future_poll(ci) }}(future, continuation),
             // Complete
-            (IntPtr future, ref RustCallStatus status) => {
+            (IntPtr future, ref UniffiRustCallStatus status) => {
                 {%- if func.return_type().is_some() %}
                 return {% endif %}_UniFFILib.{{ func.ffi_rust_future_complete(ci) }}(future, ref status);
             },
@@ -29,7 +29,7 @@
             // Error
             {%- match func.throws_type() %}
             {%- when Some(e)  %}
-            {{ e|as_error|ffi_converter_name }}.INSTANCE
+            {{ e|ffi_converter_name }}.INSTANCE
             {%- when None %}
             NullCallStatusErrorHandler.INSTANCE
             {% endmatch %}
@@ -38,7 +38,7 @@
 {%- else %}
 {%- match func.return_type() -%}
 {%- when Some with (return_type) %}
-    public static {{ return_type|type_name }} {{ func.name()|fn_name }}({%- call cs::arg_list_decl(func) -%}) {
+    public static {{ return_type|type_name(ci) }} {{ func.name()|fn_name }}({%- call cs::arg_list_decl(func) -%}) {
         return {{ return_type|lift_fn }}({% call cs::to_ffi_call(func) %});
     }
 {% when None %}

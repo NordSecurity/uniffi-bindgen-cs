@@ -35,8 +35,14 @@
     {%- endmatch %}
 
     protected override void FreeRustArcPtr() {
-        _UniffiHelpers.RustCall((ref RustCallStatus status) => {
+        _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
             _UniFFILib.{{ obj.ffi_object_free().name() }}(this.pointer, ref status);
+        });
+    }
+
+    protected override void CloneRustArcPtr() {
+        _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
+            _UniFFILib.{{ obj.ffi_object_clone().name() }}(this.pointer, ref status);
         });
     }
 
@@ -54,7 +60,7 @@
             // Poll
             (IntPtr future, IntPtr continuation) => _UniFFILib.{{ meth.ffi_rust_future_poll(ci) }}(future, continuation),
             // Complete
-            (IntPtr future, ref RustCallStatus status) => {
+            (IntPtr future, ref UniffiRustCallStatus status) => {
                 {%- if meth.return_type().is_some() %}
                 return {% endif %}_UniFFILib.{{ meth.ffi_rust_future_complete(ci) }}(future, ref status);
             },
@@ -69,7 +75,7 @@
             // Error
             {%- match meth.throws_type() %}
             {%- when Some(e)  %}
-            {{ e|as_error|ffi_converter_name }}.INSTANCE
+            {{ e|ffi_converter_name }}.INSTANCE
             {%- when None %}
             NullCallStatusErrorHandler.INSTANCE
             {% endmatch %}
@@ -80,7 +86,7 @@
 
     {%- match meth.return_type() -%}
     {%- when Some with (return_type) %}
-    public {{ return_type|type_name }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %}) {
+    public {{ return_type|type_name(ci) }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %}) {
         return CallWithPointer(thisPtr => {{ return_type|lift_fn }}({%- call cs::to_ffi_call_with_prefix("thisPtr", meth) %}));
     }
 

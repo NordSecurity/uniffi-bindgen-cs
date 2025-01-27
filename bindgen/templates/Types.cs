@@ -5,7 +5,7 @@
 {%- import "macros.cs" as cs %}
 
 {%- for type_ in ci.iter_types() %}
-{%- let type_name = type_|type_name %}
+{%- let type_name = type_|type_name(ci) %}
 {%- let ffi_converter_name = type_|ffi_converter_name %}
 {%- let canonical_type_name = type_|canonical_name %}
 {%- let contains_object_references = ci.item_contains_object_references(type_) %}
@@ -98,12 +98,5 @@
 {%- when Type::External { module_path, name, namespace, kind, tagged } %}
 {% include "ExternalTypeTemplate.cs" %}
 
-{%- when Type::ForeignExecutor %}
-{{ "ForeignExecutor not implemented in Types.cs {}"|panic }}
-
 {%- endmatch %}
 {%- endfor %}
-
-{%- if ci.has_async_fns() %}
-{% include "Async.cs" %}
-{%- endif %}

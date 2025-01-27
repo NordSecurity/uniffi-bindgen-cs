@@ -5,3 +5,6 @@ members = [
     "bindgen",
     "fixtures",
 ]
+
+[workspace.dependencies]
+uniffi = { path = "3rd-party/uniffi-rs/uniffi" }

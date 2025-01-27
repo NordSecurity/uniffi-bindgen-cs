@@ -10,7 +10,7 @@ class FfiConverterString: FfiConverter<string, RustBuffer> {
     // store our length and avoid writing it out to the buffer.
     public override string Lift(RustBuffer value) {
         try {
-            var bytes = value.AsStream().ReadBytes(value.len);
+            var bytes = value.AsStream().ReadBytes(Convert.ToInt32(value.len));
             return System.Text.Encoding.UTF8.GetString(bytes);
         } finally {
             RustBuffer.Free(value);
@@ -43,7 +43,7 @@ class FfiConverterString: FfiConverter<string, RustBuffer> {
     // enough.
     public override int AllocationSize(string value) {
         const int sizeForLength = 4;
-        var sizeForString = value.Length * 3;
+        var sizeForString = System.Text.Encoding.UTF8.GetByteCount(value);
         return sizeForLength + sizeForString;
     }
 
