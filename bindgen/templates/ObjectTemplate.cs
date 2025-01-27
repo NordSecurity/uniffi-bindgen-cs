@@ -35,8 +35,14 @@
     {%- endmatch %}
 
     protected override void FreeRustArcPtr() {
-        _UniffiHelpers.RustCall((ref RustCallStatus status) => {
+        _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
             _UniFFILib.{{ obj.ffi_object_free().name() }}(this.pointer, ref status);
+        });
+    }
+
+    protected override void CloneRustArcPtr() {
+        _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
+            _UniFFILib.{{ obj.ffi_object_clone().name() }}(this.pointer, ref status);
         });
     }
 
@@ -54,7 +60,7 @@
             // Poll
             (IntPtr future, IntPtr continuation) => _UniFFILib.{{ meth.ffi_rust_future_poll(ci) }}(future, continuation),
             // Complete
-            (IntPtr future, ref RustCallStatus status) => {
+            (IntPtr future, ref UniffiRustCallStatus status) => {
                 {%- if meth.return_type().is_some() %}
                 return {% endif %}_UniFFILib.{{ meth.ffi_rust_future_complete(ci) }}(future, ref status);
             },
@@ -126,12 +132,6 @@
     }
     {% endfor %}
     {% endif %}
-
-    public IntPtr _uniffiClonePointer() {
-        return _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
-            return _UniFFILib.{{ obj.ffi_object_clone().name() }}(this.GetHandle(), ref status);
-        });
-    }
 }
 
 class {{ obj|ffi_converter_name }}: FfiConverter<{{ type_name }}, IntPtr> {
