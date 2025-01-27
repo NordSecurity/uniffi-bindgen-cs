@@ -14,7 +14,7 @@
             // Poll
             (IntPtr future, IntPtr continuation) => _UniFFILib.{{ func.ffi_rust_future_poll(ci) }}(future, continuation),
             // Complete
-            (IntPtr future, ref RustCallStatus status) => {
+            (IntPtr future, ref UniffiRustCallStatus status) => {
                 {%- if func.return_type().is_some() %}
                 return {% endif %}_UniFFILib.{{ func.ffi_rust_future_complete(ci) }}(future, ref status);
             },

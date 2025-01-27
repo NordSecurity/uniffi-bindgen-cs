@@ -36,9 +36,9 @@ internal static class _UniFFIAsync {
         }
     }
 
-    public delegate F CompleteFuncDelegate<F>(IntPtr ptr, ref RustCallStatus status);
+    public delegate F CompleteFuncDelegate<F>(IntPtr ptr, ref UniffiRustCallStatus status);
 
-    public delegate void CompleteActionDelegate(IntPtr ptr, ref RustCallStatus status);
+    public delegate void CompleteActionDelegate(IntPtr ptr, ref UniffiRustCallStatus status);
 
     private static async Task PollFuture(IntPtr rustFuture, Action<IntPtr, IntPtr> pollFunc)
     {
@@ -65,7 +65,7 @@ internal static class _UniFFIAsync {
     {
         try {
             await PollFuture(rustFuture, pollFunc);
-            var result = _UniffiHelpers.RustCallWithError(errorHandler, (ref RustCallStatus status) => completeFunc(rustFuture, ref status));
+            var result = _UniffiHelpers.RustCallWithError(errorHandler, (ref UniffiRustCallStatus status) => completeFunc(rustFuture, ref status));
             return liftFunc(result);
         }
         finally
@@ -84,7 +84,7 @@ internal static class _UniFFIAsync {
     {
          try {
             await PollFuture(rustFuture, pollFunc);
-            _UniffiHelpers.RustCallWithError(errorHandler, (ref RustCallStatus status) => completeFunc(rustFuture, ref status));
+            _UniffiHelpers.RustCallWithError(errorHandler, (ref UniffiRustCallStatus status) => completeFunc(rustFuture, ref status));
 
         }
         finally
