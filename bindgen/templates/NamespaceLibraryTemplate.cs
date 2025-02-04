@@ -16,7 +16,11 @@ static class _UniFFILib {
     public struct {{ ffi_struct.name()|ffi_struct_name }}
     {
         {%- for field in ffi_struct.fields() %}
+        {%- if ffi_struct.name()|is_vtable_struct %}
+        public IntPtr {{ field.name()|var_name }};
+        {%- else %}
         public {{ field.type_().borrow()|ffi_type_name }} {{ field.name()|var_name }};
+        {%- endif %}
         {%- endfor %}
     }
     {%- when FfiDefinition::Function(_) %}

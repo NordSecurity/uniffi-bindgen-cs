@@ -8,46 +8,8 @@ static class UniffiCallbackResponseCode {
     public static int UNEXPECTED_ERROR = 2;
 }
 
-class ConcurrentHandleMap<T> where T: notnull {
-    Dictionary<ulong, T> map = new Dictionary<ulong, T>();
+{% if self.include_once_check("ConcurrentHandleMap.cs") %}{% include "ConcurrentHandleMap.cs" %}{% endif %}
 
-    Object lock_ = new Object();
-    ulong currentHandle = 0;
-
-    public ulong Insert(T obj) {
-        lock (lock_) {
-            currentHandle += 1;
-            map[currentHandle] = obj;
-            return currentHandle;
-        }
-    }
-
-    public bool TryGet(ulong handle, out T result) {
-        lock (lock_) {
-            #pragma warning disable 8601 // Possible null reference assignment
-            return map.TryGetValue(handle, out result);
-            #pragma warning restore 8601
-        }
-    }
-
-    public bool Remove(ulong handle) {
-        return Remove(handle, out T result);
-    }
-
-    public bool Remove(ulong handle, out T result) {
-        lock (lock_) {
-            // Possible null reference assignment
-            #pragma warning disable 8601
-            if (map.TryGetValue(handle, out result)) {
-            #pragma warning restore 8601
-                map.Remove(handle);
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-}
 
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 internal delegate int ForeignCallback(ulong handle, uint method, IntPtr argsData, int argsLength, ref RustBuffer outBuf);

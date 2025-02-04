@@ -43,9 +43,9 @@ class {{ foreign_callback }} {
     // implicit delegate object).
     public static _UniFFILib.{{ vtable|ffi_type_name }} _uniffiVTable = new _UniFFILib.{{ vtable|ffi_type_name }} {
         {%- for (ffi_callback, meth) in vtable_methods.iter() %}
-        {{ meth.name()|var_name() }} = {{ meth.name()|var_name() }},
+        {{ meth.name()|var_name() }} = Marshal.GetFunctionPointerForDelegate((_UniFFILib.{{ ffi_callback.name()|ffi_callback_name }}){{ meth.name()|var_name() }}),
         {%- endfor %}
-        uniffiFree = uniffiFree
+        uniffiFree = Marshal.GetFunctionPointerForDelegate((_UniFFILib.UniffiCallbackInterfaceFree)uniffiFree)
     };
 
     {#
@@ -132,8 +132,8 @@ class {{ foreign_callback }} {
 // The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
 class {{ ffi_converter_name }}: FfiConverterCallbackInterface<{{ type_name }}> {
     public static {{ ffi_converter_name }} INSTANCE = new {{ ffi_converter_name }}();
-
     public override void Register() {
+        Console.WriteLine("I'm here! Register Vtable");
         _UniFFILib.{{ cbi.ffi_init_callback().name() }}(ref {{ foreign_callback }}._uniffiVTable);
     }
 }
