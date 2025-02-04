@@ -26,6 +26,7 @@ uniffi-example-geometry = { path = "../3rd-party/uniffi-rs/examples/geometry/" }
 uniffi-example-rondpoint = { path = "../3rd-party/uniffi-rs/examples/rondpoint" }
 uniffi-example-sprites = { path = "../3rd-party/uniffi-rs/examples/sprites" }
 uniffi-example-todolist = { path = "../3rd-party/uniffi-rs/examples/todolist" }
+uniffi-example-traits = { path = "../3rd-party/uniffi-rs/examples/traits" }
 uniffi-fixture-callbacks = { path = "../3rd-party/uniffi-rs/fixtures/callbacks" }
 uniffi-fixture-coverall = { path = "../3rd-party/uniffi-rs/fixtures/coverall" }
 uniffi-fixture-docstring = { path = "../3rd-party/uniffi-rs/fixtures/docstring" }

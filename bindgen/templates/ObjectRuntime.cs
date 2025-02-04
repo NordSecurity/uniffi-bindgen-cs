@@ -13,7 +13,7 @@
     }
 
     protected abstract void FreeRustArcPtr();
-    protected abstract void CloneRustArcPtr();
+    protected abstract IntPtr CloneRustArcPtr();
 
     public void Destroy()
     {
@@ -65,8 +65,7 @@
     {
         IncrementCallCounter();
         try {
-            CloneRustArcPtr();
-            action(this.pointer);
+            action(CloneRustArcPtr());
         }
         finally {
             DecrementCallCounter();
@@ -77,8 +76,7 @@
     {   
         IncrementCallCounter();
         try {
-            CloneRustArcPtr();
-            return func(this.pointer);
+            return func(CloneRustArcPtr());
         }
         finally {
             DecrementCallCounter();

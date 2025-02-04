@@ -4,14 +4,15 @@
 {{- self.add_import("System.Threading")}}
 
 {%- let obj = ci.get_object_definition(name).unwrap() %}
+{%- let (interface_name, impl_name) = obj|object_names(ci) %}
 {%- if self.include_once_check("ObjectRuntime.cs") %}{% include "ObjectRuntime.cs" %}{% endif %}
 
 {%- call cs::docstring(obj, 0) %}
-{{ config.access_modifier() }} interface I{{ type_name }}
+{{ config.access_modifier() }} interface {{ interface_name }}
     {%- for tm in obj.uniffi_traits() -%}
     {%- match tm -%}
     {%- when UniffiTrait::Eq { eq, ne } -%}
-    : IEquatable<{{type_name}}>
+    : IEquatable<{{impl_name}}>
     {%- else -%}
     {%- endmatch -%}
     {%- endfor %} {
@@ -23,13 +24,13 @@
 }
 
 {%- call cs::docstring(obj, 0) %}
-{{ config.access_modifier() }} class {{ type_name }}: FFIObject, I{{ type_name }} {
-    public {{ type_name }}(IntPtr pointer) : base(pointer) {}
+{{ config.access_modifier() }} class {{ impl_name }}: FFIObject, {{ interface_name }} {
+    public {{ impl_name }}(IntPtr pointer) : base(pointer) {}
 
     {%- match obj.primary_constructor() %}
     {%- when Some with (cons) %}
     {%- call cs::docstring(cons, 4) %}
-    public {{ type_name }}({% call cs::arg_list_decl(cons) -%}) :
+    public {{ impl_name }}({% call cs::arg_list_decl(cons) -%}) :
         this({% call cs::to_ffi_call(cons) %}) {}
     {%- when None %}
     {%- endmatch %}
@@ -40,9 +41,9 @@
         });
     }
 
-    protected override void CloneRustArcPtr() {
-        _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
-            _UniFFILib.{{ obj.ffi_object_clone().name() }}(this.pointer, ref status);
+    protected override IntPtr CloneRustArcPtr() {
+        return _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
+            return _UniFFILib.{{ obj.ffi_object_clone().name() }}(this.pointer, ref status);
         });
     }
 
@@ -105,15 +106,15 @@
         return CallWithPointer(thisPtr => {{ Type::String.borrow()|lift_fn  }}({%- call cs::to_ffi_call_with_prefix("thisPtr", fmt)  %}));
     }
     {%- when UniffiTrait::Eq { eq, ne } %}
-    public bool Equals({{type_name}}? other)
+    public bool Equals({{ impl_name }}? other)
     {
         if (other is null) return false;
         return CallWithPointer(thisPtr => {{ Type::Boolean.borrow()|lift_fn }}({%- call cs::to_ffi_call_with_prefix("thisPtr", eq) %}));
     }
     public override bool Equals(object? obj)
     {
-        if (obj is null || !(obj is {{type_name}})) return false;
-        return Equals(obj as {{type_name}});
+        if (obj is null || !(obj is {{ impl_name }})) return false;
+        return Equals(obj as {{ impl_name }});
     }
     {%- when UniffiTrait::Hash  { hash }  %}
     public override int GetHashCode() { 
@@ -127,33 +128,127 @@
     {% for cons in obj.alternate_constructors() -%}
     {%- call cs::docstring(cons, 4) %}
     {%- call cs::method_throws_annotation(cons.throws_type()) %}
-    public static {{ type_name }} {{ cons.name()|fn_name }}({% call cs::arg_list_decl(cons) %}) {
-        return new {{ type_name }}({% call cs::to_ffi_call(cons) %});
+    public static {{ impl_name }} {{ cons.name()|fn_name }}({% call cs::arg_list_decl(cons) %}) {
+        return new {{ impl_name }}({% call cs::to_ffi_call(cons) %});
     }
     {% endfor %}
     {% endif %}
 }
 
-class {{ obj|ffi_converter_name }}: FfiConverter<{{ type_name }}, IntPtr> {
-    public static {{ obj|ffi_converter_name }} INSTANCE = new {{ obj|ffi_converter_name }}();
+{%- let ffi_converter_type = obj|ffi_converter_name %}
+{%- let ffi_converter_var = format!("{}.INSTANCE", ffi_converter_type)%}
 
-    public override IntPtr Lower({{ type_name }} value) {
+{%- if obj.has_callback_interface() %}
+{%- let vtable = obj.vtable().expect("Trait interface should have a vtable") %}
+{%- let vtable_methods = obj.vtable_methods() %}
+{%- let ffi_init_callback = obj.ffi_init_callback() %}
+
+{%- let trait_impl=format!("UniffiCallbackInterface{}", name) %}
+
+class {{ trait_impl }} {
+    {%- for (ffi_callback, meth) in vtable_methods.iter() %}
+    static {% call cs::ffi_return_type(ffi_callback) %} {{ meth.name()|fn_name }}({% call cs::arg_list_ffi_decl_xx(ffi_callback) %}) {
+        // Add logic
+        Console.WriteLine("I'm here! Trying to call a callback");
+        var handle = @uniffiHandle;
+        if ({{ ffi_converter_var }}.handleMap.TryGet(handle, out var uniffiObject)) {
+            // TODO: Handle errors better
+            {%- match meth.throws_type() %}
+            {%- when Some with (error_type) %}
+            try {
+            {%- when None %}
+            {%- endmatch %}
+
+            {%- match meth.return_type() %}
+            {%- when Some with (return_type) %}
+            var result =
+            {%- when None %}
+            {%- endmatch %}
+            uniffiObject.{{ meth.name()|fn_name }}(
+                {%- for arg in meth.arguments() %}
+                {{ arg|lift_fn }}({{ arg.name()|var_name }}){%- if !loop.last %}, {% endif -%}
+                {%- endfor %});
+
+            {%- match meth.return_type() %}
+            {%- when Some with (return_type) %}
+            @uniffiOutReturn = {{ return_type|ffi_converter_name }}.INSTANCE.Lower(result);
+            {%- when None %}
+            {%- endmatch%}
+
+            {%- match meth.throws_type() %}
+            {%- when Some with (error_type) %}
+            }
+            catch {
+                _uniffi_out_err.code = 1;
+            }
+            {%- when None %}
+
+            {%- endmatch %}
+
+        } else {
+            // TODO: Panic
+        }
+    }
+    {%- endfor %}
+
+    static void UniffiFree(ulong @handle) {
+        {{ ffi_converter_var }}.handleMap.Remove(@handle);
+    }
+
+    {%- for (ffi_callback, meth) in vtable_methods.iter() %}
+    {%- let fn_type = format!("_UniFFILib.{}Method", trait_impl) %}
+    static {{ fn_type }}{{ loop.index0 }} _m{{ loop.index0 }} = new {{ fn_type }}{{ loop.index0 }}({{ meth.name()|fn_name }});
+    {%- endfor %}
+    static _UniFFILib.UniffiCallbackInterfaceFree _f0 = new _UniFFILib.UniffiCallbackInterfaceFree(UniffiFree);
+
+    public static _UniFFILib.{{ vtable|ffi_type_name }} _vtable = new _UniFFILib.{{ vtable|ffi_type_name }} {
+        {%- for (ffi_callback, meth) in vtable_methods.iter() %}
+        {%- let fn_type = format!("_UniFFILib.{}Method", trait_impl) %}
+
+        {{ meth.name()|var_name() }} = Marshal.GetFunctionPointerForDelegate(_m{{ loop.index0 }}),
+        {%- endfor %}
+        @uniffiFree = Marshal.GetFunctionPointerForDelegate(_f0)
+    };
+
+    public static void Register() {
+        Console.WriteLine("I'm here! Register Vtable for object trait");
+        _UniFFILib.{{ ffi_init_callback.name() }}(ref {{ trait_impl }}._vtable);
+    }
+}
+
+{% if self.include_once_check("ConcurrentHandleMap.cs") %}{% include "ConcurrentHandleMap.cs" %}{% endif %}
+
+{%- endif %}
+
+class {{ ffi_converter_type }}: FfiConverter<{{ impl_name }}, IntPtr> {
+    {%- if obj.has_callback_interface() %}
+    public ConcurrentHandleMap<{{ impl_name }}> handleMap = new ConcurrentHandleMap<{{ impl_name }}>();
+    {%- endif %}
+    
+    public static {{ ffi_converter_type }} INSTANCE = new {{ ffi_converter_type }}();
+
+
+    public override IntPtr Lower({{ impl_name }} value) {
+        {%- if obj.has_callback_interface() %}
+        return (IntPtr)handleMap.Insert(value);
+        {%- else %}
         return value.CallWithPointer(thisPtr => thisPtr);
+        {%- endif %}
     }
 
-    public override {{ type_name }} Lift(IntPtr value) {
-        return new {{ type_name }}(value);
+    public override {{ impl_name }} Lift(IntPtr value) {
+        return new {{ impl_name }}(value);
     }
 
-    public override {{ type_name }} Read(BigEndianStream stream) {
+    public override {{ impl_name }} Read(BigEndianStream stream) {
         return Lift(new IntPtr(stream.ReadLong()));
     }
 
-    public override int AllocationSize({{ type_name }} value) {
+    public override int AllocationSize({{ impl_name }} value) {
         return 8;
     }
 
-    public override void Write({{ type_name }} value, BigEndianStream stream) {
+    public override void Write({{ impl_name }} value, BigEndianStream stream) {
         stream.WriteLong(Lower(value).ToInt64());
     }
 }
