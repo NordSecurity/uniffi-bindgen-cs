@@ -204,7 +204,6 @@ class {{ trait_impl }} {
     public static _UniFFILib.{{ vtable|ffi_type_name }} _vtable = new _UniFFILib.{{ vtable|ffi_type_name }} {
         {%- for (ffi_callback, meth) in vtable_methods.iter() %}
         {%- let fn_type = format!("_UniFFILib.{}Method", trait_impl) %}
-
         {{ meth.name()|var_name() }} = Marshal.GetFunctionPointerForDelegate(_m{{ loop.index0 }}),
         {%- endfor %}
         @uniffiFree = Marshal.GetFunctionPointerForDelegate(_f0)
