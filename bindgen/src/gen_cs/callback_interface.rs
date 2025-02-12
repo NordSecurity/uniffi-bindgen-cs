@@ -30,6 +30,6 @@ impl CodeType for CallbackInterfaceCodeType {
     }
 
     fn initialization_fn(&self) -> Option<String> {
-        Some(format!("ForeignCallback{}.Register", self.id))
+        super::filters::ffi_callback_registration(&self.id).ok()
     }
 }

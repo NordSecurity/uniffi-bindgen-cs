@@ -4,10 +4,16 @@ using uniffi.traits;
 
 namespace UniffiCS.BindingTests;
 
+class OurButton : Button {
+    public String Name() {
+        return "c#";
+    }
+}
+
 public class TestTraits
 {
     [Fact]
-    public void TraitsWoring()
+    public void TraitsWorking()
     {
         foreach (var button in TraitsMethods.GetButtons())
         {
@@ -15,6 +21,14 @@ public class TestTraits
             Assert.Contains(name, new string[] {"go", "stop"});
             Assert.Equal(TraitsMethods.Press(button).Name(), name);
         }
+    }
+
+    [Fact]
+    public void TraitsWorkingWithForeign()
+    {
+        var button = new OurButton();
+        Assert.Equal("c#", button.Name());
+        Assert.Equal("c#", TraitsMethods.Press(button).Name());
     }
 
 }

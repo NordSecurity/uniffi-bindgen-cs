@@ -146,7 +146,6 @@ public class TestCallbacksFixture
             var unexpectedException = Assert.Throws<ComplexException.UnexpectedErrorWithReason>(
                 () => rustGetters.GetOption(callback, "unexpected-error", true)
             );
-            Console.WriteLine("before assert " + unexpectedException.@reason + "\n");
             Assert.Equal(new Exception("something failed").Message, unexpectedException.@reason);
         }
     }
