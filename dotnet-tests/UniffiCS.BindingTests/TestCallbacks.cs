@@ -35,22 +35,35 @@ class CallAnswererImpl : CallAnswerer
     }
 }
 
+class OurSim : SimCard {
+    public String name;
+
+    public OurSim(String name) {
+        this.name = name;
+    }
+
+    public String Name() {
+        return name;
+    }
+}
+
 public class TestCallbacks
 {
     [Fact]
     public void CallbackWorks()
     {
-        var sims = CallbacksMethods.GetSimCards();
-        using (var telephone = new Telephone())
-        {
-            Assert.Equal("Bonjour", telephone.Call(sims[0], new CallAnswererImpl("normal")));
+        var rust_sim = CallbacksMethods.GetSimCards()[0];
+        var our_sim = new OurSim("C#");
+        var telephone = new Telephone();
 
-            Assert.Throws<TelephoneException.Busy>(() => telephone.Call(sims[0], new CallAnswererImpl("busy")));
+        Assert.Equal("Bonjour", telephone.Call(rust_sim, new CallAnswererImpl("normal")));
+        Assert.Equal("C# est bon marché", telephone.Call(our_sim, new CallAnswererImpl("normal")));
 
-            Assert.Throws<TelephoneException.InternalTelephoneException>(
-                 () => telephone.Call(sims[0], new CallAnswererImpl("something-else"))
-            );
-        }
+        Assert.Throws<TelephoneException.Busy>(() => telephone.Call(rust_sim, new CallAnswererImpl("busy")));
+
+        Assert.Throws<TelephoneException.InternalTelephoneException>(
+                () => telephone.Call(rust_sim, new CallAnswererImpl("something-else"))
+        );
     }
 
     [Fact]

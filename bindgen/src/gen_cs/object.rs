@@ -19,12 +19,7 @@ impl ObjectCodeType {
 
 impl CodeType for ObjectCodeType {
     fn type_label(&self, ci: &ComponentInterface) -> String {
-        let class_name = super::CsCodeOracle.class_name(&self.id, ci);
-        if self.imp.has_callback_interface() {
-            format!("{}Impl", class_name)
-        } else {
-            class_name
-        }
+        super::CsCodeOracle.class_name(&self.id, ci)
     }
 
     fn canonical_name(&self) -> String {
