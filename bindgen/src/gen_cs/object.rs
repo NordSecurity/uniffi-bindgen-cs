@@ -3,16 +3,17 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 use super::CodeType;
-use uniffi_bindgen::{backend::Literal, ComponentInterface};
+use uniffi_bindgen::{backend::Literal, interface::ObjectImpl, ComponentInterface};
 
 #[derive(Debug)]
 pub struct ObjectCodeType {
     id: String,
+    imp: ObjectImpl,
 }
 
 impl ObjectCodeType {
-    pub fn new(id: String) -> Self {
-        Self { id }
+    pub fn new(id: String, imp: ObjectImpl) -> Self {
+        Self { id, imp }
     }
 }
 
@@ -27,5 +28,11 @@ impl CodeType for ObjectCodeType {
 
     fn literal(&self, _literal: &Literal, _ci: &ComponentInterface) -> String {
         unreachable!();
+    }
+
+    fn initialization_fn(&self) -> Option<String> {
+        self.imp
+            .has_callback_interface()
+            .then(|| format!("UniffiCallbackInterface{}.Register", self.id))
     }
 }

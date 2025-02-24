@@ -4,14 +4,15 @@
 {{- self.add_import("System.Threading")}}
 
 {%- let obj = ci.get_object_definition(name).unwrap() %}
+{%- let (interface_name, impl_name) = obj|object_names(ci) %}
 {%- if self.include_once_check("ObjectRuntime.cs") %}{% include "ObjectRuntime.cs" %}{% endif %}
 
 {%- call cs::docstring(obj, 0) %}
-{{ config.access_modifier() }} interface I{{ type_name }}
+{{ config.access_modifier() }} interface {{ interface_name }}
     {%- for tm in obj.uniffi_traits() -%}
     {%- match tm -%}
     {%- when UniffiTrait::Eq { eq, ne } -%}
-    : IEquatable<{{type_name}}>
+    : IEquatable<{{impl_name}}>
     {%- else -%}
     {%- endmatch -%}
     {%- endfor %} {
@@ -23,13 +24,13 @@
 }
 
 {%- call cs::docstring(obj, 0) %}
-{{ config.access_modifier() }} class {{ type_name }}: FFIObject, I{{ type_name }} {
-    public {{ type_name }}(IntPtr pointer) : base(pointer) {}
+{{ config.access_modifier() }} class {{ impl_name }}: FFIObject, {{ interface_name }} {
+    public {{ impl_name }}(IntPtr pointer) : base(pointer) {}
 
     {%- match obj.primary_constructor() %}
     {%- when Some with (cons) %}
     {%- call cs::docstring(cons, 4) %}
-    public {{ type_name }}({% call cs::arg_list_decl(cons) -%}) :
+    public {{ impl_name }}({% call cs::arg_list_decl(cons) -%}) :
         this({% call cs::to_ffi_call(cons) %}) {}
     {%- when None %}
     {%- endmatch %}
@@ -40,9 +41,9 @@
         });
     }
 
-    protected override void CloneRustArcPtr() {
-        _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
-            _UniFFILib.{{ obj.ffi_object_clone().name() }}(this.pointer, ref status);
+    protected override IntPtr CloneRustArcPtr() {
+        return _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
+            return _UniFFILib.{{ obj.ffi_object_clone().name() }}(this.pointer, ref status);
         });
     }
 
@@ -105,15 +106,15 @@
         return CallWithPointer(thisPtr => {{ Type::String.borrow()|lift_fn  }}({%- call cs::to_ffi_call_with_prefix("thisPtr", fmt)  %}));
     }
     {%- when UniffiTrait::Eq { eq, ne } %}
-    public bool Equals({{type_name}}? other)
+    public bool Equals({{ impl_name }}? other)
     {
         if (other is null) return false;
         return CallWithPointer(thisPtr => {{ Type::Boolean.borrow()|lift_fn }}({%- call cs::to_ffi_call_with_prefix("thisPtr", eq) %}));
     }
     public override bool Equals(object? obj)
     {
-        if (obj is null || !(obj is {{type_name}})) return false;
-        return Equals(obj as {{type_name}});
+        if (obj is null || !(obj is {{ impl_name }})) return false;
+        return Equals(obj as {{ impl_name }});
     }
     {%- when UniffiTrait::Hash  { hash }  %}
     public override int GetHashCode() { 
@@ -127,33 +128,73 @@
     {% for cons in obj.alternate_constructors() -%}
     {%- call cs::docstring(cons, 4) %}
     {%- call cs::method_throws_annotation(cons.throws_type()) %}
-    public static {{ type_name }} {{ cons.name()|fn_name }}({% call cs::arg_list_decl(cons) %}) {
-        return new {{ type_name }}({% call cs::to_ffi_call(cons) %});
+    public static {{ impl_name }} {{ cons.name()|fn_name }}({% call cs::arg_list_decl(cons) %}) {
+        return new {{ impl_name }}({% call cs::to_ffi_call(cons) %});
     }
     {% endfor %}
     {% endif %}
 }
 
-class {{ obj|ffi_converter_name }}: FfiConverter<{{ type_name }}, IntPtr> {
-    public static {{ obj|ffi_converter_name }} INSTANCE = new {{ obj|ffi_converter_name }}();
+{%- let ffi_converter_type = obj|ffi_converter_name %}
+{%- let ffi_converter_var = format!("{}.INSTANCE", ffi_converter_type)%}
 
-    public override IntPtr Lower({{ type_name }} value) {
-        return value.CallWithPointer(thisPtr => thisPtr);
+{%- if obj.has_callback_interface() %}
+{%- let vtable = obj.vtable().expect("Trait interface should have a vtable") %}
+{%- let vtable_methods = obj.vtable_methods() %}
+{%- let ffi_init_callback = obj.ffi_init_callback() %}
+
+{%- let callback_impl_name= interface_name|ffi_callback_impl %}
+{% include "CallbackInterfaceImpl.cs" %}
+
+class {{ ffi_converter_type }}: FfiConverter<{{ interface_name }}, IntPtr> {
+    public ConcurrentHandleMap<{{ interface_name }}> handleMap = new ConcurrentHandleMap<{{ interface_name }}>();
+    
+    public static {{ ffi_converter_type }} INSTANCE = new {{ ffi_converter_type }}();
+
+
+    public override IntPtr Lower({{ interface_name }} value) {
+        return (IntPtr)handleMap.Insert(value);
     }
 
-    public override {{ type_name }} Lift(IntPtr value) {
-        return new {{ type_name }}(value);
+    public override {{ interface_name }} Lift(IntPtr value) {
+        return new {{ impl_name }}(value);
     }
 
-    public override {{ type_name }} Read(BigEndianStream stream) {
+    public override {{ interface_name }} Read(BigEndianStream stream) {
         return Lift(new IntPtr(stream.ReadLong()));
     }
 
-    public override int AllocationSize({{ type_name }} value) {
+    public override int AllocationSize({{ interface_name }} value) {
         return 8;
     }
 
-    public override void Write({{ type_name }} value, BigEndianStream stream) {
+    public override void Write({{ interface_name }} value, BigEndianStream stream) {
         stream.WriteLong(Lower(value).ToInt64());
     }
 }
+{%- else %}
+class {{ ffi_converter_type }}: FfiConverter<{{ impl_name }}, IntPtr> {
+    public static {{ ffi_converter_type }} INSTANCE = new {{ ffi_converter_type }}();
+
+
+    public override IntPtr Lower({{ impl_name }} value) {
+        return value.CallWithPointer(thisPtr => thisPtr);
+    }
+
+    public override {{ impl_name }} Lift(IntPtr value) {
+        return new {{ impl_name }}(value);
+    }
+
+    public override {{ impl_name }} Read(BigEndianStream stream) {
+        return Lift(new IntPtr(stream.ReadLong()));
+    }
+
+    public override int AllocationSize({{ impl_name }} value) {
+        return 8;
+    }
+
+    public override void Write({{ impl_name }} value, BigEndianStream stream) {
+        stream.WriteLong(Lower(value).ToInt64());
+    }
+}
+{%- endif %}

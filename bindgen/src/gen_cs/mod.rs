@@ -286,7 +286,7 @@ impl<T: AsType> AsCodeType for T {
             Type::Duration => Box::new(miscellany::DurationCodeType),
 
             Type::Enum { name, .. } => Box::new(enum_::EnumCodeType::new(name)),
-            Type::Object { name, .. } => Box::new(object::ObjectCodeType::new(name)),
+            Type::Object { name, imp, .. } => Box::new(object::ObjectCodeType::new(name, imp)),
             Type::Record { name, .. } => Box::new(record::RecordCodeType::new(name)),
             Type::CallbackInterface { name, .. } => {
                 Box::new(callback_interface::CallbackInterfaceCodeType::new(name))
@@ -351,9 +351,35 @@ impl CsCodeOracle {
         format!("Uniffi{}", nm.to_upper_camel_case())
     }
 
+    fn ffi_callback_impl(&self, nm: &str) -> String {
+        format!("UniffiCallbackInterface{}", nm)
+    }
+
     /// Get the idiomatic C# rendering of an FFI struct name
     fn ffi_struct_name(&self, nm: &str) -> String {
         format!("Uniffi{}", nm.to_upper_camel_case())
+    }
+
+    fn interface_name(&self, nm: &str) -> String {
+        format!("I{}", nm)
+    }
+
+    fn impl_name(&self, nm: &str) -> String {
+        format!("{}Impl", nm)
+    }
+
+    fn object_names(&self, obj: &Object, ci: &ComponentInterface) -> (String, String) {
+        let class_name = self.class_name(obj.name(), ci);
+        if obj.has_callback_interface() {
+            // If the object has callback interface we will generate
+            // An interface Object and an implementation ObjectImpl
+            let impl_name = self.impl_name(&class_name);
+            (class_name, impl_name)
+        } else {
+            // In regular cases we will use C# convention
+            // An interface IObject and an implementation Object
+            (self.interface_name(&class_name), class_name)
+        }
     }
 
     fn ffi_type_label(&self, ffi_type: &FfiType) -> String {
@@ -371,7 +397,7 @@ impl CsCodeOracle {
             FfiType::RustArcPtr(_) => "IntPtr".to_string(),
             FfiType::RustBuffer(_) => "RustBuffer".to_string(),
             FfiType::ForeignBytes => "ForeignBytes".to_string(),
-            FfiType::Callback(name) => self.ffi_callback_name(name),
+            FfiType::Callback(_) => "IntPtr".to_string(),
             FfiType::Reference(typ) => format!("ref {}", self.ffi_type_label(typ)),
             FfiType::RustCallStatus => "UniffiRustCallStatus".to_string(),
             FfiType::Struct(name) => self.ffi_struct_name(name),
@@ -513,9 +539,24 @@ pub mod filters {
         Ok(oracle().ffi_callback_name(nm))
     }
 
+    /// Get the idiomatic C# rendering of an FFI callback impl name
+    pub(super) fn ffi_callback_impl(nm: &str) -> Result<String, askama::Error> {
+        Ok(oracle().ffi_callback_impl(nm))
+    }
+
+    /// Get the idiomatic C# rendering of an FFI callback registration function
+    pub(super) fn ffi_callback_registration(nm: &str) -> Result<String, askama::Error> {
+        Ok(format!("{}.Register", oracle().ffi_callback_impl(nm)))
+    }
+
     /// Get the idiomatic C# rendering of an FFI struct name
     pub(super) fn ffi_struct_name(nm: &str) -> Result<String, askama::Error> {
         Ok(oracle().ffi_struct_name(nm))
+    }
+
+    /// Get object name tuple (interface, impl)
+    pub(super) fn object_names(obj: &Object, ci: &ComponentInterface) -> Result<(String, String), askama::Error> {
+        Ok(oracle().object_names(obj, ci))
     }
 
     /// Get the idiomatic C# rendering of docstring
