@@ -11,7 +11,7 @@
 {%- macro to_ffi_call(func) -%}
     {%- match func.throws_type() %}
     {%- when Some with (e) %}
-    _UniffiHelpers.RustCallWithError({{ e|ffi_converter_name}}.INSTANCE,
+    _UniffiHelpers.RustCallWithError({{ e|error_converter_name}}.INSTANCE,
     {%- else %}
     _UniffiHelpers.RustCall(
     {%- endmatch %} (ref UniffiRustCallStatus _status) =>
@@ -22,7 +22,7 @@
 {%- macro to_ffi_call_with_prefix(prefix, func) %}
     {%- match func.throws_type() %}
     {%- when Some with (e) %}
-    _UniffiHelpers.RustCallWithError({{ e|ffi_converter_name}}.INSTANCE,
+    _UniffiHelpers.RustCallWithError({{ e|error_converter_name}}.INSTANCE,
     {%- else %}
     _UniffiHelpers.RustCall(
     {%- endmatch %} (ref UniffiRustCallStatus _status) =>
@@ -155,4 +155,12 @@ void
 
 {%- macro docstring(defn, indent_spaces) %}
 {%- call docstring_value(defn.docstring(), indent_spaces) %}
+{%- endmacro %}
+
+{% macro enum_field_name(field, field_num) %}
+{%- if field.name().is_empty() -%}
+v{{- field_num -}}
+{%- else -%}
+{{ field.name()|var_name }}
+{%- endif -%}
 {%- endmacro %}

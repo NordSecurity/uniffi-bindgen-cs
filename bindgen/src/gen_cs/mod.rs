@@ -55,6 +55,10 @@ trait CodeType: Debug {
         format!("FfiConverter{}", self.canonical_name())
     }
 
+    fn error_converter_name(&self) -> String {
+        self.ffi_converter_name()
+    }
+
     /// A list of imports that are needed if this type is in use.
     /// Classes are imported exactly once.
     fn imports(&self) -> Option<Vec<String>> {
@@ -453,6 +457,10 @@ pub mod filters {
 
     pub(super) fn ffi_converter_name(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
         Ok(as_ct.as_codetype().ffi_converter_name())
+    }
+
+    pub(super) fn error_converter_name(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
+        Ok(as_ct.as_codetype().error_converter_name())
     }
 
     pub(super) fn lower_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> {
