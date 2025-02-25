@@ -55,25 +55,34 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
 {%- else %}
 {%- call cs::docstring(e, 0) %}
 {{ config.access_modifier() }} class {{ type_name }}: UniffiException{% if contains_object_references %}, IDisposable {% endif %} {
+    {{ type_name }}() : base() {}
+    {{ type_name }}(String @Message) : base(@Message) {}
+
     // Each variant is a nested class
     {% for variant in e.variants() -%}
     {%- call cs::docstring(variant, 4) %}
     {% if !variant.has_fields() -%}
-    public class {{ variant|error_variant_name }} : {{ type_name }} {}
+    public class {{ variant|error_variant_name }} : {{ type_name }} {
+        public {{ variant|error_variant_name }}() : base() {}
+    }
     {% else %}
     public class {{ variant|error_variant_name }} : {{ type_name }} {
         // Members
         {%- for field in variant.fields() %}
-        public {% call cs::enum_parameter_type_name(field|type_name(ci), variant|error_variant_name) %} {{ field.name()|var_name }};
+        public {% call cs::enum_parameter_type_name(field|type_name(ci), variant|error_variant_name) %} {% call cs::enum_field_name(field, loop.index) %};
         {%- endfor %}
 
         // Constructor
         public {{ variant|error_variant_name }}(
                 {%- for field in variant.fields() %}
-                {% call cs::enum_parameter_type_name(field|type_name(ci), variant|error_variant_name) %} {{ field.name()|var_name }}{% if loop.last %}{% else %}, {% endif %}
-                {%- endfor %}) {
+                {% call cs::enum_parameter_type_name(field|type_name(ci), variant|error_variant_name) %} {% call cs::enum_field_name(field, loop.index) %}{% if loop.last %}{% else %}, {% endif %}
+                {%- endfor %}) : base(
+                {%- for field in variant.fields() -%}
+                "{% call cs::enum_field_name(field, loop.index) %}" + "=" + {% call cs::enum_field_name(field, loop.index) %}{%- if loop.last -%}{%- else -%} + ", " + {%- endif -%}
+                {%- endfor -%}
+                ) {
             {%- for field in variant.fields() %}
-            this.{{ field.name()|var_name }} = {{ field.name()|var_name }};
+            this.{% call cs::enum_field_name(field, loop.index) %} = {% call cs::enum_field_name(field, loop.index) %};
             {%- endfor %}
         }
     }
@@ -122,7 +131,7 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
             case {{ type_name }}.{{ variant|error_variant_name }} variant_value:
                 return 4
                     {%- for field in variant.fields() %}
-                    + {{ field|allocation_size_fn }}(variant_value.{{ field.name()|var_name }})
+                    + {{ field|allocation_size_fn }}(variant_value.{% call cs::enum_field_name(field, loop.index) %})
                     {%- endfor %};
             {%- endfor %}
             default:
@@ -136,7 +145,7 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
             case {{ type_name }}.{{ variant|error_variant_name }} variant_value:
                 stream.WriteInt({{ loop.index }});
                 {%- for field in variant.fields() %}
-                {{ field|write_fn }}(variant_value.{{ field.name()|var_name }}, stream);
+                {{ field|write_fn }}(variant_value.{% call cs::enum_field_name(field, loop.index) %}, stream);
                 {%- endfor %}
                 break;
             {%- endfor %}

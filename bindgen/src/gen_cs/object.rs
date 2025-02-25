@@ -26,6 +26,10 @@ impl CodeType for ObjectCodeType {
         format!("Type{}", self.id)
     }
 
+    fn error_converter_name(&self) -> String {
+        format!("{}ErrorHandler", self.ffi_converter_name())
+    }
+
     fn literal(&self, _literal: &Literal, _ci: &ComponentInterface) -> String {
         unreachable!();
     }
