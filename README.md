@@ -1,11 +1,5 @@
 # TODO 0.28
 
-### Implement:
-- Add async tests in TestErrorTypes.cs
-
-### Fix:
-- Async implementation
-
 ### Fix tests:
 - TestFutures.cs
 - TestCustomTypes.cs
