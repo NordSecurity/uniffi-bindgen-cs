@@ -390,7 +390,8 @@ impl CsCodeOracle {
         match ffi_type {
             FfiType::Int16 => "short".to_string(),
             FfiType::Int32 => "int".to_string(),
-            FfiType::Int64 | FfiType::Handle => "long".to_string(),
+            FfiType::Int64 => "long".to_string(),
+            FfiType::Handle => "IntPtr".to_string(),
             FfiType::Int8 => "sbyte".to_string(),
             FfiType::UInt16 => "ushort".to_string(),
             FfiType::UInt32 => "uint".to_string(),
@@ -405,6 +406,30 @@ impl CsCodeOracle {
             FfiType::Reference(typ) => format!("ref {}", self.ffi_type_label(typ)),
             FfiType::RustCallStatus => "UniffiRustCallStatus".to_string(),
             FfiType::Struct(name) => self.ffi_struct_name(name),
+            FfiType::VoidPointer => "IntPtr".to_string(),
+        }
+    }
+
+    fn arg_type_label(&self, ffi_type: &FfiType) -> String {
+        match ffi_type {
+            FfiType::Int16 => "short".to_string(),
+            FfiType::Int32 => "int".to_string(),
+            FfiType::Int64 => "long".to_string(),
+            FfiType::Handle => "IntPtr".to_string(),
+            FfiType::Int8 => "sbyte".to_string(),
+            FfiType::UInt16 => "ushort".to_string(),
+            FfiType::UInt32 => "uint".to_string(),
+            FfiType::UInt64 => "ulong".to_string(),
+            FfiType::UInt8 => "byte".to_string(),
+            FfiType::Float32 => "float".to_string(),
+            FfiType::Float64 => "double".to_string(),
+            FfiType::RustArcPtr(_) => "IntPtr".to_string(),
+            FfiType::RustBuffer(_) => "RustBuffer".to_string(),
+            FfiType::ForeignBytes => "ForeignBytes".to_string(),
+            FfiType::Callback(_) => "IntPtr".to_string(),
+            FfiType::Reference(typ) => format!("ref {}", self.arg_type_label(typ)),
+            FfiType::RustCallStatus => "UniffiRustCallStatus".to_string(),
+            FfiType::Struct(name) => format!("_UniFFILib.{}", self.ffi_struct_name(name)),
             FfiType::VoidPointer => "IntPtr".to_string(),
         }
     }
@@ -515,6 +540,10 @@ pub mod filters {
         Ok(oracle().ffi_type_label(type_))
     }
 
+    pub(super) fn arg_type_name(type_: &FfiType) -> Result<String, askama::Error> {
+        Ok(oracle().arg_type_label(type_))
+    }
+
     /// Get the idiomatic C# rendering of a class name (for enums, records, errors, etc).
     pub(super) fn class_name(nm: &str, ci: &ComponentInterface) -> Result<String, askama::Error> {
         Ok(oracle().class_name(nm, ci))
@@ -555,6 +584,10 @@ pub mod filters {
     /// Get the idiomatic C# rendering of an FFI callback registration function
     pub(super) fn ffi_callback_registration(nm: &str) -> Result<String, askama::Error> {
         Ok(format!("{}.Register", oracle().ffi_callback_impl(nm)))
+    }
+
+    pub(super) fn ffi_foreign_future_complete(return_type: &Type) -> Result<String, askama::Error> {
+        Ok(format!("UniffiForeignFutureComplete{}", FfiType::return_type_name(Some(&FfiType::from(return_type))).to_upper_camel_case()))
     }
 
     /// Get the idiomatic C# rendering of an FFI struct name

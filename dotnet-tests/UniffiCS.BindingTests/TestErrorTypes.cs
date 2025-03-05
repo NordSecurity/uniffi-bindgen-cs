@@ -131,4 +131,15 @@ public class TestErrorTypes
             Assert.Contains("Value: v1=1", e.ToString());
         }
     }
+
+    [Fact]
+    public async void AsyncThrow()
+    {
+        try {
+            await ErrorTypesMethods.Aoops();
+            throw new System.Exception("Should have failed");
+        } catch (ErrorInterface e) {
+            Assert.Equal("async-oops", e.ToString());
+        }
+    }
 }

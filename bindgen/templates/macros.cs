@@ -75,7 +75,7 @@
 
 {%- macro arg_list_ffi_decl_xx(func) %}
     {%- for arg in func.arguments() %}
-        {{- arg.type_().borrow()|ffi_type_name }} {{ arg.name()|var_name -}}{%- if !loop.last || func.has_rust_call_status_arg() -%},{%- endif -%}
+        {{- arg.type_().borrow()|arg_type_name }} {{ arg.name()|var_name -}}{%- if !loop.last || func.has_rust_call_status_arg() -%},{%- endif -%}
     {%- endfor %}
     {%- if func.has_rust_call_status_arg() %}ref UniffiRustCallStatus _uniffi_out_err{% endif %}
 {%- endmacro -%}
