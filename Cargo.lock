@@ -1072,6 +1072,7 @@ dependencies = [
  "uniffi-fixture-callbacks",
  "uniffi-fixture-coverall",
  "uniffi-fixture-docstring",
+ "uniffi-fixture-error-types",
  "uniffi-fixture-time",
  "uniffi-fixture-trait-methods",
 ]
@@ -1206,6 +1207,15 @@ dependencies = [
  "uniffi",
  "uniffi_bindgen",
  "uniffi_testing",
+]
+
+[[package]]
+name = "uniffi-fixture-error-types"
+version = "0.22.0"
+dependencies = [
+ "anyhow",
+ "thiserror",
+ "uniffi",
 ]
 
 [[package]]
