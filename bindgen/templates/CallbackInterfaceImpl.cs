@@ -1,6 +1,6 @@
 class {{ callback_impl_name }} {
     {%- for (ffi_callback, meth) in vtable_methods.iter() %}
-    static {% call cs::ffi_return_type(ffi_callback) %} {{ meth.name()|fn_name }}({% call cs::arg_list_ffi_decl_xx(ffi_callback) %}) {
+    static {% call cs::ffi_return_type(ffi_callback) %} {{ meth.name()|fn_name }}({% call cs::arg_list_ffi_decl(ffi_callback) %}) {
         var handle = @uniffiHandle;
         if ({{ ffi_converter_var }}.handleMap.TryGet(handle, out var uniffiObject)) {
             {%- if !meth.is_async() %}

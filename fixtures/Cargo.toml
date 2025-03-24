@@ -19,18 +19,22 @@ uniffi-cs-custom-types-builtin = { path = "custom-types-builtin" }
 uniffi-cs-disposable-fixture = { path = "disposable" }
 uniffi-cs-optional-parameters-fixture = { path = "optional-parameters" }
 uniffi-cs-stringify = { path = "stringify" }
-uniffi-example-arithmetic = { path = "../3rd-party/uniffi-rs/examples/arithmetic" }
-uniffi-example-callbacks = { path = "../3rd-party/uniffi-rs/examples/callbacks" }
-uniffi-example-custom-types = { path = "../3rd-party/uniffi-rs/examples/custom-types" }
-uniffi-example-geometry = { path = "../3rd-party/uniffi-rs/examples/geometry/" }
-uniffi-example-rondpoint = { path = "../3rd-party/uniffi-rs/examples/rondpoint" }
-uniffi-example-sprites = { path = "../3rd-party/uniffi-rs/examples/sprites" }
-uniffi-example-todolist = { path = "../3rd-party/uniffi-rs/examples/todolist" }
-uniffi-example-traits = { path = "../3rd-party/uniffi-rs/examples/traits" }
-uniffi-fixture-callbacks = { path = "../3rd-party/uniffi-rs/fixtures/callbacks" }
-uniffi-fixture-coverall = { path = "../3rd-party/uniffi-rs/fixtures/coverall" }
-uniffi-fixture-docstring = { path = "../3rd-party/uniffi-rs/fixtures/docstring" }
-uniffi-fixture-error-types = { path = "../3rd-party/uniffi-rs/fixtures/error-types" }
-uniffi-fixture-futures = { path = "../3rd-party/uniffi-rs/fixtures/futures" }
-uniffi-fixture-time = { path = "../3rd-party/uniffi-rs/fixtures/uniffi-fixture-time" }
-uniffi-fixture-trait-methods = { path = "../3rd-party/uniffi-rs/fixtures/trait-methods" }
+
+# Examples
+uniffi-example-arithmetic = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+uniffi-example-callbacks = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+uniffi-example-custom-types = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+uniffi-example-geometry = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+uniffi-example-rondpoint = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+uniffi-example-sprites = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+uniffi-example-todolist = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+uniffi-example-traits = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+
+# Fixtures
+uniffi-fixture-callbacks = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+uniffi-fixture-coverall = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+uniffi-fixture-docstring = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+uniffi-fixture-error-types = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+uniffi-fixture-futures = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+uniffi-fixture-time = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}
+uniffi-fixture-trait-methods = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.28.3"}

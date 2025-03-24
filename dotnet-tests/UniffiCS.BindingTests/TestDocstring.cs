@@ -51,22 +51,36 @@ public class TestDocstring
     [Fact]
     public void DocstringsAppearInBindings()
     {
-        // Hacky way to find project directory based on working directory..
+        // // Hacky way to find project directory based on working directory..
         string rootDirectory = Directory.GetCurrentDirectory() + "../../../../../../";
-
-        string uniffiTestSource = File.ReadAllText(
-            rootDirectory + "3rd-party/uniffi-rs/fixtures/docstring/tests/test_generated_bindings.rs"
-        );
-        MatchCollection matches = Regex.Matches(uniffiTestSource, @"<docstring-.*>");
-        Assert.NotEmpty(matches);
-
         string bindingsSource = File.ReadAllText(rootDirectory + "dotnet-tests/UniffiCS/gen/uniffi_docstring.cs");
 
-        List<string> missingDocstrings = matches
-            .Where(match => !bindingsSource.Contains(match.Value))
-            .Select(match => match.Value)
-            .ToList();
+        List<string> expected = new List<string> {
+            "<docstring-alternate-constructor>",
+            "<docstring-associated-enum-variant-2>",
+            "<docstring-associated-enum-variant>",
+            "<docstring-associated-enum>",
+            "<docstring-associated-error-variant-2>",
+            "<docstring-associated-error-variant>",
+            "<docstring-associated-error>",
+            "<docstring-callback-method>",
+            "<docstring-callback>",
+            "<docstring-enum-variant-2>",
+            "<docstring-enum-variant>",
+            "<docstring-enum>",
+            "<docstring-error-variant-2>",
+            "<docstring-error-variant>",
+            "<docstring-error>",
+            "<docstring-function>",
+            "<docstring-method>",
+            "<docstring-namespace>",
+            "<docstring-object>",
+            "<docstring-primary-constructor>",
+            "<docstring-record-field>",
+            "<docstring-record>"
+        };
 
+        List<string> missingDocstrings = expected.Where(e => !bindingsSource.Contains(e)).ToList();
         Assert.Empty(missingDocstrings);
     }
 }
