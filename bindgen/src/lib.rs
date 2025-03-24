@@ -183,12 +183,21 @@ pub fn main() -> Result<()> {
         let out_dir = cli
             .out_dir
             .expect("--out-dir is required when using --library");
+
+        let config_supplier = {
+            use uniffi_bindgen::cargo_metadata::CrateConfigSupplier;
+            let cmd = ::cargo_metadata::MetadataCommand::new();
+            let metadata = cmd.exec().unwrap();
+            CrateConfigSupplier::from(metadata)
+        };
+
         uniffi_bindgen::library_mode::generate_bindings(
             &cli.source,
             cli.crate_name,
             &BindingGenerator {
                 try_format_code: !cli.no_format,
             },
+            &config_supplier,
             cli.config.as_deref(),
             &out_dir,
             !cli.no_format,

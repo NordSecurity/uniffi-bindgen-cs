@@ -9,7 +9,7 @@ static class _UniFFILib {
     {%- when FfiDefinition::CallbackFunction(callback) %}
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate {% call cs::ffi_return_type(callback) %} {{ callback.name()|ffi_callback_name }}(
-        {% call cs::arg_list_ffi_decl_xx(callback) %}
+        {% call cs::arg_list_ffi_decl(callback) %}
     );
     {%- when FfiDefinition::Struct(ffi_struct) %}
     [StructLayout(LayoutKind.Sequential)]

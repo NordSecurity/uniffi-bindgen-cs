@@ -7,4 +7,10 @@ members = [
 ]
 
 [workspace.dependencies]
-uniffi = { path = "3rd-party/uniffi-rs/uniffi" }
+uniffi = { version = "0.28.3", features = ["build"] }
+uniffi_testing = "0.28.3"
+uniffi_macros = "0.28.3"
+uniffi_build = { version = "0.28.3", features=["builtin-bindgen"] }
+uniffi_bindgen = "0.28.3"
+uniffi_meta = "0.28.3"
+uniffi_udl = "0.28.3"

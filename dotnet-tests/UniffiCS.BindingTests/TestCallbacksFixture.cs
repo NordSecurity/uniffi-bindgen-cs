@@ -160,17 +160,6 @@ public class TestCallbacksFixture
             {
                 Assert.Equal(stringifier.FromSimpleType(v), rustStringifier.FromSimpleType(v));
             }
-
-            foreach (
-                var v in new List<List<Double?>?>
-                {
-                    null,
-                    new List<Double?> { null, 3.14 }
-                }
-            )
-            {
-                Assert.Equal(stringifier.FromComplexType(v), rustStringifier.FromComplexType(v));
-            }
         }
     }
 

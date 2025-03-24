@@ -10,8 +10,8 @@ name = "issue_60"
 
 [dependencies]
 thiserror = "1.0"
-uniffi = {path = "../../../3rd-party/uniffi-rs/uniffi", features=["build"]}
-uniffi_macros = {path = "../../../3rd-party/uniffi-rs/uniffi_macros"}
+uniffi = { workspace = true, features = ["build"] }
+uniffi_macros.workspace = true
 
 [build-dependencies]
-uniffi = {path = "../../../3rd-party/uniffi-rs/uniffi", features=["bindgen-tests"]}
+uniffi = { workspace = true, features = ["bindgen-tests"] }
