@@ -28,8 +28,8 @@ static class _UniFFILib {
         _UniFFILib.uniffiCheckContractApiVersion();
         _UniFFILib.uniffiCheckApiChecksums();
         {% let initialization_fns = self.initialization_fns() %}
-        {% for fn in initialization_fns -%}
-        {{ fn }}();
+        {% for func in initialization_fns -%}
+        {{ func }}();
         {% endfor -%}
     }
 

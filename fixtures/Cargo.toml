@@ -18,6 +18,7 @@ null-to-empty-string = { path = "null-to-empty-string" }
 uniffi-cs-custom-types-builtin = { path = "custom-types-builtin" }
 uniffi-cs-disposable-fixture = { path = "disposable" }
 uniffi-cs-optional-parameters-fixture = { path = "optional-parameters" }
+uniffi-cs-positional-enums = { path = "positional-enums" }
 uniffi-cs-stringify = { path = "stringify" }
 
 # Examples

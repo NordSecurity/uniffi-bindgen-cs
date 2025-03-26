@@ -7,33 +7,7 @@
 {%- if func.is_async() %}
    public static async {% call cs::return_type(func) %} {{ func.name()|fn_name }}({%- call cs::arg_list_decl(func) -%}) 
    {
-        {%- if func.return_type().is_some() %}
-        return {% endif %} await _UniFFIAsync.UniffiRustCallAsync(
-            // Get rust future
-           _UniFFILib.{{ func.ffi_func().name() }}({% call cs::lower_arg_list(func) %}),
-            // Poll
-            (IntPtr future, IntPtr continuation, IntPtr data) => _UniFFILib.{{ func.ffi_rust_future_poll(ci) }}(future, continuation, data),
-            // Complete
-            (IntPtr future, ref UniffiRustCallStatus status) => {
-                {%- if func.return_type().is_some() %}
-                return {% endif %}_UniFFILib.{{ func.ffi_rust_future_complete(ci) }}(future, ref status);
-            },
-            // Free
-            (IntPtr future) => _UniFFILib.{{ func.ffi_rust_future_free(ci) }}(future),
-            {%- match func.return_type() %}
-            {%- when Some(return_type) %}
-            // Lift
-            (result) => {{ return_type|lift_fn }}(result),
-            {% else %}
-            {% endmatch -%}
-            // Error
-            {%- match func.throws_type() %}
-            {%- when Some(e)  %}
-            {{ e|error_converter_name }}.INSTANCE
-            {%- when None %}
-            NullCallStatusErrorHandler.INSTANCE
-            {% endmatch %}
-       );
+        {%- call cs::async_call(func, false) %}
    }
 {%- else %}
 {%- match func.return_type() -%}

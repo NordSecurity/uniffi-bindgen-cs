@@ -72,17 +72,17 @@ public class TestErrorTypes
 
         var e6 = Assert.Throws<uniffi.error_types.Exception.InnerException>(() => ErrorTypesMethods.OopsEnum(5));
         Assert.Contains("InnerException", e6.ToString());
-        Assert.Contains("CaseA: v1=inner", e6.ToString());
+        Assert.Contains("CaseA: @v1=inner", e6.ToString());
     }
 
     [Fact]
     public void TupleThrow()
     {
         var t1 = Assert.Throws<TupleException.Oops>(() => ErrorTypesMethods.OopsTuple(0));
-        Assert.Contains("Oops: v1=oops", t1.ToString());
+        Assert.Contains("Oops: @v1=oops", t1.ToString());
 
         var t2 = Assert.Throws<TupleException.Value>(() => ErrorTypesMethods.OopsTuple(1));
-        Assert.Contains("Value: v1=1", t2.ToString());
+        Assert.Contains("Value: @v1=1", t2.ToString());
     }
 
     [Fact]

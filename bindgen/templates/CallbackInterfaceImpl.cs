@@ -67,8 +67,11 @@ class {{ callback_impl_name }} {
                 await uniffiObject.{{ meth.name()|fn_name }}(
                     {%- for arg in meth.arguments() %}
                     {{ arg|lift_fn }}({{ arg.name()|var_name }}){%- if !loop.last %}, {% endif -%}
-                    {%- endfor %}).WaitAsync(cts.Token);
-
+                    {%- endfor %})
+                #if NET6_0_OR_GREATER
+                    .WaitAsync(cts.Token)
+                #endif
+                    ;
 
                 {%- match meth.return_type() %}
                 {%- when Some with (return_type) %}

@@ -58,25 +58,6 @@ pub struct ConfigBindings {
     csharp: gen_cs::Config,
 }
 
-// impl BindingsConfig for ConfigRoot {
-//     fn update_from_ci(&mut self, ci: &ComponentInterface) {
-//         self.bindings.csharp.update_from_ci(ci);
-//     }
-
-//     fn update_from_cdylib_name(&mut self, cdylib_name: &str) {
-//         self.bindings.csharp.update_from_cdylib_name(cdylib_name);
-//     }
-
-//     fn update_from_dependency_configs(&mut self, config_map: HashMap<&str, &Self>) {
-//         self.bindings.csharp.update_from_dependency_configs(
-//             config_map
-//                 .iter()
-//                 .map(|(key, config)| (*key, &config.bindings.csharp))
-//                 .collect(),
-//         );
-//     }
-// }
-
 struct BindingGenerator {
     try_format_code: bool,
 }
@@ -85,12 +66,10 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
     type Config = gen_cs::Config;
 
     fn new_config(&self, root_toml: &toml::Value) -> Result<Self::Config> {
-        Ok(
-            match root_toml.get("bindings").and_then(|b| b.get("csharp")) {
+        Ok(match root_toml.get("bindings").and_then(|b| b.get("csharp")) {
                 Some(v) => v.clone().try_into()?,
                 None => Default::default(),
-            },
-        )
+        })
     }
 
     fn write_bindings(
@@ -103,7 +82,7 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
             println!("Writing bindings file {}", bindings_file);
             let mut f = File::create(&bindings_file)?;
 
-            let mut bindings = generate_bindings(&config, &ci)?;
+            let mut bindings = generate_bindings(config, ci)?;
 
             if self.try_format_code {
                 match gen_cs::formatting::format(bindings.clone()) {
@@ -133,20 +112,9 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
                 .namespace
                 .get_or_insert_with(|| format!("uniffi.{}", c.ci.namespace()));
 
-            c.config.cdylib_name = c.config.cdylib_name.clone().or(settings.cdylib.clone())
-            // TODO fixme, I don't like the default if nothing is found
-            // c.config.cdylib_name.get_or_insert_with(|| {
-            //     settings
-            //         .cdylib
-            //         .clone()
-            //         .unwrap_or_else(|| format!("uniffi_{}", c.ci.namespace()))
-            // });
-            // c.config.cdylib_name.get_or_insert_with(|| {
-            //     settings
-            //         .cdylib
-            //         .clone()
-            //         .unwrap_or_else(|| format!("uniffi_{}", c.ci.namespace()))
-            // });
+            c.config.cdylib_name.get_or_insert_with(|| {
+                settings.cdylib.clone().unwrap_or_else(|| format!("uniffi_{}", c.ci.namespace()))
+            });
         }
         // TODO: external types are not supported
         // let packages = HashMap::<String, String>::from_iter(
@@ -167,13 +135,6 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
         // }
         Ok(())
     }
-
-    // fn check_library_path(&self, library_path: &Utf8Path, cdylib_name: Option<&str>) -> Result<()> {
-    //     if cdylib_name.is_none() {
-    //         bail!("Generate bindings for C# requires a cdylib, but {library_path} was given");
-    //     }
-    //     Ok(())
-    // }
 }
 
 pub fn main() -> Result<()> {

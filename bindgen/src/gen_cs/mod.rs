@@ -60,12 +60,6 @@ trait CodeType: Debug {
         self.ffi_converter_name()
     }
 
-    /// A list of imports that are needed if this type is in use.
-    /// Classes are imported exactly once.
-    fn imports(&self) -> Option<Vec<String>> {
-        None
-    }
-
     /// Function to run at startup
     fn initialization_fn(&self) -> Option<String> {
         None
@@ -259,7 +253,7 @@ impl<'a> CsWrapper<'a> {
     }
 }
 
-pub(self) trait AsCodeType {
+trait AsCodeType {
     fn as_codetype(&self) -> Box<dyn CodeType>;
 }
 
@@ -387,7 +381,7 @@ impl CsCodeOracle {
         }
     }
 
-    fn ffi_type_label(&self, ffi_type: &FfiType) -> String {
+    fn ffi_type_label(&self, ffi_type: &FfiType, prefix_struct: bool) -> String {
         match ffi_type {
             FfiType::Int16 => "short".to_string(),
             FfiType::Int32 => "int".to_string(),
@@ -404,33 +398,15 @@ impl CsCodeOracle {
             FfiType::RustBuffer(_) => "RustBuffer".to_string(),
             FfiType::ForeignBytes => "ForeignBytes".to_string(),
             FfiType::Callback(_) => "IntPtr".to_string(),
-            FfiType::Reference(typ) => format!("ref {}", self.ffi_type_label(typ)),
+            FfiType::Reference(typ) => format!("ref {}", self.ffi_type_label(typ, prefix_struct)),
             FfiType::RustCallStatus => "UniffiRustCallStatus".to_string(),
-            FfiType::Struct(name) => self.ffi_struct_name(name),
-            FfiType::VoidPointer => "IntPtr".to_string(),
-        }
-    }
-
-    fn arg_type_label(&self, ffi_type: &FfiType) -> String {
-        match ffi_type {
-            FfiType::Int16 => "short".to_string(),
-            FfiType::Int32 => "int".to_string(),
-            FfiType::Int64 => "long".to_string(),
-            FfiType::Handle => "IntPtr".to_string(),
-            FfiType::Int8 => "sbyte".to_string(),
-            FfiType::UInt16 => "ushort".to_string(),
-            FfiType::UInt32 => "uint".to_string(),
-            FfiType::UInt64 => "ulong".to_string(),
-            FfiType::UInt8 => "byte".to_string(),
-            FfiType::Float32 => "float".to_string(),
-            FfiType::Float64 => "double".to_string(),
-            FfiType::RustArcPtr(_) => "IntPtr".to_string(),
-            FfiType::RustBuffer(_) => "RustBuffer".to_string(),
-            FfiType::ForeignBytes => "ForeignBytes".to_string(),
-            FfiType::Callback(_) => "IntPtr".to_string(),
-            FfiType::Reference(typ) => format!("ref {}", self.arg_type_label(typ)),
-            FfiType::RustCallStatus => "UniffiRustCallStatus".to_string(),
-            FfiType::Struct(name) => format!("_UniFFILib.{}", self.ffi_struct_name(name)),
+            FfiType::Struct(name) => {
+                if prefix_struct {
+                    format!("_UniFFILib.{}", self.ffi_struct_name(name))
+                } else {
+                    self.ffi_struct_name(name)
+                }
+            },
             FfiType::VoidPointer => "IntPtr".to_string(),
         }
     }

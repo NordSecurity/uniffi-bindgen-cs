@@ -30,6 +30,7 @@
         {{- prefix }}, {% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
 )
 {%- endmacro -%}
+
 {%- macro to_ffi_method_call(func) %}
     {%- match func.throws_type() %}
     {%- when Some with (e) %}
@@ -40,6 +41,42 @@
     _UniFFILib.{{ func.ffi_func().name() }}(
         thisPtr, {% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
 )
+{%- endmacro -%}
+
+{%- macro async_call(func, is_method) %}
+    {%- if func.return_type().is_some() %}
+    return {% endif %}await _UniFFIAsync.UniffiRustCallAsync(
+        // Get rust future
+        {%- if is_method %}
+        CallWithPointer(thisPtr => {
+            return _UniFFILib.{{ func.ffi_func().name()  }}(thisPtr{%- if func.arguments().len() > 0 %}, {% endif -%}{% call lower_arg_list(func) %});
+        }),
+        {%- else %}
+        _UniFFILib.{{ func.ffi_func().name() }}({% call lower_arg_list(func) %}),
+        {%- endif%}
+        // Poll
+        (IntPtr future, IntPtr continuation, IntPtr data) => _UniFFILib.{{ func.ffi_rust_future_poll(ci) }}(future, continuation, data),
+        // Complete
+        (IntPtr future, ref UniffiRustCallStatus status) => {
+            {%- if func.return_type().is_some() %}
+            return {% endif %}_UniFFILib.{{ func.ffi_rust_future_complete(ci) }}(future, ref status);
+        },
+        // Free
+        (IntPtr future) => _UniFFILib.{{ func.ffi_rust_future_free(ci) }}(future),
+        {%- match func.return_type() %}
+        {%- when Some(return_type) %}
+        // Lift
+        (result) => {{ return_type|lift_fn }}(result),
+        {% else %}
+        {% endmatch -%}
+        // Error
+        {%- match func.throws_type() %}
+        {%- when Some(e)  %}
+        {{ e|error_converter_name }}.INSTANCE
+        {%- when None %}
+        NullCallStatusErrorHandler.INSTANCE
+        {% endmatch %}
+    );
 {%- endmacro -%}
 
 {%- macro lower_arg_list(func) %}
@@ -145,12 +182,4 @@ void
 
 {%- macro docstring(defn, indent_spaces) %}
 {%- call docstring_value(defn.docstring(), indent_spaces) %}
-{%- endmacro %}
-
-{% macro enum_field_name(field, field_num) %}
-{%- if field.name().is_empty() -%}
-v{{- field_num -}}
-{%- else -%}
-{{ field.name()|var_name }}
-{%- endif -%}
 {%- endmacro %}
