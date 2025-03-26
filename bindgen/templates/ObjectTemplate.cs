@@ -42,28 +42,7 @@
     {%- call cs::docstring(cons, 4) %}
     {%- if cons.is_async() %}
     public static async Task<{{ impl_name }}> {{ impl_name }}Async ({%- call cs::arg_list_decl(cons) -%}) {
-        return await _UniFFIAsync.UniffiRustCallAsync(
-            // Get rust future
-            _UniFFILib.{{ cons.ffi_func().name()  }}({% call cs::lower_arg_list(cons) %}),
-            // Poll
-            (IntPtr future, IntPtr continuation, IntPtr data) => _UniFFILib.{{ cons.ffi_rust_future_poll(ci) }}(future, continuation, data),
-            // Complete
-            (IntPtr future, ref UniffiRustCallStatus status) => {
-                {%- if cons.return_type().is_some() %}
-                return {% endif %}_UniFFILib.{{ cons.ffi_rust_future_complete(ci) }}(future, ref status);
-            },
-            // Free
-            (IntPtr future) => _UniFFILib.{{ cons.ffi_rust_future_free(ci) }}(future),
-            // Lift
-            (result) => {{ obj|lift_fn }}(result),
-            // Error
-            {%- match cons.throws_type() %}
-            {%- when Some(e)  %}
-            {{ e|error_converter_name }}.INSTANCE
-            {%- when None %}
-            NullCallStatusErrorHandler.INSTANCE
-            {% endmatch %}
-       );
+        {%- call cs::async_call(cons, false) %}
     }
     {%- else %}
     public {{ impl_name }}({% call cs::arg_list_decl(cons) -%}) :
@@ -152,35 +131,7 @@
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
     {%- if meth.is_async() %}
     public async {% call cs::return_type(meth) %} {{ meth.name()|fn_name }}({%- call cs::arg_list_decl(meth) -%}) {
-        {%- if meth.return_type().is_some() %}
-        return {% endif %}await _UniFFIAsync.UniffiRustCallAsync(
-            // Get rust future
-            CallWithPointer(thisPtr => {
-                return _UniFFILib.{{ meth.ffi_func().name()  }}(thisPtr{%- if meth.arguments().len() > 0 %}, {% endif -%}{% call cs::lower_arg_list(meth) %});
-            }),
-            // Poll
-            (IntPtr future, IntPtr continuation, IntPtr data) => _UniFFILib.{{ meth.ffi_rust_future_poll(ci) }}(future, continuation, data),
-            // Complete
-            (IntPtr future, ref UniffiRustCallStatus status) => {
-                {%- if meth.return_type().is_some() %}
-                return {% endif %}_UniFFILib.{{ meth.ffi_rust_future_complete(ci) }}(future, ref status);
-            },
-            // Free
-            (IntPtr future) => _UniFFILib.{{ meth.ffi_rust_future_free(ci) }}(future),
-            {%- match meth.return_type() %}
-            {%- when Some(return_type) %}
-            // Lift
-            (result) => {{ return_type|lift_fn }}(result),
-            {% else %}
-            {% endmatch -%}
-            // Error
-            {%- match meth.throws_type() %}
-            {%- when Some(e)  %}
-            {{ e|error_converter_name }}.INSTANCE
-            {%- when None %}
-            NullCallStatusErrorHandler.INSTANCE
-            {% endmatch %}
-       );
+        {%- call cs::async_call(meth, true) %}
     }
     {%- else %}
 
@@ -229,28 +180,7 @@
     {%- call cs::method_throws_annotation(cons.throws_type()) %}
     {%- if cons.is_async() %}
     public static async Task<{{ impl_name }}> {{ cons.name()|fn_name }} ({%- call cs::arg_list_decl(cons) -%}) {
-        return await _UniFFIAsync.UniffiRustCallAsync(
-            // Get rust future
-            _UniFFILib.{{ cons.ffi_func().name()  }}({% call cs::lower_arg_list(cons) %}),
-            // Poll
-            (IntPtr future, IntPtr continuation, IntPtr data) => _UniFFILib.{{ cons.ffi_rust_future_poll(ci) }}(future, continuation, data),
-            // Complete
-            (IntPtr future, ref UniffiRustCallStatus status) => {
-                {%- if cons.return_type().is_some() %}
-                return {% endif %}_UniFFILib.{{ cons.ffi_rust_future_complete(ci) }}(future, ref status);
-            },
-            // Free
-            (IntPtr future) => _UniFFILib.{{ cons.ffi_rust_future_free(ci) }}(future),
-            // Lift
-            (result) => {{ obj|lift_fn }}(result),
-            // Error
-            {%- match cons.throws_type() %}
-            {%- when Some(e)  %}
-            {{ e|error_converter_name }}.INSTANCE
-            {%- when None %}
-            NullCallStatusErrorHandler.INSTANCE
-            {% endmatch %}
-       );
+        {%- call cs::async_call(cons, false) %}
     }
     {%- else %}
     public static {{ impl_name }} {{ cons.name()|fn_name }}({% call cs::arg_list_decl(cons) %}) {

@@ -99,11 +99,11 @@ pub(super) fn ffi_type(type_: &impl AsType) -> Result<FfiType, askama::Error> {
 
 /// Get the C# syntax for representing a given low-level `FFIType`.
 pub(super) fn ffi_type_name(type_: &FfiType) -> Result<String, askama::Error> {
-    Ok(oracle().ffi_type_label(type_))
+    Ok(oracle().ffi_type_label(type_, false))
 }
 
 pub(super) fn arg_type_name(type_: &FfiType) -> Result<String, askama::Error> {
-    Ok(oracle().arg_type_label(type_))
+    Ok(oracle().ffi_type_label(type_, true))
 }
 
 /// Get the idiomatic C# rendering of a class name (for enums, records, errors, etc).
@@ -117,8 +117,8 @@ pub(super) fn fn_name(nm: &str) -> Result<String, askama::Error> {
 }
 
 /// Get the idiomatic C# rendering of a variable name.
-pub(super) fn var_name(nm: &str) -> Result<String, askama::Error> {
-    Ok(oracle().var_name(nm))
+pub(super) fn var_name(nm: impl AsRef<str>) -> Result<String, askama::Error> {
+    Ok(oracle().var_name(nm.as_ref()))
 }
 
 /// Get the idiomatic C# rendering of an individual enum variant.
@@ -180,4 +180,13 @@ pub(super) fn order_fields(fields: &[Field]) -> Result<(Vec<Field>, bool), askam
     fields.sort_by_key(|field| field.default_value().is_some());
     let is_reordered = fields != original_fields;
     Ok((fields, is_reordered))
+}
+
+/// If the name is empty create one based on position of the variable
+pub(super) fn or_pos_var(nm: &str, pos: &usize) -> Result<String, askama::Error> {
+    if nm.is_empty() {
+        Ok(format!("v{pos}"))
+    } else {
+        Ok(nm.to_string())
+    }
 }

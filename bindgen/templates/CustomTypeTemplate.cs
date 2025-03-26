@@ -10,12 +10,15 @@
  * is needed because the UDL type name is used in function/method signatures.
  * It's also what we have an external type that references a custom type.
  */
-{{- self.add_type_alias(name, builtin|type_name_custom(ci)) }}
-{{- self.add_type_alias(ffi_converter_name, builtin|ffi_converter_name) }}
+{% let type_name_custom = builtin|type_name_custom(ci) %}
+{% let type_name_converter = builtin|ffi_converter_name %}
+{{- self.add_type_alias(name, type_name_custom) }}
+{{- self.add_type_alias(ffi_converter_name, type_name_converter) }}
 
 {%- when Some with (config) %}
 
-{%- let ffi_type_name = builtin|ffi_type|ffi_type_name %}
+{%- let ffi_type = builtin|ffi_type %}
+{%- let ffi_type_name = ffi_type|ffi_type_name %}
 
 {# When the config specifies a different type name, create a typealias for it #}
 {%- match config.type_name %}

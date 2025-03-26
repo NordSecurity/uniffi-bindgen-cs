@@ -49,7 +49,8 @@ class {{ e|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
     {% else -%}
     public record {{ variant.name()|class_name(ci) }} (
         {%- for field in variant.fields() %}
-        {% call cs::enum_parameter_type_name(field|type_name(ci), variant.name()|class_name(ci)) %} {{ field.name()|var_name }}{% if !loop.last %},{% endif %}
+        {%- let field_name = field.name()|or_pos_var(loop.index)|var_name %}
+        {% call cs::enum_parameter_type_name(field|type_name(ci), variant.name()|class_name(ci)) %} {{ field_name }}{% if !loop.last %},{% endif %}
         {%- endfor %}
     ) : {{ type_name }} {}
     {%- endif %}
@@ -97,7 +98,8 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>{
             case {{ type_name }}.{{ variant.name()|class_name(ci) }} variant_value:
                 return 4
                     {%- for field in variant.fields() %}
-                    + {{ field|allocation_size_fn }}(variant_value.{{ field.name()|var_name }})
+                    {%- let field_name = field.name()|or_pos_var(loop.index)|var_name %}
+                    + {{ field|allocation_size_fn }}(variant_value.{{ field_name }})
                     {%- endfor %};
             {%- endfor %}
             default:
@@ -111,7 +113,8 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>{
             case {{ type_name }}.{{ variant.name()|class_name(ci) }} variant_value:
                 stream.WriteInt({{ loop.index }});
                 {%- for field in variant.fields() %}
-                {{ field|write_fn }}(variant_value.{{ field.name()|var_name }}, stream);
+                {%- let field_name = field.name()|or_pos_var(loop.index)|var_name %}
+                {{ field|write_fn }}(variant_value.{{ field_name }}, stream);
                 {%- endfor %}
                 break;
             {%- endfor %}

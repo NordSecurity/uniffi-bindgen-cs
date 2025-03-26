@@ -361,8 +361,9 @@ public class TestCoverall
     {
         var rustGetters = CoverallMethods.MakeRustGetters();
         CoverallMethods.TestRoundTripThroughRust(rustGetters);
-        // TODO (dfe): Fix this
-        //CoverallMethods.TestRoundTripThroughForeign(new CSharpGetters());
+        var cSharpGetters = new CSharpGetters();
+        CoverallMethods.TestRoundTripThroughForeign(cSharpGetters);
+        GC.Collect();
     }
 
     [Fact]

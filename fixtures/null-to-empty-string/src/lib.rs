@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 pub fn hello_world(greet: String) -> String {
-    return greet;
+    greet
 }
 
 uniffi::include_scaffolding!("null_to_empty_string");

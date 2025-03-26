@@ -93,17 +93,6 @@ checksum = "98161a4e3e2184da77bb14f02184cdd111e83bbbcc9979dfee3c44b9a85f5602"
 
 [[package]]
 name = "askama"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb98f10f371286b177db5eeb9a6e5396609555686a35e1d4f7b9a9c6d8af0139"
-dependencies = [
- "askama_derive 0.11.2",
- "askama_escape",
- "askama_shared",
-]
-
-[[package]]
-name = "askama"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b79091df18a97caea757e28cd2d5fda49c6cd4bd01ddffd7ff01ace0c0ad2c28"
@@ -113,14 +102,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "askama_derive"
-version = "0.11.2"
+name = "askama"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87bf87e6e8b47264efa9bde63d6225c6276a52e05e91bf37eaa8afd0032d6b71"
+checksum = "9a4e46abb203e00ef226442d452769233142bbfdd79c3941e84c8e61c4112543"
 dependencies = [
- "askama_shared",
- "proc-macro2",
- "syn 1.0.101",
+ "askama_derive 0.13.0",
+ "itoa",
+ "percent-encoding",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -129,13 +120,30 @@ version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a0fc7dcf8bd4ead96b1d36b41df47c14beedf7b0301fc543d8f2384e66a2ec0"
 dependencies = [
- "askama_parser",
+ "askama_parser 0.1.1",
  "basic-toml",
  "mime",
  "mime_guess",
  "proc-macro2",
  "quote",
  "serde",
+ "syn 2.0.96",
+]
+
+[[package]]
+name = "askama_derive"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "54398906821fd32c728135f7b351f0c7494ab95ae421d41b6f5a020e158f28a6"
+dependencies = [
+ "askama_parser 0.13.0",
+ "basic-toml",
+ "memchr",
+ "proc-macro2",
+ "quote",
+ "rustc-hash",
+ "serde",
+ "serde_derive",
  "syn 2.0.96",
 ]
 
@@ -155,20 +163,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "askama_shared"
-version = "0.12.2"
+name = "askama_parser"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf722b94118a07fcbc6640190f247334027685d4e218b794dbfe17c32bf38ed0"
+checksum = "cf315ce6524c857bb129ff794935cf6d42c82a6cff60526fe2a63593de4d0d4f"
 dependencies = [
- "askama_escape",
- "mime",
- "mime_guess",
- "nom",
- "proc-macro2",
- "quote",
+ "memchr",
  "serde",
- "syn 1.0.101",
- "toml",
+ "serde_derive",
+ "winnow",
 ]
 
 [[package]]
@@ -646,9 +649,9 @@ dependencies = [
 
 [[package]]
 name = "itoa"
-version = "1.0.3"
+version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c8af84674fe1f223a982c933a0ee1086ac4d4052aa0fb8060c12c6ad838e754"
+checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
 name = "libc"
@@ -843,6 +846,12 @@ name = "rustc-demangle"
 version = "0.1.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d626bb9dae77e28219937af045c257c28bfd3f69333c512553507f5f9798cb76"
+
+[[package]]
+name = "rustc-hash"
+version = "2.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "357703d41365b4b27c590e3ed91eabb1b663f07c4c084095e60cbed4362dff0d"
 
 [[package]]
 name = "ryu"
@@ -1125,7 +1134,7 @@ name = "uniffi-bindgen-cs"
 version = "0.8.4+v0.25.0"
 dependencies = [
  "anyhow",
- "askama 0.11.1",
+ "askama 0.13.0",
  "camino",
  "cargo_metadata",
  "clap 3.2.22",
@@ -1155,6 +1164,7 @@ dependencies = [
  "uniffi-cs-custom-types-builtin",
  "uniffi-cs-disposable-fixture",
  "uniffi-cs-optional-parameters-fixture",
+ "uniffi-cs-positional-enums",
  "uniffi-cs-stringify",
  "uniffi-example-arithmetic",
  "uniffi-example-callbacks",
@@ -1197,6 +1207,14 @@ dependencies = [
 [[package]]
 name = "uniffi-cs-optional-parameters-fixture"
 version = "1.0.0"
+dependencies = [
+ "uniffi 0.28.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uniffi_macros 0.28.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "uniffi-cs-positional-enums"
+version = "0.1.0"
 dependencies = [
  "uniffi 0.28.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "uniffi_macros 0.28.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1718,3 +1736,12 @@ name = "windows_x86_64_msvc"
 version = "0.48.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed94fce61571a4006852b7389a063ab983c02eb1bb37b47f8272ce92d06d9538"
+
+[[package]]
+name = "winnow"
+version = "0.7.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e97b544156e9bebe1a0ffbc03484fc1ffe3100cbce3ffb17eac35f7cdd7ab36"
+dependencies = [
+ "memchr",
+]

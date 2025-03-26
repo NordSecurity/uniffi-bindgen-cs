@@ -20,14 +20,13 @@ internal static class _UniFFIAsync {
 
         public static void Callback(IntPtr continuationHandle, byte pollResult)
         {
-            var data = _async_handle_map.Get((ulong)continuationHandle.ToInt64());
-            if (data is TaskCompletionSource<byte> tcs) 
+            if (_async_handle_map.Remove((ulong)continuationHandle.ToInt64(), out TaskCompletionSource<byte> task))
             {
-                tcs.SetResult(pollResult);
+                task.SetResult(pollResult);
             }
             else 
             {
-                throw new InternalException("Unable to cast unmanaged IntPtr to TaskCompletionSource<byte>");
+                throw new InternalException($"Unable to find continuation handle: {continuationHandle}");
             }
         }
     }
@@ -38,8 +37,13 @@ internal static class _UniFFIAsync {
 
         public static void Callback(ulong handle)
         {
-            if (_foreign_futures_map.Remove(handle, out CancellationTokenSource task)) {
+            if (_foreign_futures_map.Remove(handle, out CancellationTokenSource task))
+            {
                 task.Cancel();
+            }
+            else
+            {
+                throw new InternalException($"Unable to find cancellation token: {handle}");
             }
         }
     }

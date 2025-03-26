@@ -186,33 +186,18 @@ public class TestFutures {
         Assert.Equal("42", await FuturesMethods.AsStringUsingTrait(obj, 1, 42));
         Assert.Equal(42, await FuturesMethods.TryFromStringUsingTrait(obj, 1, "42"));
 
-        try {
-            await FuturesMethods.TryFromStringUsingTrait(obj, 1, "fourty-two");
-            throw new System.Exception("Expected last statement to throw");
-        } catch (ParserException.NotAnInt) {
-            // Expected
-        }
+        await Assert.ThrowsAsync<ParserException.NotAnInt>(() => FuturesMethods.TryFromStringUsingTrait(obj, 1, "fourty-two"));
 
-        try {
-            await FuturesMethods.TryFromStringUsingTrait(obj, 1, "force-unexpected-exception");
-            throw new SystemException("Expected las statement to throw");
-        } catch (ParserException.UnexpectedException) {
-            // Expected
-        }
+        await Assert.ThrowsAsync<ParserException.UnexpectedException>(
+            () => FuturesMethods.TryFromStringUsingTrait(obj, 1, "force-unexpected-exception")
+        );
 
         await FuturesMethods.DelayUsingTrait(obj, 1);
-        try {
-            await FuturesMethods.TryDelayUsingTrait(obj, "one");
-            throw new SystemException("Expected last statement to throw");
-        } catch (ParserException.NotAnInt) {
-            // Expected
-        }
+        await Assert.ThrowsAsync<ParserException.NotAnInt>(() => FuturesMethods.TryDelayUsingTrait(obj, "one"));
 
-        // TODO (dfe): Aborted futures not working as expected
-        // var completedDelaysBefore = obj.completedDelays;
-        // await FuturesMethods.CancelDelayUsingTrait(obj, 10);
-        // await Task.Delay(100);
-        // Assert.Equal(completedDelaysBefore, obj.completedDelays);
+        var completedDelaysBefore = obj.completedDelays;
+        await FuturesMethods.CancelDelayUsingTrait(obj, 10);
+        Assert.Equal(completedDelaysBefore, obj.completedDelays);
     }
 
 
@@ -268,8 +253,6 @@ public class TestFutures {
             await Task.Delay(200);
         });
     }
-
-    // TODO (dfe): Test a future that uses a lock and is cancelled
 
     [Fact]
     public async Task TestFutureWithLock() {
