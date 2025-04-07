@@ -1,3 +1,0 @@
-[submodule "3rd-party/uniffi-rs"]
-	path = 3rd-party/uniffi-rs
-	url = https://github.com/NordSecurity/uniffi-rs.git
