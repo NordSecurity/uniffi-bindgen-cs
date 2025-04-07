@@ -2,29 +2,41 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-use uniffi_bindgen::backend::{CodeType, Literal};
+use super::CodeType;
+use uniffi_bindgen::{backend::Literal, interface::ObjectImpl, ComponentInterface};
 
 #[derive(Debug)]
 pub struct ObjectCodeType {
     id: String,
+    imp: ObjectImpl,
 }
 
 impl ObjectCodeType {
-    pub fn new(id: String) -> Self {
-        Self { id }
+    pub fn new(id: String, imp: ObjectImpl) -> Self {
+        Self { id, imp }
     }
 }
 
 impl CodeType for ObjectCodeType {
-    fn type_label(&self) -> String {
-        super::CsCodeOracle.class_name(&self.id)
+    fn type_label(&self, ci: &ComponentInterface) -> String {
+        super::CsCodeOracle.class_name(&self.id, ci)
     }
 
     fn canonical_name(&self) -> String {
         format!("Type{}", self.id)
     }
 
-    fn literal(&self, _literal: &Literal) -> String {
+    fn error_converter_name(&self) -> String {
+        format!("{}ErrorHandler", self.ffi_converter_name())
+    }
+
+    fn literal(&self, _literal: &Literal, _ci: &ComponentInterface) -> String {
         unreachable!();
+    }
+
+    fn initialization_fn(&self) -> Option<String> {
+        self.imp
+            .has_callback_interface()
+            .then(|| format!("UniffiCallbackInterface{}.Register", self.id))
     }
 }

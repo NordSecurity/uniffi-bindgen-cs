@@ -11,10 +11,10 @@
 {%- macro to_ffi_call(func) -%}
     {%- match func.throws_type() %}
     {%- when Some with (e) %}
-    _UniffiHelpers.RustCallWithError({{ e|as_error|ffi_converter_name}}.INSTANCE,
+    _UniffiHelpers.RustCallWithError({{ e|error_converter_name}}.INSTANCE,
     {%- else %}
     _UniffiHelpers.RustCall(
-    {%- endmatch %} (ref RustCallStatus _status) =>
+    {%- endmatch %} (ref UniffiRustCallStatus _status) =>
     _UniFFILib.{{ func.ffi_func().name() }}({% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
 )
 {%- endmacro -%}
@@ -22,13 +22,61 @@
 {%- macro to_ffi_call_with_prefix(prefix, func) %}
     {%- match func.throws_type() %}
     {%- when Some with (e) %}
-    _UniffiHelpers.RustCallWithError({{ e|as_error|ffi_converter_name}}.INSTANCE,
+    _UniffiHelpers.RustCallWithError({{ e|error_converter_name}}.INSTANCE,
     {%- else %}
     _UniffiHelpers.RustCall(
-    {%- endmatch %} (ref RustCallStatus _status) =>
+    {%- endmatch %} (ref UniffiRustCallStatus _status) =>
     _UniFFILib.{{ func.ffi_func().name() }}(
         {{- prefix }}, {% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
 )
+{%- endmacro -%}
+
+{%- macro to_ffi_method_call(func) %}
+    {%- match func.throws_type() %}
+    {%- when Some with (e) %}
+    _UniffiHelpers.RustCallWithError({{ e|error_converter_name}}.INSTANCE,
+    {%- else %}
+    _UniffiHelpers.RustCall(
+    {%- endmatch %} (ref UniffiRustCallStatus _status) =>
+    _UniFFILib.{{ func.ffi_func().name() }}(
+        thisPtr, {% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
+)
+{%- endmacro -%}
+
+{%- macro async_call(func, is_method) %}
+    {%- if func.return_type().is_some() %}
+    return {% endif %}await _UniFFIAsync.UniffiRustCallAsync(
+        // Get rust future
+        {%- if is_method %}
+        CallWithPointer(thisPtr => {
+            return _UniFFILib.{{ func.ffi_func().name()  }}(thisPtr{%- if func.arguments().len() > 0 %}, {% endif -%}{% call lower_arg_list(func) %});
+        }),
+        {%- else %}
+        _UniFFILib.{{ func.ffi_func().name() }}({% call lower_arg_list(func) %}),
+        {%- endif%}
+        // Poll
+        (IntPtr future, IntPtr continuation, IntPtr data) => _UniFFILib.{{ func.ffi_rust_future_poll(ci) }}(future, continuation, data),
+        // Complete
+        (IntPtr future, ref UniffiRustCallStatus status) => {
+            {%- if func.return_type().is_some() %}
+            return {% endif %}_UniFFILib.{{ func.ffi_rust_future_complete(ci) }}(future, ref status);
+        },
+        // Free
+        (IntPtr future) => _UniFFILib.{{ func.ffi_rust_future_free(ci) }}(future),
+        {%- match func.return_type() %}
+        {%- when Some(return_type) %}
+        // Lift
+        (result) => {{ return_type|lift_fn }}(result),
+        {% else %}
+        {% endmatch -%}
+        // Error
+        {%- match func.throws_type() %}
+        {%- when Some(e)  %}
+        {{ e|error_converter_name }}.INSTANCE
+        {%- when None %}
+        NullCallStatusErrorHandler.INSTANCE
+        {% endmatch %}
+    );
 {%- endmacro -%}
 
 {%- macro lower_arg_list(func) %}
@@ -45,35 +93,32 @@
 
 {% macro arg_list_decl(func) %}
     {%- for arg in func.arguments() -%}
-        {{ arg|type_name }} {{ arg.name()|var_name -}}
+        {{ arg|type_name(ci) }} {{ arg.name()|var_name -}}
         {%- match arg.default_value() %}
-        {%- when Some with(literal) %} = {{ literal|render_literal(arg) }}
+        {%- when Some with(literal) %} = {{ literal|render_literal(arg, ci) }}
         {%- else %}
         {%- endmatch %}
         {%- if !loop.last %}, {% endif -%}
     {%- endfor %}
 {%- endmacro %}
 
-{% macro arg_list_protocol(func) %}
-    {%- for arg in func.arguments() -%}
-        {{ arg|type_name }} {{ arg.name()|var_name -}}
-        {%- if !loop.last %}, {% endif -%}
-    {%- endfor %}
-{%- endmacro %}
 {#-
 // Arglist as used in the _UniFFILib function declations.
 // Note unfiltered name but ffi_type_name filters.
 -#}
 {%- macro arg_list_ffi_decl(func) %}
-    {%- if func.is_object_free_function() %}
-    IntPtr ptr,
-    {%- else %}
     {%- for arg in func.arguments() %}
-        {{- arg.type_().borrow()|ffi_type_name }} {{ arg.name()|var_name -}}{%- if !loop.last || func.has_rust_call_status_arg() -%},{%- endif -%}
+        {{- arg.type_().borrow()|arg_type_name }} {{ arg.name()|var_name -}}{%- if !loop.last || func.has_rust_call_status_arg() -%},{%- endif -%}
     {%- endfor %}
-    {%- endif %}
-    {%- if func.has_rust_call_status_arg() %}ref RustCallStatus _uniffi_out_err{% endif %}
+    {%- if func.has_rust_call_status_arg() %}ref UniffiRustCallStatus _uniffi_out_err{% endif %}
 {%- endmacro -%}
+
+{%- macro ffi_return_type(func) %}
+    {%- match func.return_type() %}
+    {%- when Some(return_type) %}{{ return_type|ffi_type_name }}
+    {%- when None %}{{ "void" }}
+    {%- endmatch %}
+{%- endmacro %}
 
 // Macro for destroying fields
 {%- macro destroy_fields(member, prefix) %}
@@ -83,22 +128,16 @@
         {%- endfor %});
 {%- endmacro -%}
 
-{%- macro ffi_function_definition(func) %}
-fun {{ func.name()|fn_name }}(
-    {%- call arg_list_ffi_decl(func) %}
-){%- match func.return_type() -%}{%- when Some with (type_) %}: {{ type_|ffi_type_name }}{% when None %}: Unit{% endmatch %}
-{% endmacro %}
-
 {%- macro method_throws_annotation(throwable_type) %}
     {%- match throwable_type -%}
     {%- when Some with (throwable) %}
-    /// <exception cref="{{ throwable|as_error|type_name }}"></exception>
+    /// <exception cref="{{ throwable|type_name(ci) }}"></exception>
     {%- else -%}
     {%- endmatch %}
 {%- endmacro %}
 
-{%- macro docstring(defn, indent_spaces) %}
-{%- match defn.docstring() %}
+{%- macro docstring_value(maybe_docstring, indent_spaces) %}
+{%- match maybe_docstring %}
 {%- when Some(docstring) %}
 {{ docstring|docstring(indent_spaces) }}
 {%- else %}
@@ -109,14 +148,14 @@ fun {{ func.name()|fn_name }}(
 {%- if func.is_async() -%}
 {%- match func.return_type() -%}
 {%- when Some(return_type) -%}
-Task<{{ return_type|type_name }}>
+Task<{{ return_type|type_name(ci) }}>
 {%- when None -%}
 Task
 {%- endmatch -%}
 {%- else -%}
 {%- match func.return_type() -%}
 {%- when Some(return_type) -%}
-{{ return_type|type_name }}
+{{ return_type|type_name(ci) }}
 {%- when None -%}
 void
 {%- endmatch -%}
@@ -139,4 +178,8 @@ void
 {%- if param_type_name == enum_name %}{{ config.namespace() }}.{{ param_type_name }}
 {%- else %}{{ param_type_name }}
 {%- endif %}
+{%- endmacro %}
+
+{%- macro docstring(defn, indent_spaces) %}
+{%- call docstring_value(defn.docstring(), indent_spaces) %}
 {%- endmacro %}

@@ -54,7 +54,7 @@ pub struct CustomTypesBuiltin {
 }
 
 pub fn get_custom_types_builtin() -> CustomTypesBuiltin {
-    return CustomTypesBuiltin {
+    CustomTypesBuiltin {
         string: MyString("Hello, world!".to_string()),
         array: Array(vec!["Hello, world!".to_string()]),
         table: Table(HashMap::from([("hello".to_string(), "world".to_string())])),
@@ -69,7 +69,7 @@ pub fn get_custom_types_builtin() -> CustomTypesBuiltin {
         uint64: UInt64(u64::MAX),
         float: Float(f32::MAX),
         double: Double(f64::MAX),
-    };
+    }
 }
 
 pub fn return_custom_types_builtin(custom_types: CustomTypesBuiltin) -> CustomTypesBuiltin {

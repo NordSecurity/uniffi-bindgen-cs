@@ -10,11 +10,13 @@ mod uniffi_fixtures {
     uniffi_rondpoint::uniffi_reexport_scaffolding!();
     uniffi_sprites::uniffi_reexport_scaffolding!();
     uniffi_todolist::uniffi_reexport_scaffolding!();
+    uniffi_traits::uniffi_reexport_scaffolding!();
 
     uniffi_chronological::uniffi_reexport_scaffolding!();
     uniffi_coverall::uniffi_reexport_scaffolding!();
     uniffi_fixture_callbacks::uniffi_reexport_scaffolding!();
     uniffi_fixture_docstring::uniffi_reexport_scaffolding!();
+    uniffi_error_types::uniffi_reexport_scaffolding!();
     uniffi_futures::uniffi_reexport_scaffolding!();
     uniffi_trait_methods::uniffi_reexport_scaffolding!();
 
@@ -23,6 +25,7 @@ mod uniffi_fixtures {
     uniffi_cs_custom_types_builtin::uniffi_reexport_scaffolding!();
     uniffi_cs_disposable::uniffi_reexport_scaffolding!();
     uniffi_cs_optional_parameters::uniffi_reexport_scaffolding!();
+    uniffi_cs_positional_enums::uniffi_reexport_scaffolding!();
     stringify::uniffi_reexport_scaffolding!();
     issue_28::uniffi_reexport_scaffolding!();
     issue_60::uniffi_reexport_scaffolding!();

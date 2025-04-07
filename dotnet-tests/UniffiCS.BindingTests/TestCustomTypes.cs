@@ -14,13 +14,13 @@ public class TestCustomTypes
     {
         var demo = CustomTypesMethods.GetCustomTypesDemo(null);
 
-        Assert.Equal(new Uri("http://example.com/"), demo.url);
+        Assert.Equal("http://example.com/", demo.url);
         Assert.Equal(123, demo.handle);
 
         // Change some data and ensure that the round-trip works
         demo = demo with
         {
-            url = new Uri("http://new.example.com/")
+            url = "http://new.example.com/"
         };
         demo = demo with { handle = 456 };
         Assert.Equal(demo, CustomTypesMethods.GetCustomTypesDemo(demo));

@@ -1,4 +1,7 @@
+{{ self.add_import("System.Threading")}}
 {{ self.add_import("System.Threading.Tasks")}}
+
+{% if self.include_once_check("ConcurrentHandleMap.cs") %}{% include "ConcurrentHandleMap.cs" %}{% endif %}
 
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 delegate void UniFfiFutureCallback(IntPtr continuationHandle, byte pollResult);
@@ -7,9 +10,8 @@ internal static class _UniFFIAsync {
     internal const byte UNIFFI_RUST_FUTURE_POLL_READY = 0;
     // internal const byte UNIFFI_RUST_FUTURE_POLL_MAYBE_READY = 1;
 
-    static _UniFFIAsync() {
-        UniffiRustFutureContinuationCallback.Register();
-    }
+    internal static ConcurrentHandleMap<TaskCompletionSource<byte>> _async_handle_map = new ConcurrentHandleMap<TaskCompletionSource<byte>>();
+    public static ConcurrentHandleMap<CancellationTokenSource> _foreign_futures_map = new ConcurrentHandleMap<CancellationTokenSource>();
 
     // FFI type for Rust future continuations
     internal class UniffiRustFutureContinuationCallback
@@ -18,45 +20,55 @@ internal static class _UniFFIAsync {
 
         public static void Callback(IntPtr continuationHandle, byte pollResult)
         {
-            GCHandle handle = GCHandle.FromIntPtr(continuationHandle);
-            if (handle.Target is TaskCompletionSource<byte> tcs) 
+            if (_async_handle_map.Remove((ulong)continuationHandle.ToInt64(), out TaskCompletionSource<byte> task))
             {
-                tcs.SetResult(pollResult);
+                task.SetResult(pollResult);
             }
             else 
             {
-                throw new InternalException("Unable to cast unmanaged IntPtr to TaskCompletionSource<byte>");
+                throw new InternalException($"Unable to find continuation handle: {continuationHandle}");
             }
-        }
-
-        public static void Register()
-        {
-            IntPtr fn = Marshal.GetFunctionPointerForDelegate(callback);
-            _UniFFILib.{{ ci.ffi_rust_future_continuation_callback_set().name() }}(fn);
         }
     }
 
-    public delegate F CompleteFuncDelegate<F>(IntPtr ptr, ref RustCallStatus status);
+    public class UniffiForeignFutureFreeCallback
+    {
+        public static _UniFFILib.UniffiForeignFutureFree callback = Callback;
 
-    public delegate void CompleteActionDelegate(IntPtr ptr, ref RustCallStatus status);
+        public static void Callback(ulong handle)
+        {
+            if (_foreign_futures_map.Remove(handle, out CancellationTokenSource task))
+            {
+                task.Cancel();
+            }
+            else
+            {
+                throw new InternalException($"Unable to find cancellation token: {handle}");
+            }
+        }
+    }
 
-    private static async Task PollFuture(IntPtr rustFuture, Action<IntPtr, IntPtr> pollFunc)
+    public delegate F CompleteFuncDelegate<F>(IntPtr ptr, ref UniffiRustCallStatus status);
+
+    public delegate void CompleteActionDelegate(IntPtr ptr, ref UniffiRustCallStatus status);
+
+    private static async Task PollFuture(IntPtr rustFuture, Action<IntPtr, IntPtr, IntPtr> pollFunc)
     {
         byte pollResult;
         do 
         {
             var tcs = new TaskCompletionSource<byte>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var handle = GCHandle.Alloc(tcs);
-            pollFunc(rustFuture, GCHandle.ToIntPtr(handle));
+            IntPtr callback = Marshal.GetFunctionPointerForDelegate(UniffiRustFutureContinuationCallback.callback);
+            ulong mapEntry = _async_handle_map.Insert(tcs);
+            pollFunc(rustFuture, callback, (IntPtr)mapEntry);
             pollResult = await tcs.Task;
-            handle.Free();
         }
         while(pollResult != UNIFFI_RUST_FUTURE_POLL_READY);
     }
 
     public static async Task<T> UniffiRustCallAsync<T, F, E>(
         IntPtr rustFuture,
-        Action<IntPtr, IntPtr> pollFunc,
+        Action<IntPtr, IntPtr, IntPtr> pollFunc,
         CompleteFuncDelegate<F> completeFunc,
         Action<IntPtr> freeFunc,
         Func<F, T> liftFunc,
@@ -65,7 +77,7 @@ internal static class _UniFFIAsync {
     {
         try {
             await PollFuture(rustFuture, pollFunc);
-            var result = _UniffiHelpers.RustCallWithError(errorHandler, (ref RustCallStatus status) => completeFunc(rustFuture, ref status));
+            var result = _UniffiHelpers.RustCallWithError(errorHandler, (ref UniffiRustCallStatus status) => completeFunc(rustFuture, ref status));
             return liftFunc(result);
         }
         finally
@@ -76,7 +88,7 @@ internal static class _UniFFIAsync {
 
     public static async Task UniffiRustCallAsync<E>(
         IntPtr rustFuture,
-        Action<IntPtr, IntPtr> pollFunc,
+        Action<IntPtr, IntPtr, IntPtr> pollFunc,
         CompleteActionDelegate completeFunc,
         Action<IntPtr> freeFunc,
         CallStatusErrorHandler<E> errorHandler
@@ -84,7 +96,7 @@ internal static class _UniFFIAsync {
     {
          try {
             await PollFuture(rustFuture, pollFunc);
-            _UniffiHelpers.RustCallWithError(errorHandler, (ref RustCallStatus status) => completeFunc(rustFuture, ref status));
+            _UniffiHelpers.RustCallWithError(errorHandler, (ref UniffiRustCallStatus status) => completeFunc(rustFuture, ref status));
 
         }
         finally

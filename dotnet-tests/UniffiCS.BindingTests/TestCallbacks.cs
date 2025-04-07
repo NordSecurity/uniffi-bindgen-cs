@@ -35,27 +35,42 @@ class CallAnswererImpl : CallAnswerer
     }
 }
 
+class OurSim : SimCard {
+    public String name;
+
+    public OurSim(String name) {
+        this.name = name;
+    }
+
+    public String Name() {
+        return name;
+    }
+}
+
 public class TestCallbacks
 {
     [Fact]
     public void CallbackWorks()
     {
-        using (var telephone = new Telephone())
-        {
-            Assert.Equal("Bonjour", telephone.Call(new CallAnswererImpl("normal")));
+        var rust_sim = CallbacksMethods.GetSimCards()[0];
+        var our_sim = new OurSim("C#");
+        var telephone = new Telephone();
 
-            Assert.Throws<TelephoneException.Busy>(() => telephone.Call(new CallAnswererImpl("busy")));
+        Assert.Equal("Bonjour", telephone.Call(rust_sim, new CallAnswererImpl("normal")));
+        Assert.Equal("C# est bon marché", telephone.Call(our_sim, new CallAnswererImpl("normal")));
 
-            Assert.Throws<TelephoneException.InternalTelephoneException>(
-                () => telephone.Call(new CallAnswererImpl("something-else"))
-            );
-        }
+        Assert.Throws<TelephoneException.Busy>(() => telephone.Call(rust_sim, new CallAnswererImpl("busy")));
+
+        Assert.Throws<TelephoneException.InternalTelephoneException>(
+                () => telephone.Call(rust_sim, new CallAnswererImpl("something-else"))
+        );
     }
 
     [Fact]
     public void CallbackRegistrationIsNotAffectedByGC()
     {
         // See `static ForeignCallback INSTANCE` at `templates/CallbackInterfaceTemplate.cs`
+        var sims = CallbacksMethods.GetSimCards();
 
         var callback = new CallAnswererImpl("normal");
         var telephone = new Telephone();
@@ -64,18 +79,19 @@ public class TestCallbacks
         // make sure that the delegate is not garbage collected.
         System.GC.Collect();
 
-        telephone.Call(callback);
+        telephone.Call(sims[0], callback);
     }
 
     [Fact]
     public void CallbackReferenceIsDropped()
     {
         var telephone = new Telephone();
+        var sims = CallbacksMethods.GetSimCards();
 
         var weak_callback = CallInItsOwnScope(() =>
         {
             var callback = new CallAnswererImpl("normal");
-            telephone.Call(callback);
+            telephone.Call(sims[0], callback);
             return new WeakReference(callback);
         });
 
