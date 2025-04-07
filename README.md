@@ -6,7 +6,7 @@ as a separate project from `uniffi-rs`, as per
 
 # How to install
 
-Minimum Rust version required to install `uniffi-bindgen-cs` is `1.72`.
+Minimum Rust version required to install `uniffi-bindgen-cs` is `1.81`.
 Newer Rust versions should also work fine.
 
 ```bash
