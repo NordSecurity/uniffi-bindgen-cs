@@ -17,11 +17,9 @@
     {%- endmatch -%}
     {%- endfor %} {
     {%- for meth in obj.methods() %}
-    {%- if !meth.is_async() %}
     {%- call cs::docstring(meth, 4) %}
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
     {%  call cs::return_type(meth) %} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
-    {%- endif %}
     {%- endfor %}
 }
 
@@ -42,8 +40,14 @@
     {%- match obj.primary_constructor() %}
     {%- when Some with (cons) %}
     {%- call cs::docstring(cons, 4) %}
+    {%- if cons.is_async() %}
+    public static async Task<{{ impl_name }}> {{ impl_name }}Async ({%- call cs::arg_list_decl(cons) -%}) {
+        {%- call cs::async_call(cons, false) %}
+    }
+    {%- else %}
     public {{ impl_name }}({% call cs::arg_list_decl(cons) -%}) :
         this({% call cs::to_ffi_call(cons) %}) {}
+    {%- endif %}
     {%- when None %}
     {%- endmatch %}
 
@@ -126,40 +130,9 @@
     {%- call cs::docstring(meth, 4) %}
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
     {%- if meth.is_async() %}
-    {#
-    // Skip Async for now
-    // public async {% call cs::return_type(meth) %} {{ meth.name()|fn_name }}({%- call cs::arg_list_decl(meth) -%}) {
-    //     {%- if meth.return_type().is_some() %}
-    //     return {% endif %}await _UniFFIAsync.UniffiRustCallAsync(
-    //         // Get rust future
-    //         CallWithPointer(thisPtr => {
-    //             return _UniFFILib.{{ meth.ffi_func().name()  }}(thisPtr{%- if meth.arguments().len() > 0 %}, {% endif -%}{% call cs::lower_arg_list(meth) %});
-    //         }),
-    //         // Poll
-    //         (IntPtr future, IntPtr continuation) => _UniFFILib.{{ meth.ffi_rust_future_poll(ci) }}(future, continuation),
-    //         // Complete
-    //         (IntPtr future, ref UniffiRustCallStatus status) => {
-    //             {%- if meth.return_type().is_some() %}
-    //             return {% endif %}_UniFFILib.{{ meth.ffi_rust_future_complete(ci) }}(future, ref status);
-    //         },
-    //         // Free
-    //         (IntPtr future) => _UniFFILib.{{ meth.ffi_rust_future_free(ci) }}(future),
-    //         {%- match meth.return_type() %}
-    //         {%- when Some(return_type) %}
-    //         // Lift
-    //         (result) => {{ return_type|lift_fn }}(result),
-    //         {% else %}
-    //         {% endmatch -%}
-    //         // Error
-    //         {%- match meth.throws_type() %}
-    //         {%- when Some(e)  %}
-    //         {{ e|ffi_converter_name }}.INSTANCE
-    //         {%- when None %}
-    //         NullCallStatusErrorHandler.INSTANCE
-    //         {% endmatch %}
-    //    );
-    // }
-    #}
+    public async {% call cs::return_type(meth) %} {{ meth.name()|fn_name }}({%- call cs::arg_list_decl(meth) -%}) {
+        {%- call cs::async_call(meth, true) %}
+    }
     {%- else %}
 
     {%- match meth.return_type() -%}
@@ -205,9 +178,15 @@
     {% for cons in obj.alternate_constructors() -%}
     {%- call cs::docstring(cons, 4) %}
     {%- call cs::method_throws_annotation(cons.throws_type()) %}
+    {%- if cons.is_async() %}
+    public static async Task<{{ impl_name }}> {{ cons.name()|fn_name }} ({%- call cs::arg_list_decl(cons) -%}) {
+        {%- call cs::async_call(cons, false) %}
+    }
+    {%- else %}
     public static {{ impl_name }} {{ cons.name()|fn_name }}({% call cs::arg_list_decl(cons) %}) {
         return new {{ impl_name }}({% call cs::to_ffi_call(cons) %});
     }
+    {%- endif %}
     {% endfor %}
     {% endif %}
 }

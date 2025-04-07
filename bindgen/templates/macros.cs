@@ -31,6 +31,54 @@
 )
 {%- endmacro -%}
 
+{%- macro to_ffi_method_call(func) %}
+    {%- match func.throws_type() %}
+    {%- when Some with (e) %}
+    _UniffiHelpers.RustCallWithError({{ e|error_converter_name}}.INSTANCE,
+    {%- else %}
+    _UniffiHelpers.RustCall(
+    {%- endmatch %} (ref UniffiRustCallStatus _status) =>
+    _UniFFILib.{{ func.ffi_func().name() }}(
+        thisPtr, {% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
+)
+{%- endmacro -%}
+
+{%- macro async_call(func, is_method) %}
+    {%- if func.return_type().is_some() %}
+    return {% endif %}await _UniFFIAsync.UniffiRustCallAsync(
+        // Get rust future
+        {%- if is_method %}
+        CallWithPointer(thisPtr => {
+            return _UniFFILib.{{ func.ffi_func().name()  }}(thisPtr{%- if func.arguments().len() > 0 %}, {% endif -%}{% call lower_arg_list(func) %});
+        }),
+        {%- else %}
+        _UniFFILib.{{ func.ffi_func().name() }}({% call lower_arg_list(func) %}),
+        {%- endif%}
+        // Poll
+        (IntPtr future, IntPtr continuation, IntPtr data) => _UniFFILib.{{ func.ffi_rust_future_poll(ci) }}(future, continuation, data),
+        // Complete
+        (IntPtr future, ref UniffiRustCallStatus status) => {
+            {%- if func.return_type().is_some() %}
+            return {% endif %}_UniFFILib.{{ func.ffi_rust_future_complete(ci) }}(future, ref status);
+        },
+        // Free
+        (IntPtr future) => _UniFFILib.{{ func.ffi_rust_future_free(ci) }}(future),
+        {%- match func.return_type() %}
+        {%- when Some(return_type) %}
+        // Lift
+        (result) => {{ return_type|lift_fn }}(result),
+        {% else %}
+        {% endmatch -%}
+        // Error
+        {%- match func.throws_type() %}
+        {%- when Some(e)  %}
+        {{ e|error_converter_name }}.INSTANCE
+        {%- when None %}
+        NullCallStatusErrorHandler.INSTANCE
+        {% endmatch %}
+    );
+{%- endmacro -%}
+
 {%- macro lower_arg_list(func) %}
     {%- for arg in func.arguments() %}
         {{- arg|lower_fn }}({{ arg.name()|var_name }})
@@ -54,28 +102,13 @@
     {%- endfor %}
 {%- endmacro %}
 
-{% macro arg_list_protocol(func) %}
-    {%- for arg in func.arguments() -%}
-        {{ arg|type_name(ci) }} {{ arg.name()|var_name -}}
-        {%- if !loop.last %}, {% endif -%}
-    {%- endfor %}
-{%- endmacro %}
 {#-
 // Arglist as used in the _UniFFILib function declations.
 // Note unfiltered name but ffi_type_name filters.
 -#}
 {%- macro arg_list_ffi_decl(func) %}
-    {%- if func.is_object_clone_function() %}
-    IntPtr @ptr,
-    {%- if func.has_rust_call_status_arg() %}ref UniffiRustCallStatus _uniffi_out_err{% endif %}
-    {%- else %}
-    {%- call arg_list_ffi_decl_xx(func) %}
-    {%- endif %}
-{%- endmacro -%}
-
-{%- macro arg_list_ffi_decl_xx(func) %}
     {%- for arg in func.arguments() %}
-        {{- arg.type_().borrow()|ffi_type_name }} {{ arg.name()|var_name -}}{%- if !loop.last || func.has_rust_call_status_arg() -%},{%- endif -%}
+        {{- arg.type_().borrow()|arg_type_name }} {{ arg.name()|var_name -}}{%- if !loop.last || func.has_rust_call_status_arg() -%},{%- endif -%}
     {%- endfor %}
     {%- if func.has_rust_call_status_arg() %}ref UniffiRustCallStatus _uniffi_out_err{% endif %}
 {%- endmacro -%}
@@ -94,12 +127,6 @@
             {{ prefix }}.{{ field.name()|var_name }}{% if !loop.last %},{% endif %}
         {%- endfor %});
 {%- endmacro -%}
-
-{%- macro ffi_function_definition(func) %}
-fun {{ func.name()|fn_name }}(
-    {%- call arg_list_ffi_decl(func) %}
-){%- match func.return_type() -%}{%- when Some with (type_) %}: {{ type_|ffi_type_name }}{% when None %}: Unit{% endmatch %}
-{% endmacro %}
 
 {%- macro method_throws_annotation(throwable_type) %}
     {%- match throwable_type -%}
@@ -155,12 +182,4 @@ void
 
 {%- macro docstring(defn, indent_spaces) %}
 {%- call docstring_value(defn.docstring(), indent_spaces) %}
-{%- endmacro %}
-
-{% macro enum_field_name(field, field_num) %}
-{%- if field.name().is_empty() -%}
-v{{- field_num -}}
-{%- else -%}
-{{ field.name()|var_name }}
-{%- endif -%}
 {%- endmacro %}

@@ -20,6 +20,14 @@ class ConcurrentHandleMap<T> where T: notnull {
         }
     }
 
+    public T Get(ulong handle) {
+        if (TryGet(handle, out var result)) {
+            return result;
+        } else {
+            throw new InternalException("ConcurrentHandleMap: Invalid handle");
+        }
+    }
+
     public bool Remove(ulong handle) {
         return Remove(handle, out T result);
     }

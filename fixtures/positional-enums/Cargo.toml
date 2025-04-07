@@ -1,15 +1,15 @@
 [package]
-name = "issue-76"
-version = "1.0.0"
+name = "uniffi-cs-positional-enums"
+version = "0.1.0"
 edition = "2021"
-publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
 crate-type = ["lib", "cdylib"]
-name = "issue_76"
+name = "uniffi_cs_positional_enums"
 
 [dependencies]
-thiserror = "1.0"
 uniffi = { workspace = true, features = ["build"] }
 uniffi_macros.workspace = true
 

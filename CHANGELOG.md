@@ -1,3 +1,8 @@
+### v0.9.0+v0.28.3
+- Update to a newer version of uniffi-rs
+- **NEW**: Traits/WithForeign
+- **NEW**: Objects as errors
+- **NEW**: Async traits
 
 ### v0.8.4+v0.25.0
 

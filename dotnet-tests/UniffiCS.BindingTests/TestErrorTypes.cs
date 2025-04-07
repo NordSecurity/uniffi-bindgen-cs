@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using uniffi.error_types;
 
 namespace UniffiCS.BindingTests;
@@ -10,27 +11,19 @@ public class TestErrorTypes
     [Fact]
     public void SimpleObjectErrorThrow()
     {
-        try {
-            ErrorTypesMethods.Oops();
-            throw new System.Exception("Should have failed");
-        } catch (ErrorInterface e) {
-            Assert.Equal("because uniffi told me so\n\nCaused by:\n    oops", e.ToString());
-            Assert.Equal(2, e.Chain().Count);
-            Assert.Equal("because uniffi told me so", e.Link(0));
-        }
+        var e = Assert.Throws<ErrorInterface>(() => ErrorTypesMethods.Oops());
+        Assert.Equal("because uniffi told me so\n\nCaused by:\n    oops", e.ToString());
+        Assert.Equal(2, e.Chain().Count);
+        Assert.Equal("because uniffi told me so", e.Link(0));
     }
 
     [Fact]
     public void NoWrapObjectErrorThrow()
     {
-        try {
-            ErrorTypesMethods.OopsNowrap();
-            throw new System.Exception("Should have failed");
-        } catch (ErrorInterface e) {
-            Assert.Equal("because uniffi told me so\n\nCaused by:\n    oops", e.ToString());
-            Assert.Equal(2, e.Chain().Count);
-            Assert.Equal("because uniffi told me so", e.Link(0));
-        }
+        var e = Assert.Throws<ErrorInterface>(() => ErrorTypesMethods.OopsNowrap());
+        Assert.Equal("because uniffi told me so\n\nCaused by:\n    oops", e.ToString());
+        Assert.Equal(2, e.Chain().Count);
+        Assert.Equal("because uniffi told me so", e.Link(0));
     }
 
     [Fact]
@@ -44,91 +37,58 @@ public class TestErrorTypes
     [Fact]
     public void TraitObjectErrorThrow()
     {
-        try {
-            ErrorTypesMethods.Toops();
-            throw new System.Exception("Should have failed");
-        } catch (ErrorTrait e) {
-            Assert.Equal("trait-oops", e.Msg());
-        }
+        var e = Assert.Throws<ErrorTrait>(() => ErrorTypesMethods.Toops());
+        Assert.Equal("trait-oops", e.Msg());
     }
 
     [Fact]
     public void RichErrorThrow()
     {
-        try {
-            ErrorTypesMethods.ThrowRich("oh no");
-            throw new System.Exception("Should have failed");
-        } catch (RichException e) {
-            Assert.Equal("RichError: \"oh no\"", e.ToString());
-        }
+        var e = Assert.Throws<RichException>(() => ErrorTypesMethods.ThrowRich("oh no"));
+        Assert.Equal("RichError: \"oh no\"", e.ToString());
     }
 
     [Fact]
     public void EnumThrow()
     {
-        try {
-            ErrorTypesMethods.OopsEnum(0);
-            throw new System.Exception("Should have failed");
-        } catch (uniffi.error_types.Exception e) {
-            Assert.Contains("Oops", e.ToString());
-        }
+        var e1 = Assert.Throws<uniffi.error_types.Exception.Oops>(() => ErrorTypesMethods.OopsEnum(0));
+        Assert.Contains("Oops", e1.ToString());
 
-        try {
-            ErrorTypesMethods.OopsEnum(1);
-            throw new System.Exception("Should have failed");
-        } catch (uniffi.error_types.Exception e) {
-            Assert.Contains("Value", e.ToString());
-            Assert.Contains("value=value", e.ToString());
-        }
+        var e2 = Assert.Throws<uniffi.error_types.Exception.Value>(() => ErrorTypesMethods.OopsEnum(1));
+        Assert.Contains("Value", e2.ToString());
+        Assert.Contains("value=value", e2.ToString());
 
-        try {
-            ErrorTypesMethods.OopsEnum(2);
-            throw new System.Exception("Should have failed");
-        } catch (uniffi.error_types.Exception e) {
-            Assert.Contains("IntValue", e.ToString());
-            Assert.Contains("value=2", e.ToString());
-        }
+        var e3 = Assert.Throws<uniffi.error_types.Exception.IntValue>(() => ErrorTypesMethods.OopsEnum(2));
+        Assert.Contains("IntValue", e3.ToString());
+        Assert.Contains("value=2", e3.ToString());
 
-        try {
-            ErrorTypesMethods.OopsEnum(3);
-            throw new System.Exception("Should have failed");
-        } catch (uniffi.error_types.Exception.FlatInnerException e) {
-            Assert.Contains("FlatInnerException", e.ToString());
-            Assert.Contains("CaseA: inner", e.ToString());
-        }
+        var e4 = Assert.Throws<uniffi.error_types.Exception.FlatInnerException>(() => ErrorTypesMethods.OopsEnum(3));
+        Assert.Contains("FlatInnerException", e4.ToString());
+        Assert.Contains("CaseA: inner", e4.ToString());
 
-        try {
-            ErrorTypesMethods.OopsEnum(4);
-            throw new System.Exception("Should have failed");
-        } catch (uniffi.error_types.Exception.FlatInnerException e) {
-            Assert.Contains("FlatInnerException", e.ToString());
-            Assert.Contains("CaseB: NonUniffiTypeValue: value", e.ToString());
-        }
+        var e5 = Assert.Throws<uniffi.error_types.Exception.FlatInnerException>(() => ErrorTypesMethods.OopsEnum(4));
+        Assert.Contains("FlatInnerException", e5.ToString());
+        Assert.Contains("CaseB: NonUniffiTypeValue: value", e5.ToString());
 
-        try {
-            ErrorTypesMethods.OopsEnum(5);
-            throw new System.Exception("Should have failed");
-        } catch (uniffi.error_types.Exception.InnerException e) {
-            Assert.Contains("InnerException", e.ToString());
-            Assert.Contains("CaseA: v1=inner", e.ToString());
-        }
+        var e6 = Assert.Throws<uniffi.error_types.Exception.InnerException>(() => ErrorTypesMethods.OopsEnum(5));
+        Assert.Contains("InnerException", e6.ToString());
+        Assert.Contains("CaseA: @v1=inner", e6.ToString());
     }
 
     [Fact]
     public void TupleThrow()
     {
-        try {
-            ErrorTypesMethods.OopsTuple(0);
-            throw new System.Exception("Should have failed");
-        } catch (TupleException e) {
-            Assert.Contains("Oops: v1=oops", e.ToString());
-        }
+        var t1 = Assert.Throws<TupleException.Oops>(() => ErrorTypesMethods.OopsTuple(0));
+        Assert.Contains("Oops: @v1=oops", t1.ToString());
 
-        try {
-            ErrorTypesMethods.OopsTuple(1);
-            throw new System.Exception("Should have failed");
-        } catch (TupleException e) {
-            Assert.Contains("Value: v1=1", e.ToString());
-        }
+        var t2 = Assert.Throws<TupleException.Value>(() => ErrorTypesMethods.OopsTuple(1));
+        Assert.Contains("Value: @v1=1", t2.ToString());
+    }
+
+    [Fact]
+    public async Task AsyncThrow()
+    {
+        var e = await Assert.ThrowsAsync<ErrorInterface>(async () => await ErrorTypesMethods.Aoops());
+        Assert.Equal("async-oops", e.ToString());
     }
 }

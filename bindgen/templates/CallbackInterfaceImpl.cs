@@ -1,8 +1,9 @@
 class {{ callback_impl_name }} {
     {%- for (ffi_callback, meth) in vtable_methods.iter() %}
-    static {% call cs::ffi_return_type(ffi_callback) %} {{ meth.name()|fn_name }}({% call cs::arg_list_ffi_decl_xx(ffi_callback) %}) {
+    static {% call cs::ffi_return_type(ffi_callback) %} {{ meth.name()|fn_name }}({% call cs::arg_list_ffi_decl(ffi_callback) %}) {
         var handle = @uniffiHandle;
         if ({{ ffi_converter_var }}.handleMap.TryGet(handle, out var uniffiObject)) {
+            {%- if !meth.is_async() %}
             {%- match meth.throws_type() %}
             {%- when Some with (error_type) %}
             try {
@@ -42,9 +43,75 @@ class {{ callback_impl_name }} {
                 }
             }
             {%- when None %}
-
             {%- endmatch %}
 
+            {%- else %}
+            CancellationTokenSource cts = new CancellationTokenSource();
+
+            Task.Run(async () => {
+                var ret = new _UniFFILib.{{ meth.foreign_future_ffi_result_struct().name()|ffi_struct_name }}();
+                ret.@callStatus = new UniffiRustCallStatus();
+
+                {%- match meth.throws_type() %}
+                {%- when Some with (error_type) %}
+                try {
+                {%- when None %}
+                {%- endmatch %}
+
+                {%- match meth.return_type() %}
+                {%- when Some with (return_type) %}
+                var result =
+                {%- when None %}
+                {%- endmatch %}
+
+                await uniffiObject.{{ meth.name()|fn_name }}(
+                    {%- for arg in meth.arguments() %}
+                    {{ arg|lift_fn }}({{ arg.name()|var_name }}){%- if !loop.last %}, {% endif -%}
+                    {%- endfor %})
+                #if NET6_0_OR_GREATER
+                    .WaitAsync(cts.Token)
+                #endif
+                    ;
+
+                {%- match meth.return_type() %}
+                {%- when Some with (return_type) %}
+                {%- let complete_fn_type = return_type|ffi_foreign_future_complete %}
+                ret.@returnValue = {{ return_type|ffi_converter_name }}.INSTANCE.Lower(result);
+                {%- when None %}
+                {%- let complete_fn_type = "ForeignFutureCompleteVoid" %}
+                {%- endmatch %}
+
+                ret.@callStatus.code = UniffiCallbackResponseStatus.SUCCESS;
+                {%- match meth.throws_type() %}
+                {%- when Some with (error_type) %}
+                } catch ({{ error_type|type_name(ci) }} e) {
+                    ret.@callStatus.code = UniffiCallbackResponseStatus.ERROR;
+                    ret.@callStatus.error_buf = {{ error_type|ffi_converter_name }}.INSTANCE.Lower(e);
+                } catch (System.Exception e){
+                    ret.@callStatus.code = UniffiCallbackResponseStatus.UNEXPECTED_ERROR;
+                    try {
+                        ret.@callStatus.error_buf = FfiConverterString.INSTANCE.Lower(e.Message);
+                    }
+                    catch {
+                    }
+                }
+                {%- when None %}
+                {%- endmatch %}
+
+                {% match meth.return_type() %}
+                {%- when Some with (return_type) %}
+                {%- let complete_fn_type = return_type|ffi_foreign_future_complete %}
+                var cb = Marshal.GetDelegateForFunctionPointer<_UniFFILib.{{ complete_fn_type }}>(@uniffiFutureCallback);
+                {%- when None %}
+                var cb = Marshal.GetDelegateForFunctionPointer<_UniFFILib.UniffiForeignFutureCompleteVoid>(@uniffiFutureCallback);
+                {%- endmatch %}
+                cb(@uniffiCallbackData, ret);
+            }, cts.Token);
+
+            var foreignHandle = _UniFFIAsync._foreign_futures_map.Insert(cts);
+            @uniffiOutReturn.@handle = foreignHandle;
+            @uniffiOutReturn.@free = Marshal.GetFunctionPointerForDelegate(_UniFFIAsync.UniffiForeignFutureFreeCallback.callback);
+            {%- endif %}
         } else {
             throw new InternalException($"No callback in handlemap '{handle}'");
         }
