@@ -1131,7 +1131,7 @@ dependencies = [
 
 [[package]]
 name = "uniffi-bindgen-cs"
-version = "0.8.4+v0.25.0"
+version = "0.9.0+v0.28.3"
 dependencies = [
  "anyhow",
  "askama 0.13.0",
