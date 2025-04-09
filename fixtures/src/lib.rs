@@ -31,4 +31,5 @@ mod uniffi_fixtures {
     issue_60::uniffi_reexport_scaffolding!();
     issue_75::uniffi_reexport_scaffolding!();
     issue_76::uniffi_reexport_scaffolding!();
+    issue_110::uniffi_reexport_scaffolding!();
 }

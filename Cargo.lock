@@ -612,6 +612,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "issue-110"
+version = "1.0.0"
+dependencies = [
+ "uniffi 0.28.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uniffi_macros 0.28.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "issue-28"
 version = "0.1.0"
 dependencies = [
@@ -1156,6 +1164,7 @@ name = "uniffi-bindgen-cs-fixtures"
 version = "0.1.0"
 dependencies = [
  "global-methods-class-name",
+ "issue-110",
  "issue-28",
  "issue-60",
  "issue-75",
