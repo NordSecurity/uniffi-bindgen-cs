@@ -1,5 +1,8 @@
 ### UNRELEASED
+
+### v0.9.1+v0.28.3
 - Add calling convention cdecl to DllImport
+- User type "String" shadows native type System.String [#110](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/110)
 
 ### v0.9.0+v0.28.3
 - **BREAKING** Update to a newer version of uniffi-rs
