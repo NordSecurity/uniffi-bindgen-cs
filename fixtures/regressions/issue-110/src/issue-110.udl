@@ -1,0 +1,13 @@
+namespace issue_110 {
+
+};
+
+[Enum]
+interface Value{
+    Null();
+    Bool(boolean value);
+    Double(f64 value);
+    I64(i64 value);
+    Binary(bytes value);
+    String(string value);
+};
