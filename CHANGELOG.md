@@ -1,3 +1,6 @@
+### UNRELEASED
+- Add calling convention cdecl to DllImport
+
 ### v0.9.0+v0.28.3
 - **BREAKING** Update to a newer version of uniffi-rs
 - **NEW**: Traits/WithForeign
