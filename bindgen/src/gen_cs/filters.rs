@@ -34,6 +34,7 @@ pub(super) fn type_name_custom(
         Type::UInt64 => Ok("UInt64".to_string()),
         Type::Float32 => Ok("Single".to_string()),
         Type::Float64 => Ok("Double".to_string()),
+        Type::String => Ok("String".to_string()),
         _ => type_name(typ, ci),
     }
 }
