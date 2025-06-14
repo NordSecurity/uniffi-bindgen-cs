@@ -51,7 +51,7 @@ uniffi-bindgen-cs path/to/definitions.udl --config path/to/uniffi.toml
     ```toml
     # emits `public static class LibGreeter { .. }` in generated bindings file
     [bindings.csharp]
-    namespace = "LibGreeter"
+    global_methods_class_name = "LibGreeter"
     ```
 
 - `access_modifier` - override the default `internal` access modifier for "exported" uniffi symbols.
