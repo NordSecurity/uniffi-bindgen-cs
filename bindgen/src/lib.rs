@@ -85,21 +85,16 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
             let mut f = File::create(&bindings_file)?;
 
             let mut bindings = generate_bindings(config, ci)?;
-
-            if self.try_format_code {
-                match gen_cs::formatting::format(bindings.clone()) {
-                    Ok(formatted) => bindings = formatted,
-                    Err(e) => {
-                        println!(
-                            "Warning: Unable to auto-format {} using CSharpier (hint: 'dotnet tool install -g csharpier'): {e:?}",
-                            bindings_file.file_name().unwrap(),
-                        );
-                    }
-                }
-            }
-
             bindings = gen_cs::formatting::add_header(bindings);
             write!(f, "{bindings}")?;
+
+            if self.try_format_code {
+                let _ = gen_cs::formatting::format(&bindings_file)
+                    .map_err(|e| println!(
+                        "Warning: Unable to auto-format {} using CSharpier (hint: 'dotnet tool install -g csharpier'): {e:?}",
+                        bindings_file.file_name().unwrap(),
+                    ));
+            }
         }
         Ok(())
     }

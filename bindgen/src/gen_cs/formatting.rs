@@ -1,17 +1,12 @@
-use std::io::Write;
-use std::process::{Command, Stdio};
+use camino::Utf8PathBuf;
+use std::process::Command;
 
-pub fn format(bindings: String) -> Result<String, anyhow::Error> {
-    let mut csharpier = Command::new("dotnet-csharpier")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
+pub fn format(path: &Utf8PathBuf) -> Result<(), anyhow::Error> {
+    let csharpier = Command::new("csharpier")
+        .arg("format")
+        .arg("--include-generated")
+        .arg(path)
         .spawn()?;
-
-    csharpier
-        .stdin
-        .take()
-        .ok_or(anyhow::anyhow!("Failed to open stdin"))?
-        .write_all(bindings.as_bytes())?;
 
     let output = csharpier.wait_with_output()?;
     if !output.status.success() {
@@ -22,10 +17,7 @@ pub fn format(bindings: String) -> Result<String, anyhow::Error> {
             ),
         ))?;
     }
-
-    let formatted = String::from_utf8(output.stdout)?;
-
-    Ok(formatted)
+    Ok(())
 }
 
 pub fn add_header(bindings: String) -> String {
