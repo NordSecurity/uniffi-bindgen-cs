@@ -1,0 +1,339 @@
+[Error]
+interface TelioError {
+    UnknownError(string inner);
+    InvalidKey();
+    BadConfig();
+    LockError();
+    InvalidString();
+    AlreadyStarted();
+    NotStarted();
+};
+
+enum EndpointProvider {
+    "Local",
+    "Stun",
+    "Upnp",
+};
+
+callback interface TelioEventCb {
+    [Throws=TelioError]
+    void event(Event payload);
+};
+
+
+namespace telio {
+
+};
+
+
+
+interface Telio {
+    [Throws=TelioError]
+    constructor(Features features, TelioEventCb events);
+};
+
+interface FeaturesDefaultsBuilder {
+    constructor();
+
+    Features build();
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder enable_lana(string event_path, boolean is_prod);
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder enable_nurse();
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder enable_firewall_connection_reset();
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder enable_direct();
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder enable_battery_saving_defaults();
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder enable_validate_keys();
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder enable_ipv6();
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder enable_nicknames();
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder enable_flush_events_on_stop_timeout_seconds();
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder enable_link_detection();
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder enable_multicast();
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder enable_batching();
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder enable_dynamic_wg_nt_control();
+
+    [Self=ByArc]
+    FeaturesDefaultsBuilder set_skt_buffer_size(u32 skt_buffer_size);
+};
+
+
+
+dictionary Features {
+    FeatureWireguard wireguard;
+    FeatureNurse? nurse;
+    FeatureLana? lana;
+    FeaturePaths? paths;
+    FeatureDirect? direct;
+    boolean? is_test_env;
+    boolean hide_user_data;
+    boolean hide_thread_id;
+    FeatureDerp? derp;
+    FeatureValidateKeys validate_keys;
+    boolean ipv6;
+    boolean nicknames;
+    FeatureFirewall firewall;
+    u64? flush_events_on_stop_timeout_seconds;
+    FeatureLinkDetection? link_detection;
+    FeatureDns dns;
+    FeaturePostQuantumVPN post_quantum_vpn;
+    boolean multicast;
+    FeatureBatching? batching;
+};
+
+dictionary FeatureBatching {
+    u32 direct_connection_threshold;
+    u32 trigger_effective_duration;
+    u32 trigger_cooldown_duration;
+};
+
+dictionary FeatureWireguard {
+    FeaturePersistentKeepalive persistent_keepalive;
+    FeaturePolling polling;
+    boolean enable_dynamic_wg_nt_control;
+    u32? skt_buffer_size;
+};
+
+dictionary FeaturePersistentKeepalive {
+    u32? vpn;
+    u32 direct;
+    u32? proxying;
+    u32? stun;
+};
+
+dictionary FeaturePolling {
+    u32 wireguard_polling_period;
+    u32 wireguard_polling_period_after_state_change;
+};
+
+dictionary FeatureNurse {
+    u64 heartbeat_interval;
+    u64 initial_heartbeat_interval;
+    FeatureQoS? qos;
+    boolean enable_nat_type_collection;
+    boolean enable_relay_conn_data;
+    boolean enable_nat_traversal_conn_data;
+    u64 state_duration_cap;
+};
+
+dictionary FeatureQoS {
+    u64 rtt_interval;
+    u32 rtt_tries;
+    sequence<RttType> rtt_types;
+    u32 buckets;
+};
+
+dictionary FeatureLana {
+    string event_path;
+    boolean prod;
+};
+
+dictionary FeaturePaths {
+    sequence<PathType> priority;
+    PathType? force;
+};
+
+dictionary FeatureExitDns {
+    boolean? auto_switch_dns_ips;
+};
+
+dictionary FeatureDirect {
+    EndpointProviders? providers;
+    u64 endpoint_interval_secs;
+    FeatureSkipUnresponsivePeers? skip_unresponsive_peers;
+    FeatureEndpointProvidersOptimization? endpoint_providers_optimization;
+    FeatureUpnp? upnp_features;
+};
+
+dictionary FeatureSkipUnresponsivePeers {
+    u64 no_rx_threshold_secs;
+};
+
+dictionary FeatureEndpointProvidersOptimization {
+    boolean optimize_direct_upgrade_stun;
+    boolean optimize_direct_upgrade_upnp;
+};
+
+dictionary FeatureDerp {
+    u32? tcp_keepalive;
+    u32? derp_keepalive;
+    boolean? poll_keepalive;
+    boolean? enable_polling;
+    boolean use_built_in_root_certificates;
+};
+
+enum IpProtocol {
+    "UDP",
+    "TCP"
+};
+
+dictionary FirewallBlacklistTuple {
+    IpProtocol protocol;
+    IpAddr ip;
+    u16 port;
+};
+
+dictionary FeatureFirewall {
+    boolean neptun_reset_conns;
+    boolean boringtun_reset_conns;
+    Ipv4Net? exclude_private_ip_range;
+    sequence<FirewallBlacklistTuple> outgoing_blacklist;
+};
+
+dictionary FeatureLinkDetection {
+    u64 rtt_seconds;
+    u32 no_of_pings;
+    boolean use_for_downgrade;
+};
+
+dictionary FeatureDns {
+    TtlValue ttl_value;
+    FeatureExitDns? exit_dns;
+};
+
+dictionary FeaturePostQuantumVPN {
+    u32 handshake_retry_interval_s;
+    u32 rekey_interval_s;
+    u32 version;
+};
+
+dictionary FeatureUpnp {
+    u32 lease_duration_s;
+};
+
+[Custom]
+typedef string PublicKey;
+
+[Custom]
+typedef string IpAddr;
+
+[Custom]
+typedef string IpNet;
+
+[Custom]
+typedef string Ipv4Net;
+
+[Custom]
+typedef string Ipv4Addr;
+
+[Custom]
+typedef string SocketAddr;
+
+
+[Custom]
+typedef boolean FeatureValidateKeys;
+
+[Custom]
+typedef sequence<EndpointProvider> EndpointProviders;
+
+[Custom]
+typedef u32 TtlValue;
+
+enum RttType {
+    "Ping",
+};
+
+enum PathType {
+    "Relay",
+    "Direct",
+};
+
+enum RelayState {
+    "Disconnected",
+    "Connecting",
+    "Connected",
+};
+
+dictionary Server {
+    string region_code;
+    string name;
+    string hostname;
+    Ipv4Addr ipv4;
+    u16 relay_port;
+    u16 stun_port;
+    u16 stun_plaintext_port;
+    PublicKey public_key;
+    u32 weight;
+    boolean use_plain_text;
+    RelayState conn_state;
+};
+
+dictionary Node {
+    string identifier;
+    PublicKey public_key;
+    string? nickname;
+    NodeState state;
+    LinkState? link_state;
+    boolean is_exit;
+    boolean is_vpn;
+    sequence<IpAddr> ip_addresses;
+    sequence<IpNet> allowed_ips;
+    SocketAddr? endpoint;
+    string? hostname;
+    boolean allow_incoming_connections;
+    boolean allow_peer_traffic_routing;
+    boolean allow_peer_local_network_access;
+    boolean allow_peer_send_files;
+    PathType path;
+    boolean allow_multicast;
+    boolean peer_allows_multicast;
+};
+
+enum NodeState {
+    "Disconnected",
+    "Connecting",
+    "Connected",
+};
+
+enum LinkState {
+    "Down",
+    "Up",
+};
+
+[Enum]
+interface Event {
+    Relay(Server body);
+    Node(Node body);
+    Error(ErrorEvent body);
+};
+
+dictionary ErrorEvent {
+    ErrorLevel level;
+    ErrorCode code;
+    string msg;
+};
+
+enum ErrorLevel {
+    "Critical",
+    "Severe",
+    "Warning",
+    "Notice"
+};
+
+enum ErrorCode {
+    "NoError",
+    "Unknown"
+};
