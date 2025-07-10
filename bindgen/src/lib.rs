@@ -31,7 +31,7 @@ struct Cli {
     lib_file: Option<Utf8PathBuf>,
 
     /// Pass in a cdylib path rather than a UDL file
-    #[clap(long = "library", conflicts_with_all = &["config", "lib-file"], requires = "out-dir")]
+    #[clap(long = "library", conflicts_with_all = &["lib-file"], requires = "out-dir")]
     library_mode: bool,
 
     /// When `--library` is passed, only generate bindings for one crate
