@@ -12,7 +12,7 @@ use askama::Template;
 use heck::{ToLowerCamelCase, ToUpperCamelCase};
 use serde::{Deserialize, Serialize};
 
-use uniffi_bindgen::backend::{TemplateExpression, Type};
+use uniffi_bindgen::backend::Type;
 use uniffi_bindgen::interface::*;
 use uniffi_bindgen::ComponentInterface;
 
@@ -84,8 +84,17 @@ pub struct Config {
 pub struct CustomTypeConfig {
     imports: Option<Vec<String>>,
     type_name: Option<String>,
-    into_custom: TemplateExpression,
-    from_custom: TemplateExpression,
+    into_custom: String,
+    from_custom: String,
+}
+
+impl CustomTypeConfig {
+    fn lift(&self, name: &str) -> String {
+        self.into_custom.replace("{}", name)
+    }
+    fn lower(&self, name: &str) -> String {
+        self.from_custom.replace("{}", name)
+    }
 }
 
 impl Config {
@@ -227,7 +236,7 @@ impl<'a> CsWrapper<'a> {
 
     pub fn initialization_fns(&self) -> Vec<String> {
         self.ci
-            .iter_types()
+            .iter_local_types()
             .map(|t| CsCodeOracle.find(t))
             .filter_map(|ct| ct.initialization_fn())
             .collect()
@@ -300,7 +309,6 @@ impl<T: AsType> AsCodeType for T {
                 key_type,
                 value_type,
             } => Box::new(compounds::MapCodeType::new(*key_type, *value_type)),
-            Type::External { name, .. } => Box::new(external::ExternalCodeType::new(name)),
             Type::Custom { name, .. } => Box::new(custom::CustomCodeType::new(name)),
         }
     }
@@ -399,6 +407,7 @@ impl CsCodeOracle {
             FfiType::ForeignBytes => "ForeignBytes".to_string(),
             FfiType::Callback(_) => "IntPtr".to_string(),
             FfiType::Reference(typ) => format!("ref {}", self.ffi_type_label(typ, prefix_struct)),
+            FfiType::MutReference(typ) => format!("ref {}", self.ffi_type_label(typ, prefix_struct)),
             FfiType::RustCallStatus => "UniffiRustCallStatus".to_string(),
             FfiType::Struct(name) => {
                 if prefix_struct {
