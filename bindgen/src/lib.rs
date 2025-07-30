@@ -146,13 +146,11 @@ pub fn main() -> Result<()> {
             .expect("--out-dir is required when using --library");
 
                         let config_supplier = {
-                    use uniffi_bindgen::cargo_metadata::CrateConfigSupplier;
-                    let mut cmd = ::cargo_metadata::MetadataCommand::new();
-                    let metadata = cmd.exec().unwrap();
-                    // For now, use Default since From trait is not available
-                    // This will work for basic cases, but may not have all path information
-                    CrateConfigSupplier::default()
-                };
+                            use uniffi_bindgen::cargo_metadata::CrateConfigSupplier;
+                            let mut cmd = ::cargo_metadata::MetadataCommand::new();
+                            let metadata = cmd.exec().unwrap();
+                            CrateConfigSupplier::from(metadata)
+                        };
 
         uniffi_bindgen::library_mode::generate_bindings(
             &cli.source,
