@@ -137,9 +137,15 @@
 
     {%- match meth.return_type() -%}
     {%- when Some with (return_type) %}
+    {%- if meth.name() == "Message" %}
+    public new {{ return_type|type_name(ci) }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %}) {
+        return CallWithPointer(thisPtr => {{ return_type|lift_fn }}({%- call cs::to_ffi_call_with_prefix("thisPtr", meth) %}));
+    }
+    {%- else %}
     public {{ return_type|type_name(ci) }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %}) {
         return CallWithPointer(thisPtr => {{ return_type|lift_fn }}({%- call cs::to_ffi_call_with_prefix("thisPtr", meth) %}));
     }
+    {%- endif %}
 
     {%- when None %}
     public void {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %}) {

@@ -150,7 +150,10 @@ pub(super) fn ffi_callback_registration(nm: &str) -> Result<String, askama::Erro
 }
 
 pub(super) fn ffi_foreign_future_complete(return_type: &Type) -> Result<String, askama::Error> {
-    Ok(format!("UniffiForeignFutureComplete{}", FfiType::return_type_name(Some(&FfiType::from(return_type))).to_upper_camel_case()))
+    Ok(format!(
+        "UniffiForeignFutureComplete{}",
+        FfiType::return_type_name(Some(&FfiType::from(return_type))).to_upper_camel_case()
+    ))
 }
 
 /// Get the idiomatic C# rendering of an FFI struct name
@@ -159,7 +162,10 @@ pub(super) fn ffi_struct_name(nm: &str) -> Result<String, askama::Error> {
 }
 
 /// Get object name tuple (interface, impl)
-pub(super) fn object_names(obj: &Object, ci: &ComponentInterface) -> Result<(String, String), askama::Error> {
+pub(super) fn object_names(
+    obj: &Object,
+    ci: &ComponentInterface,
+) -> Result<(String, String), askama::Error> {
     Ok(oracle().object_names(obj, ci))
 }
 
