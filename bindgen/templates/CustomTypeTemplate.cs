@@ -45,26 +45,26 @@ class {{ ffi_converter_name }}: FfiConverter<{{ name }}, {{ ffi_type_name }}> {
 
     public override {{ name }} Lift({{ ffi_type_name }} value) {
         var builtinValue = {{ builtin|lift_fn }}(value);
-        return {{ config.into_custom.render("builtinValue") }};
+        return {{ config.lift("builtinValue") }};
     }
 
     public override {{ ffi_type_name }} Lower({{ name }} value) {
-        var builtinValue = {{ config.from_custom.render("value") }};
+        var builtinValue = {{ config.lower("value") }};
         return {{ builtin|lower_fn }}(builtinValue);
     }
 
     public override {{ name }} Read(BigEndianStream stream) {
         var builtinValue = {{ builtin|read_fn }}(stream);
-        return {{ config.into_custom.render("builtinValue") }};
+        return {{ config.lift("builtinValue") }};
     }
 
     public override int AllocationSize({{ name }} value) {
-        var builtinValue = {{ config.from_custom.render("value") }};
+        var builtinValue = {{ config.lower("value") }};
         return {{ builtin|allocation_size_fn }}(builtinValue);
     }
 
     public override void Write({{ name }} value, BigEndianStream stream) {
-        var builtinValue = {{ config.from_custom.render("value") }};
+        var builtinValue = {{ config.lower("value") }};
         {{ builtin|write_fn }}(builtinValue, stream);
     }
 }

@@ -11,6 +11,12 @@ static LIVE_COUNT: Lazy<RwLock<i32>> = Lazy::new(|| RwLock::new(0));
 #[derive(Debug, Clone)]
 pub struct Resource {}
 
+impl Default for Resource {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Resource {
     pub fn new() -> Self {
         *LIVE_COUNT.write().unwrap() += 1;

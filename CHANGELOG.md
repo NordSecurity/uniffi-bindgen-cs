@@ -1,5 +1,8 @@
 ### UNRELEASED
 
+### v0.10.0+v0.29.4
+- Upgrade to [uniFFI 0.29.4](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html) [#124](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/124)
+
 ### v0.9.1+v0.28.3
 - Add calling convention cdecl to DllImport
 - User type "String" shadows native type System.String [#110](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/110)

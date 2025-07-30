@@ -66,10 +66,12 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
     type Config = gen_cs::Config;
 
     fn new_config(&self, root_toml: &toml::Value) -> Result<Self::Config> {
-        Ok(match root_toml.get("bindings").and_then(|b| b.get("csharp")) {
+        Ok(
+            match root_toml.get("bindings").and_then(|b| b.get("csharp")) {
                 Some(v) => v.clone().try_into()?,
                 None => Default::default(),
-        })
+            },
+        )
     }
 
     fn write_bindings(
@@ -79,7 +81,7 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
     ) -> anyhow::Result<()> {
         for Component { ci, config, .. } in components {
             let bindings_file = settings.out_dir.join(format!("{}.cs", ci.namespace()));
-            println!("Writing bindings file {}", bindings_file);
+            println!("Writing bindings file {bindings_file}");
             let mut f = File::create(&bindings_file)?;
 
             let mut bindings = generate_bindings(config, ci)?;
@@ -97,7 +99,7 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
             }
 
             bindings = gen_cs::formatting::add_header(bindings);
-            write!(f, "{}", bindings)?;
+            write!(f, "{bindings}")?;
         }
         Ok(())
     }
@@ -113,7 +115,10 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
                 .get_or_insert_with(|| format!("uniffi.{}", c.ci.namespace()));
 
             c.config.cdylib_name.get_or_insert_with(|| {
-                settings.cdylib.clone().unwrap_or_else(|| format!("uniffi_{}", c.ci.namespace()))
+                settings
+                    .cdylib
+                    .clone()
+                    .unwrap_or_else(|| format!("uniffi_{}", c.ci.namespace()))
             });
         }
         // TODO: external types are not supported

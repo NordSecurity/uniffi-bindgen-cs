@@ -62,11 +62,21 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
     {% for variant in e.variants() -%}
     {%- call cs::docstring(variant, 4) %}
     {% if !variant.has_fields() -%}
+    {%- if variant.name() == "InnerException" %}
+    public new class {{ variant|error_variant_name }} : {{ type_name }} {
+        public {{ variant|error_variant_name }}() : base() {}
+    }
+    {%- else %}
     public class {{ variant|error_variant_name }} : {{ type_name }} {
         public {{ variant|error_variant_name }}() : base() {}
     }
+    {%- endif %}
     {% else %}
+    {%- if variant.name() == "InnerException" %}
+    public new class {{ variant|error_variant_name }} : {{ type_name }} {
+    {%- else %}
     public class {{ variant|error_variant_name }} : {{ type_name }} {
+    {%- endif %}
         // Members
         {%- for field in variant.fields() %}
         {%- let field_name = field.name()|or_pos_var(loop.index)|var_name %}
