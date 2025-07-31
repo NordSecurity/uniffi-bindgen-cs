@@ -183,19 +183,17 @@ public class TestBigEndianStream
         var memoryStream = new MemoryStream(new byte[Marshal.SizeOf(minValue)]);
         var stream = new BigEndianStream(memoryStream);
 
-        stream.Position = 0;
-        write(stream)(minValue);
-        stream.Position = 0;
-        Assert.Equal(0, read(stream)().CompareTo(minValue));
+        AssertValueReadEqualsWrite(stream, minValue);
+        AssertValueReadEqualsWrite(stream, maxValue);
+        AssertValueReadEqualsWrite(stream, meanValue);
+        return;
 
-        stream.Position = 0;
-        write(stream)(maxValue);
-        stream.Position = 0;
-        Assert.Equal(0, read(stream)().CompareTo(maxValue));
-
-        stream.Position = 0;
-        write(stream)(meanValue);
-        stream.Position = 0;
-        Assert.Equal(read(stream)(), meanValue);
+        void AssertValueReadEqualsWrite(BigEndianStream stream, T expected)
+        {
+            stream.Position = 0;
+            write(stream)(expected);
+            stream.Position = 0;
+            Assert.Equal(read(stream)(), expected);
+        }
     }
 }
