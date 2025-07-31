@@ -34,8 +34,9 @@ static class BigEndianStreamExtensions
 #endif
     }
 
-    public static void WriteInt64(this Stream stream, long value, int bytesToWrite = 8)
+    public static void WriteInt64(this Stream stream, long value)
     {
+        int bytesToWrite = 8;
 #if DOTNET_8_0_OR_GREATER
          Span<byte> buffer = stackalloc byte[bytesToWrite];
  #else
@@ -55,6 +56,57 @@ static class BigEndianStreamExtensions
         stream.Write(buffer, 0, buffer.Length);
 #endif
     }
+
+    public static uint ReadUint32(this Stream stream, int bytesToRead = 4) {
+        CheckRemaining(stream, bytesToRead);
+#if DOTNET_8_0_OR_GREATER
+         Span<byte> buffer = stackalloc byte[bytesToRead];
+         stream.Read(buffer);
+#else
+        byte[] buffer = new byte[bytesToRead];
+        stream.Read(buffer, 0, bytesToRead);
+#endif
+        uint result = 0;
+        uint digitMultiplier = 1;
+        int posByte = bytesToRead;
+        while (posByte != 0)
+        {
+            posByte--;
+            result |= buffer[posByte]*digitMultiplier;
+            digitMultiplier <<= 8;
+        }
+
+        return result;
+    }
+
+    public static ulong ReadUInt64(this Stream stream) {
+        int bytesToRead = 8;
+        CheckRemaining(stream, bytesToRead);
+#if DOTNET_8_0_OR_GREATER
+         Span<byte> buffer = stackalloc byte[bytesToRead];
+         stream.Read(buffer);
+#else
+        byte[] buffer = new byte[bytesToRead];
+        stream.Read(buffer, 0, bytesToRead);
+#endif
+        ulong result = 0;
+        ulong digitMultiplier = 1;
+        int posByte = bytesToRead;
+        while (posByte != 0)
+        {
+            posByte--;
+            result |= buffer[posByte]*digitMultiplier;
+            digitMultiplier <<= 8;
+        }
+
+        return result;
+    }
+
+    public static void CheckRemaining(this Stream stream, int length) {
+        if (stream.Length - stream.Position < length) {
+            throw new StreamUnderflowException();
+        }
+    }
 }
 
 class BigEndianStream {
@@ -72,7 +124,7 @@ class BigEndianStream {
         set => stream.Position = value;
     }
 
-    public void WriteBytes(byte[] value) {
+    public void WriteBytes(byte[] buffer) {
 #if DOTNET_8_0_OR_GREATER
         stream.Write(buffer);
 #else
@@ -100,45 +152,20 @@ class BigEndianStream {
     public void WriteDouble(double value) => stream.WriteInt64(BitConverter.DoubleToInt64Bits(value));
 
     public byte[] ReadBytes(int length) {
-        CheckRemaining(length);
+        stream.CheckRemaining(length);
         byte[] result = new byte[length];
         stream.Read(result, 0, length);
         return result;
     }
 
-    public byte ReadByte() {
-        CheckRemaining(1);
-        return Convert.ToByte(stream.ReadByte());
-    }
+    public byte ReadByte() => (byte)stream.ReadUint32(bytesToRead: 1);
+    public ushort ReadUShort() => (ushort)stream.ReadUint32(bytesToRead: 2);
+    public uint ReadUInt() => (uint)stream.ReadUint32(bytesToRead: 4);
+    public ulong ReadULong() => stream.ReadUInt64();
 
-    public ushort ReadUShort() {
-        CheckRemaining(2);
-        return (ushort)(stream.ReadByte() << 8 | stream.ReadByte());
-    }
-
-    public uint ReadUInt() {
-        CheckRemaining(4);
-        return (uint)(stream.ReadByte() << 24
-            | stream.ReadByte() << 16
-            | stream.ReadByte() << 8
-            | stream.ReadByte());
-    }
-
-    public ulong ReadULong() {
-        return (ulong)ReadUInt() << 32 | (ulong)ReadUInt();
-    }
-
-    public sbyte ReadSByte() {
-        return (sbyte)ReadByte();
-    }
-
-    public short ReadShort() {
-        return (short)ReadUShort();
-    }
-
-    public int ReadInt() {
-        return (int)ReadUInt();
-    }
+    public sbyte ReadSByte() => (sbyte)ReadByte();
+    public short ReadShort() => (short)ReadUShort();
+    public int ReadInt() => (int)ReadUInt();
 
     public float ReadFloat() {
         unsafe {
@@ -147,17 +174,6 @@ class BigEndianStream {
         }
     }
 
-    public long ReadLong() {
-        return (long)ReadULong();
-    }
-
-    public double ReadDouble() {
-        return BitConverter.Int64BitsToDouble(ReadLong());
-    }
-
-    private void CheckRemaining(int length) {
-        if (stream.Length - Position < length) {
-            throw new StreamUnderflowException();
-        }
-    }
+    public long ReadLong() => (long)ReadULong();
+    public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadLong());
 }
