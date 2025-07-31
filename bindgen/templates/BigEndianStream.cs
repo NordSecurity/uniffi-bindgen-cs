@@ -10,6 +10,53 @@ class StreamUnderflowException: System.Exception {
     }
 }
 
+static class BigEndianStreamExtensions
+{
+    public static void WriteInt32(this Stream stream, int value, int bytesToWrite = 4)
+    {
+#if DOTNET_8_0_OR_GREATER
+        Span<byte> buffer = stackalloc byte[bytesToWrite];
+#else
+        byte[] buffer = new byte[bytesToWrite];
+#endif
+        var posByte = bytesToWrite;
+        while (posByte != 0)
+        {
+            posByte--;
+            buffer[posByte] = (byte)(value);
+            value >>= 8;
+        }
+
+#if DOTNET_8_0_OR_GREATER
+        stream.Write(buffer);
+#else
+        stream.Write(buffer, 0, buffer.Length);
+#endif
+    }
+
+    public static void WriteInt64(this Stream stream, long value, int bytesToWrite = 8)
+    {
+#if DOTNET_8_0_OR_GREATER
+         Span<byte> buffer = stackalloc byte[bytesToWrite];
+ #else
+         byte[] buffer = new byte[bytesToWrite];
+ #endif
+        var posByte = bytesToWrite;
+        while (posByte != 0)
+        {
+            posByte--;
+            buffer[posByte] = (byte)(value);
+            value >>= 8;
+        }
+
+#if DOTNET_8_0_OR_GREATER
+        stream.Write(buffer);
+#else
+        stream.Write(buffer, 0, buffer.Length);
+#endif
+    }
+}
+
 class BigEndianStream {
     Stream stream;
     public BigEndianStream(Stream stream) {
@@ -17,7 +64,7 @@ class BigEndianStream {
     }
 
     public bool HasRemaining() {
-        return (stream.Length - stream.Position) > 0;
+        return (stream.Length - Position) > 0;
     }
 
     public long Position {
@@ -26,55 +73,31 @@ class BigEndianStream {
     }
 
     public void WriteBytes(byte[] value) {
-        stream.Write(value, 0, value.Length);
+#if DOTNET_8_0_OR_GREATER
+        stream.Write(buffer);
+#else
+        stream.Write(buffer, 0, buffer.Length);
+#endif
     }
 
-    public void WriteByte(byte value) {
-        stream.WriteByte(value);
-    }
+    public void WriteByte(byte value) => stream.WriteInt32(value, bytesToWrite: 1);
+    public void WriteSByte(sbyte value) => stream.WriteInt32(value, bytesToWrite: 1);
 
-    public void WriteUShort(ushort value) {
-        stream.WriteByte((byte)(value >> 8));
-        stream.WriteByte((byte)value);
-    }
+    public void WriteUShort(ushort value) => stream.WriteInt32(value, bytesToWrite: 2);
+    public void WriteShort(short value) => stream.WriteInt32(value, bytesToWrite: 2);
 
-    public void WriteUInt(uint value) {
-        stream.WriteByte((byte)(value >> 24));
-        stream.WriteByte((byte)(value >> 16));
-        stream.WriteByte((byte)(value >> 8));
-        stream.WriteByte((byte)value);
-    }
+    public void WriteUInt(uint value) => stream.WriteInt32((int)value);
+    public void WriteInt(int value) => stream.WriteInt32(value);
 
-    public void WriteULong(ulong value) {
-        WriteUInt((uint)(value >> 32));
-        WriteUInt((uint)value);
-    }
-
-    public void WriteSByte(sbyte value) {
-        stream.WriteByte((byte)value);
-    }
-
-    public void WriteShort(short value) {
-        WriteUShort((ushort)value);
-    }
-
-    public void WriteInt(int value) {
-        WriteUInt((uint)value);
-    }
+    public void WriteULong(ulong value) => stream.WriteInt64((long)value);
+    public void WriteLong(long value) => stream.WriteInt64(value);
 
     public void WriteFloat(float value) {
         unsafe {
             WriteInt(*((int*)&value));
         }
     }
-
-    public void WriteLong(long value) {
-        WriteULong((ulong)value);
-    }
-
-    public void WriteDouble(double value) {
-        WriteLong(BitConverter.DoubleToInt64Bits(value));
-    }
+    public void WriteDouble(double value) => stream.WriteInt64(BitConverter.DoubleToInt64Bits(value));
 
     public byte[] ReadBytes(int length) {
         CheckRemaining(length);
@@ -133,7 +156,7 @@ class BigEndianStream {
     }
 
     private void CheckRemaining(int length) {
-        if (stream.Length - stream.Position < length) {
+        if (stream.Length - Position < length) {
             throw new StreamUnderflowException();
         }
     }
