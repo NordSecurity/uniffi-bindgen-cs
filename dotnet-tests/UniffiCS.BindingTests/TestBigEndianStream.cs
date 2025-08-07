@@ -171,7 +171,7 @@ public class TestBigEndianStream
         Assert.Throws<StreamUnderflowException>(() => newStream(7).ReadDouble());
     }
 
-    static void ReadWriteTest<T>(
+    private static void ReadWriteTest<T>(
         Func<BigEndianStream, Action<T>> write,
         Func<BigEndianStream, Func<T>> read,
         T minValue,

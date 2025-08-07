@@ -132,9 +132,7 @@ class _UniffiHelpers {
 
 static class FFIObjectUtil {
     public static void DisposeAll(params Object?[] list) {
-        foreach (var obj in list) {
-            Dispose(obj);
-        }
+        Dispose(list);
     }
 
     // Dispose is implemented by recursive type inspection at runtime. This is because
@@ -157,13 +155,13 @@ static class FFIObjectUtil {
          }
 
          var genericArguments = objType.GetGenericArguments();
-         if (genericArguments.Length == 0) {
+         if (genericArguments.Length == 0 && !objType.IsArray) {
              return;
          }
 
          if (obj is System.Collections.IDictionary objDictionary) {
-            //This extra code tests to not call "Dispose" for a Dictionary<something, double>()
-            //for all keys as "double" and alike doesn't support interface "IDisposable"
+             //This extra code tests to not call "Dispose" for a Dictionary<something, double>()
+             //for all values as "double" and alike doesn't support interface "IDisposable"
              var valuesType = objType.GetGenericArguments()[1];
              var elementValuesTypeCode = Type.GetTypeCode(valuesType);
              if (elementValuesTypeCode != TypeCode.Object) {
@@ -174,10 +172,10 @@ static class FFIObjectUtil {
              }
          }
          else if (obj is System.Collections.IEnumerable listValues) {
-            //This extra code tests to not call "Dispose" for a List<int>()
-            //for all keys as "int" and alike doesn't support interface "IDisposable"
-             var valuesType = objType.GetGenericArguments()[0];
-             var elementValuesTypeCode = Type.GetTypeCode(valuesType);
+             //This extra code tests to not call "Dispose" for a List<int>()
+             //for all keys as "int" and alike doesn't support interface "IDisposable"
+             var elementType = objType.IsArray ? objType.GetElementType() : genericArguments[0];
+             var elementValuesTypeCode = Type.GetTypeCode(elementType);
              if (elementValuesTypeCode != TypeCode.Object) {
                  return;
              }

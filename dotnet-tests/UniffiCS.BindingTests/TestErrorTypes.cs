@@ -13,7 +13,7 @@ public class TestErrorTypes
     {
         var e = Assert.Throws<ErrorInterface>(() => ErrorTypesMethods.Oops());
         Assert.Equal("because uniffi told me so\n\nCaused by:\n    oops", e.ToString());
-        Assert.Equal(2, e.Chain().Count);
+        Assert.Equal(2, e.Chain().Length);
         Assert.Equal("because uniffi told me so", e.Link(0));
     }
 
@@ -22,7 +22,7 @@ public class TestErrorTypes
     {
         var e = Assert.Throws<ErrorInterface>(() => ErrorTypesMethods.OopsNowrap());
         Assert.Equal("because uniffi told me so\n\nCaused by:\n    oops", e.ToString());
-        Assert.Equal(2, e.Chain().Count);
+        Assert.Equal(2, e.Chain().Length);
         Assert.Equal("because uniffi told me so", e.Link(0));
     }
 

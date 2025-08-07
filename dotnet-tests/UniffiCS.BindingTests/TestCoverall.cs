@@ -173,7 +173,7 @@ public class TestCoverall
         {
             coveralls.AddPatch(new Patch(Color.Red));
             coveralls.AddRepair(new Repair(DateTime.Now, new Patch(Color.Blue)));
-            Assert.Equal(2, coveralls.GetRepairs().Count);
+            Assert.Equal(2, coveralls.GetRepairs().Length);
         }
     }
 
@@ -201,6 +201,11 @@ public class TestCoverall
         public Boolean GetBool(Boolean v, Boolean argumentTwo)
         {
             return v ^ argumentTwo;
+        }
+
+        public int[] GetList(int[] v, bool arg2)
+        {
+            return arg2 ? v : [];
         }
 
         public String GetString(String v, Boolean arg2)
@@ -236,11 +241,6 @@ public class TestCoverall
             }
         }
 
-        public List<Int32> GetList(List<Int32> v, Boolean arg2)
-        {
-            return arg2 ? v : new List<Int32>();
-        }
-
 
         public void GetNothing(String v)
         {}
@@ -265,7 +265,7 @@ public class TestCoverall
         Assert.Equal("hello", getters.GetOption("hello", false));
         Assert.Null(getters.GetOption("", true));
 
-        var l = new List<Int32> {1, 2, 3};
+        int[] l = [1, 2, 3];
         Assert.Equal(l, getters.GetList(l, true));
         Assert.Equal(new List<Int32>(), getters.GetList(l, false));
 
