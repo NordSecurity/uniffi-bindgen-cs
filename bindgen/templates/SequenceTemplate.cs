@@ -10,7 +10,7 @@ class {{ ffi_converter_name }}: FfiConverterRustBuffer<{{ inner_type_name }}[]> 
     public override {{ inner_type_name }}[]  Read(BigEndianStream stream) {
         var length = stream.ReadInt();
         if (length == 0) {
-            return Array.Empty<{{ inner_type_name }}>();
+            return [];
         }
 
         var result = new {{ inner_type_name }}[(length)];
