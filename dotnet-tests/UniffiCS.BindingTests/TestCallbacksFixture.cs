@@ -42,9 +42,9 @@ class CsharpGetters : ForeignGetters
         return arg2 && v != null ? v.ToUpper() : v;
     }
 
-    public List<Int32> GetList(List<Int32> v, Boolean arg2)
+    public Int32[] GetList(Int32[] v, Boolean arg2)
     {
-        return arg2 ? v : new List<Int32>();
+        return arg2 ? v : Array.Empty<Int32>();
     }
 
     public void GetNothing(String v)
@@ -67,7 +67,7 @@ class CsharpStringifier : StoredForeignStringifier
         return "C#: " + value.ToString();
     }
 
-    public String FromComplexType(List<Double?>? values)
+    public String FromComplexType(Double?[]? values)
     {
         if (values == null)
         {
@@ -99,10 +99,10 @@ public class TestCallbacksFixture
             }
 
             foreach (
-                var v in new List<List<Int32>>
+                var v in new List<Int32[]>
                 {
-                    new List<Int32> { 1, 2 },
-                    new List<Int32> { 0, 1 }
+                    new int[]{1, 2 },
+                    new int[]{0, 1 },
                 }
             )
             {

@@ -22,7 +22,6 @@ macro_rules! define_custom_builtin_type {
 }
 
 define_custom_builtin_type!(MyString, String);
-define_custom_builtin_type!(Array, Vec<String>);
 define_custom_builtin_type!(Table, HashMap<String, String>);
 define_custom_builtin_type!(Boolean, bool);
 define_custom_builtin_type!(Int8, i8);
@@ -38,7 +37,7 @@ define_custom_builtin_type!(Double, f64);
 
 pub struct CustomTypesBuiltin {
     string: MyString,
-    array: Array,
+    array: Vec<String>,
     table: Table,
     boolean: Boolean,
     int8: Int8,
@@ -56,7 +55,7 @@ pub struct CustomTypesBuiltin {
 pub fn get_custom_types_builtin() -> CustomTypesBuiltin {
     CustomTypesBuiltin {
         string: MyString("Hello, world!".to_string()),
-        array: Array(vec!["Hello, world!".to_string()]),
+        array: vec!["Hello, world!".to_string()],
         table: Table(HashMap::from([("hello".to_string(), "world".to_string())])),
         boolean: Boolean(true),
         int8: Int8(i8::MAX),
