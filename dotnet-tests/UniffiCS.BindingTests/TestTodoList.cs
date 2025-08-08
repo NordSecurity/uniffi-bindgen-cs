@@ -38,11 +38,11 @@ public class TestTodoList
 
         Assert.Equal(5, todo.GetEntries().Length);
 
-        todo.AddEntries([ new TodoEntry("foo"), new TodoEntry("bar") ]);
+        todo.AddEntries(new []{ new TodoEntry("foo"), new TodoEntry("bar") });
         Assert.Equal(7, todo.GetEntries().Length);
         Assert.Equal("bar", todo.GetLastEntry().text);
 
-        todo.AddItems(["bobo", "fofo" ]);
+        todo.AddItems(new []{"bobo", "fofo" });
         Assert.Equal(9, todo.GetItems().Length);
         Assert.Equal("bobo", todo.GetItems()[7]);
 

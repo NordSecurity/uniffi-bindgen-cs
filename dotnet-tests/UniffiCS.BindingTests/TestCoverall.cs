@@ -205,7 +205,7 @@ public class TestCoverall
 
         public int[] GetList(int[] v, bool arg2)
         {
-            return arg2 ? v : [];
+            return arg2 ? v : Array.Empty<Int32>();
         }
 
         public String GetString(String v, Boolean arg2)
@@ -265,7 +265,7 @@ public class TestCoverall
         Assert.Equal("hello", getters.GetOption("hello", false));
         Assert.Null(getters.GetOption("", true));
 
-        int[] l = [1, 2, 3];
+        int[] l = new [] {1, 2, 3};
         Assert.Equal(l, getters.GetList(l, true));
         Assert.Equal(new List<Int32>(), getters.GetList(l, false));
 

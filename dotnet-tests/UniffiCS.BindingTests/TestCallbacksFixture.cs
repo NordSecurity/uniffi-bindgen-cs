@@ -44,7 +44,7 @@ class CsharpGetters : ForeignGetters
 
     public Int32[] GetList(Int32[] v, Boolean arg2)
     {
-        return arg2 ? v : [];
+        return arg2 ? v : Array.Empty<Int32>();
     }
 
     public void GetNothing(String v)

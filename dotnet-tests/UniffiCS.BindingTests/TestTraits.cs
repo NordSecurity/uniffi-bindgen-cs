@@ -18,7 +18,7 @@ public class TestTraits
         foreach (var button in TraitsMethods.GetButtons())
         {
             var name = button.Name();
-            Assert.Contains(name, ["go", "stop"]);
+            Assert.Contains(name, new []{"go", "stop"});
             Assert.Equal(TraitsMethods.Press(button).Name(), name);
         }
     }

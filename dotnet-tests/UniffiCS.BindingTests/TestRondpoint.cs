@@ -19,7 +19,7 @@ public class TestRondpoint
 
         Assert.Equal(Enumeration.Deux, RondpointMethods.CopieEnumeration(Enumeration.Deux));
 
-        Enumeration[] list = [Enumeration.Un, Enumeration.Deux ];
+        Enumeration[] list = new Enumeration[]{Enumeration.Un, Enumeration.Deux };
         Assert.Equal(list, RondpointMethods.CopieEnumerations(list));
 
         var dict = new Dictionary<String, EnumerationAvecDonnees>()
@@ -203,7 +203,7 @@ public class TestRondpoint
 
         AffirmAllerRetour(op.SinonString, "foo", "bar");
         AffirmAllerRetour(op.SinonBoolean, true, false);
-        AffirmAllerRetour(op.SinonSequence, new String[] { "foo", "bar" }, []);
+        AffirmAllerRetour(op.SinonSequence, new String[] { "foo", "bar" }, Array.Empty<string>());
 
         // Optionals
 #pragma warning disable 8621
@@ -276,7 +276,7 @@ public class TestRondpoint
             // a default list value (null) is transformed into an empty list after a roundtrip
             defaultes = defaultes with
             {
-                listVar = []
+                listVar = Array.Empty<string>()
             };
 
             // TODO(CS): C# record comparison doesn't work if the record contains lists/maps.
