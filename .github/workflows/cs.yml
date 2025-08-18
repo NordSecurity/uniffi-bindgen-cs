@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: rust:1.81
+      image: rust:1.88
     steps:
     - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       with:
@@ -25,7 +25,7 @@ jobs:
   test-bindings:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/nordsecurity/uniffi-bindgen-cs-test-runner:v0.1.0
+      image: ghcr.io/nordsecurity/uniffi-bindgen-cs-test-runner:v0.2.1
     steps:
     - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       with:
