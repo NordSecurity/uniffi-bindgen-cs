@@ -15,8 +15,7 @@ pub fn format(bindings: String) -> Result<String, anyhow::Error> {
 
     let output = csharpier.wait_with_output()?;
     if !output.status.success() {
-        Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
+        Err(std::io::Error::other(
             format!(
                 "command returned non-zero exit status: {:?}",
                 output.status.code()

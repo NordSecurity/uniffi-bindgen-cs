@@ -12,7 +12,7 @@ use askama::Template;
 use heck::{ToLowerCamelCase, ToUpperCamelCase};
 use serde::{Deserialize, Serialize};
 
-use uniffi_bindgen::backend::{TemplateExpression, Type};
+use uniffi_bindgen::backend::Type;
 use uniffi_bindgen::interface::*;
 use uniffi_bindgen::ComponentInterface;
 
@@ -21,12 +21,12 @@ mod compounds;
 mod custom;
 mod enum_;
 mod external;
+mod filters;
 pub mod formatting;
 mod miscellany;
 mod object;
 mod primitives;
 mod record;
-mod filters;
 
 trait CodeType: Debug {
     /// The language specific label used to reference this type. This will be used in
@@ -84,8 +84,17 @@ pub struct Config {
 pub struct CustomTypeConfig {
     imports: Option<Vec<String>>,
     type_name: Option<String>,
-    into_custom: TemplateExpression,
-    from_custom: TemplateExpression,
+    into_custom: String,
+    from_custom: String,
+}
+
+impl CustomTypeConfig {
+    fn lift(&self, name: &str) -> String {
+        self.into_custom.replace("{}", name)
+    }
+    fn lower(&self, name: &str) -> String {
+        self.from_custom.replace("{}", name)
+    }
 }
 
 impl Config {
@@ -149,17 +158,6 @@ impl<'a> TypeRenderer<'a> {
             include_once_names: RefCell::new(HashSet::new()),
             imports: RefCell::new(BTreeSet::new()),
             type_aliases: RefCell::new(BTreeSet::new()),
-        }
-    }
-
-    // Get the package name for an external type
-    fn external_type_package_name(&self, module_path: &str, namespace: &str) -> String {
-        // config overrides are keyed by the crate name, default fallback is the namespace.
-        let crate_name = module_path.split("::").next().unwrap();
-        match self.config.external_packages.get(crate_name) {
-            Some(name) => name.clone(),
-            // unreachable in library mode - all deps are in our config with correct namespace.
-            None => format!("uniffi.{namespace}"),
         }
     }
 
@@ -227,7 +225,7 @@ impl<'a> CsWrapper<'a> {
 
     pub fn initialization_fns(&self) -> Vec<String> {
         self.ci
-            .iter_types()
+            .iter_local_types()
             .map(|t| CsCodeOracle.find(t))
             .filter_map(|ct| ct.initialization_fn())
             .collect()
@@ -300,7 +298,6 @@ impl<T: AsType> AsCodeType for T {
                 key_type,
                 value_type,
             } => Box::new(compounds::MapCodeType::new(*key_type, *value_type)),
-            Type::External { name, .. } => Box::new(external::ExternalCodeType::new(name)),
             Type::Custom { name, .. } => Box::new(custom::CustomCodeType::new(name)),
         }
     }
@@ -318,9 +315,7 @@ impl CsCodeOracle {
     fn class_name(&self, nm: &str, ci: &ComponentInterface) -> String {
         let name = nm.to_string().to_upper_camel_case();
         // fixup errors.
-        ci.is_name_used_as_error(nm)
-            .then(|| self.convert_error_suffix(&name))
-            .unwrap_or(name)
+        if ci.is_name_used_as_error(nm) { self.convert_error_suffix(&name) } else { name }
     }
 
     fn convert_error_suffix(&self, nm: &str) -> String {
@@ -351,7 +346,7 @@ impl CsCodeOracle {
     }
 
     fn ffi_callback_impl(&self, nm: &str) -> String {
-        format!("UniffiCallbackInterface{}", nm)
+        format!("UniffiCallbackInterface{nm}")
     }
 
     /// Get the idiomatic C# rendering of an FFI struct name
@@ -360,11 +355,11 @@ impl CsCodeOracle {
     }
 
     fn interface_name(&self, nm: &str) -> String {
-        format!("I{}", nm)
+        format!("I{nm}")
     }
 
     fn impl_name(&self, nm: &str) -> String {
-        format!("{}Impl", nm)
+        format!("{nm}Impl")
     }
 
     fn object_names(&self, obj: &Object, ci: &ComponentInterface) -> (String, String) {
@@ -399,6 +394,9 @@ impl CsCodeOracle {
             FfiType::ForeignBytes => "ForeignBytes".to_string(),
             FfiType::Callback(_) => "IntPtr".to_string(),
             FfiType::Reference(typ) => format!("ref {}", self.ffi_type_label(typ, prefix_struct)),
+            FfiType::MutReference(typ) => {
+                format!("ref {}", self.ffi_type_label(typ, prefix_struct))
+            }
             FfiType::RustCallStatus => "UniffiRustCallStatus".to_string(),
             FfiType::Struct(name) => {
                 if prefix_struct {
@@ -406,7 +404,7 @@ impl CsCodeOracle {
                 } else {
                     self.ffi_struct_name(name)
                 }
-            },
+            }
             FfiType::VoidPointer => "IntPtr".to_string(),
         }
     }

@@ -15,8 +15,8 @@ pub struct Person {
 fn hello(person: Person) -> String {
     let name = person.name.unwrap_or("stranger".to_string());
     if person.is_special {
-        format!("Hello {}! You are special!", name)
+        format!("Hello {name}! You are special!")
     } else {
-        format!("Hello {}!", name)
+        format!("Hello {name}!")
     }
 }

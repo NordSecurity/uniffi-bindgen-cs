@@ -1,40 +1,36 @@
-use paste::paste;
 use std::collections::HashMap;
 
-macro_rules! define_custom_builtin_type {
-    ($custom:ty, $underlying:ty) => {
-        paste! {
-            pub struct $custom(pub $underlying);
+// Define the custom type structs
+pub struct MyString(pub String);
+pub struct Array(pub Vec<String>);
+pub struct Table(pub HashMap<String, String>);
+pub struct Boolean(pub bool);
+pub struct Int8(pub i8);
+pub struct Int16(pub i16);
+pub struct Int32(pub i32);
+pub struct Int64(pub i64);
+pub struct UInt8(pub u8);
+pub struct UInt16(pub u16);
+pub struct UInt32(pub u32);
+pub struct UInt64(pub u64);
+pub struct Float(pub f32);
+pub struct Double(pub f64);
 
-            impl UniffiCustomTypeConverter for $custom {
-                type Builtin = $underlying;
-
-                fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-                    Ok($custom(val))
-                }
-
-                fn from_custom(obj: Self) -> Self::Builtin {
-                    obj.0
-                }
-            }
-        }
-    };
-}
-
-define_custom_builtin_type!(MyString, String);
-define_custom_builtin_type!(Array, Vec<String>);
-define_custom_builtin_type!(Table, HashMap<String, String>);
-define_custom_builtin_type!(Boolean, bool);
-define_custom_builtin_type!(Int8, i8);
-define_custom_builtin_type!(Int16, i16);
-define_custom_builtin_type!(Int32, i32);
-define_custom_builtin_type!(Int64, i64);
-define_custom_builtin_type!(UInt8, u8);
-define_custom_builtin_type!(UInt16, u16);
-define_custom_builtin_type!(UInt32, u32);
-define_custom_builtin_type!(UInt64, u64);
-define_custom_builtin_type!(Float, f32);
-define_custom_builtin_type!(Double, f64);
+// Define custom types using the new uniFFI 0.29.3 macro approach
+uniffi::custom_newtype!(MyString, String);
+uniffi::custom_newtype!(Array, Vec<String>);
+uniffi::custom_newtype!(Table, HashMap<String, String>);
+uniffi::custom_newtype!(Boolean, bool);
+uniffi::custom_newtype!(Int8, i8);
+uniffi::custom_newtype!(Int16, i16);
+uniffi::custom_newtype!(Int32, i32);
+uniffi::custom_newtype!(Int64, i64);
+uniffi::custom_newtype!(UInt8, u8);
+uniffi::custom_newtype!(UInt16, u16);
+uniffi::custom_newtype!(UInt32, u32);
+uniffi::custom_newtype!(UInt64, u64);
+uniffi::custom_newtype!(Float, f32);
+uniffi::custom_newtype!(Double, f64);
 
 pub struct CustomTypesBuiltin {
     string: MyString,
