@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+using System.Threading;
 using System;
 using uniffi.callbacks;
 
@@ -69,17 +70,37 @@ public class TestCallbacks
     [Fact]
     public void CallbackRegistrationIsNotAffectedByGC()
     {
-        // See `static ForeignCallback INSTANCE` at `templates/CallbackInterfaceTemplate.cs`
-        var sims = CallbacksMethods.GetSimCards();
-
+        // Register the callback
         var callback = new CallAnswererImpl("normal");
         var telephone = new Telephone();
 
-        // At this point, lib is holding references to managed delegates, so bindings have to
-        // make sure that the delegate is not garbage collected.
+        // Force GC
         System.GC.Collect();
+        Thread.Sleep(10);
 
+        // Callback should work after GC
+        var sims = CallbacksMethods.GetSimCards();
         telephone.Call(sims[0], callback);
+    }
+
+    [Fact]
+    public void CallbackRegistrationIsNotAffectedByReallocation()
+    {
+        // Register the callback
+        var callback = new CallAnswererImpl("normal");
+        var telephone = new Telephone();
+
+        var sims = CallbacksMethods.GetSimCards();
+        var msg = "";
+
+        for (int i = 0; i < 1000; i++)
+        {
+            // Reallocating GC
+            msg += i;
+
+            // Callback should work after GC reallocation
+            telephone.Call(sims[0], callback);
+        }
     }
 
     [Fact]
@@ -96,6 +117,7 @@ public class TestCallbacks
         });
 
         System.GC.Collect();
+        Thread.Sleep(10);
         Assert.False(weak_callback.IsAlive);
     }
 

@@ -22,7 +22,11 @@ class {{ callback_impl_name }} {
 
             {%- match meth.return_type() %}
             {%- when Some with (return_type) %}
-            @uniffiOutReturn = {{ return_type|ffi_converter_name }}.INSTANCE.Lower(result);
+            unsafe {
+                {%- let return_ffi_type = return_type|ffi_type %}
+                *({{ return_ffi_type|ffi_type_name }}*)uniffiOutReturn = {{ return_type|ffi_converter_name }}.INSTANCE.Lower(result);
+                // @uniffiOutReturn = {{ return_type|ffi_converter_name }}.INSTANCE.Lower(result);
+            }
             {%- when None %}
             {%- endmatch %}
 
@@ -109,8 +113,12 @@ class {{ callback_impl_name }} {
             }, cts.Token);
 
             var foreignHandle = _UniFFIAsync._foreign_futures_map.Insert(cts);
-            @uniffiOutReturn.@handle = foreignHandle;
-            @uniffiOutReturn.@free = Marshal.GetFunctionPointerForDelegate(_UniFFIAsync.UniffiForeignFutureFreeCallback.callback);
+            unsafe {
+                // @uniffiOutReturn.@handle = foreignHandle;
+                // @uniffiOutReturn.@free = Marshal.GetFunctionPointerForDelegate(_UniFFIAsync.UniffiForeignFutureFreeCallback.callback);
+                (*(_UniFFILib.UniffiForeignFuture*)uniffiOutReturn).handle = foreignHandle;
+                (*(_UniFFILib.UniffiForeignFuture*)uniffiOutReturn).free = Marshal.GetFunctionPointerForDelegate(_UniFFIAsync.UniffiForeignFutureFreeCallback.callback);;
+            }
             {%- endif %}
         } else {
             throw new InternalException($"No callback in handlemap '{handle}'");
@@ -128,16 +136,19 @@ class {{ callback_impl_name }} {
     {%- endfor %}
     static _UniFFILib.UniffiCallbackInterfaceFree _callback_interface_free = new _UniFFILib.UniffiCallbackInterfaceFree(UniffiFree);
 
-    public static _UniFFILib.{{ vtable|ffi_type_name }} _vtable = new _UniFFILib.{{ vtable|ffi_type_name }} {
-        {%- for (ffi_callback, meth) in vtable_methods.iter() %}
-        {%- let fn_type = format!("_UniFFILib.{}Method", callback_impl_name) %}
-        {{ meth.name()|var_name() }} = Marshal.GetFunctionPointerForDelegate(_m{{ loop.index0 }}),
-        {%- endfor %}
-        @uniffiFree = Marshal.GetFunctionPointerForDelegate(_callback_interface_free)
-    };
-
     public static void Register() {
-        _UniFFILib.{{ ffi_init_callback.name() }}(ref {{ callback_impl_name }}._vtable);
+        _UniFFILib.{{ vtable|ffi_type_name }} _vtable = new _UniFFILib.{{ vtable|ffi_type_name }} {
+            {%- for (ffi_callback, meth) in vtable_methods.iter() %}
+            {%- let fn_type = format!("_UniFFILib.{}Method", callback_impl_name) %}
+            {{ meth.name()|var_name() }} = Marshal.GetFunctionPointerForDelegate(_m{{ loop.index0 }}),
+            {%- endfor %}
+            @uniffiFree = Marshal.GetFunctionPointerForDelegate(_callback_interface_free)
+        };
+        
+        IntPtr vtablePtr = Marshal.AllocHGlobal(Marshal.SizeOf<_UniFFILib.{{ vtable|ffi_type_name }}>());
+        Marshal.StructureToPtr(_vtable, vtablePtr, false);
+
+        _UniFFILib.{{ ffi_init_callback.name() }}(vtablePtr);
     }
 }
 
