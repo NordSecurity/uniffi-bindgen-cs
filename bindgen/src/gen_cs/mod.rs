@@ -398,7 +398,7 @@ impl CsCodeOracle {
             FfiType::RustBuffer(_) => "RustBuffer".to_string(),
             FfiType::ForeignBytes => "ForeignBytes".to_string(),
             FfiType::Callback(_) => "IntPtr".to_string(),
-            FfiType::Reference(typ) => format!("ref {}", self.ffi_type_label(typ, prefix_struct)),
+            FfiType::Reference(typ) => format!("IntPtr /*{}*/", self.ffi_type_label(typ, prefix_struct)),
             FfiType::RustCallStatus => "UniffiRustCallStatus".to_string(),
             FfiType::Struct(name) => {
                 if prefix_struct {
