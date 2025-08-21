@@ -44,8 +44,6 @@ jobs:
 
   test-bindings-windows:
     runs-on: windows-latest
-    container:
-      image: ghcr.io/nordsecurity/uniffi-bindgen-cs-test-runner:v0.1.0
     steps:
     - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       with:
