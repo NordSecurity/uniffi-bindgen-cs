@@ -41,3 +41,23 @@ jobs:
         ./build.sh
         ./generate_bindings.sh
         ./test_bindings.sh
+
+  test-bindings-windows:
+    runs-on: windows-latest
+    container:
+      image: ghcr.io/nordsecurity/uniffi-bindgen-cs-test-runner:v0.1.0
+    steps:
+    - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      with:
+        submodules: 'true'
+    - name: Test bindings
+      shell: bash
+      env:
+        # Github sets HOME to /github/home and breaks dependencies in Docker image..
+        # https://github.com/actions/runner/issues/863
+        HOME: /root
+      run: |
+        source ~/.bashrc
+        ./build.sh
+        ./generate_bindings.sh
+        ./test_bindings.sh
