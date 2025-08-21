@@ -107,6 +107,12 @@ static class BigEndianStreamExtensions
             throw new StreamUnderflowException();
         }
     }
+
+    public static void ForEach<T>(this T[] items, Action<T> action){
+        foreach (var item in items) {
+            action(item);
+        }
+    }
 }
 
 class BigEndianStream {
