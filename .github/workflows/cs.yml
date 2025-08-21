@@ -50,10 +50,10 @@ jobs:
         submodules: 'true'
     - name: Test bindings
       shell: bash
-      env:
-        # Github sets HOME to /github/home and breaks dependencies in Docker image..
-        # https://github.com/actions/runner/issues/863
-        HOME: /root
+      # env:
+      #   # Github sets HOME to /github/home and breaks dependencies in Docker image..
+      #   # https://github.com/actions/runner/issues/863
+      #   HOME: /root
       run: |
         source ~/.bashrc
         ./build.sh
