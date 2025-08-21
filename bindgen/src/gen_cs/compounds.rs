@@ -58,7 +58,7 @@ macro_rules! impl_code_type_for_compound {
  }
 
 impl_code_type_for_compound!(OptionalCodeType, "{}?", "Optional{}");
-impl_code_type_for_compound!(SequenceCodeType, "List<{}>", "Sequence{}");
+impl_code_type_for_compound!(SequenceCodeType, "{}[]", "Sequence{}");
 
 #[derive(Debug)]
 pub struct MapCodeType {

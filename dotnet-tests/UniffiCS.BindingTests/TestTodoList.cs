@@ -36,14 +36,14 @@ public class TestTodoList
         todo.AddEntry(entry2);
         Assert.Equal("Test Ünicode hàndling in an entry 🤣", todo.GetLastEntry().text);
 
-        Assert.Equal(5, todo.GetEntries().Count);
+        Assert.Equal(5, todo.GetEntries().Length);
 
-        todo.AddEntries(new List<TodoEntry>() { new TodoEntry("foo"), new TodoEntry("bar") });
-        Assert.Equal(7, todo.GetEntries().Count);
+        todo.AddEntries([new TodoEntry("foo"), new TodoEntry("bar") ]);
+        Assert.Equal(7, todo.GetEntries().Length);
         Assert.Equal("bar", todo.GetLastEntry().text);
 
-        todo.AddItems(new List<string>() { "bobo", "fofo" });
-        Assert.Equal(9, todo.GetItems().Count);
+        todo.AddItems([ "bobo", "fofo"] );
+        Assert.Equal(9, todo.GetItems().Length);
         Assert.Equal("bobo", todo.GetItems()[7]);
 
         Assert.Null(TodolistMethods.GetDefaultList());

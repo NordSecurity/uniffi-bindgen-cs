@@ -42,10 +42,8 @@ class CsharpGetters : ForeignGetters
         return arg2 && v != null ? v.ToUpper() : v;
     }
 
-    public List<Int32> GetList(List<Int32> v, Boolean arg2)
-    {
-        return arg2 ? v : new List<Int32>();
-    }
+    public int[] GetList(int[] v, bool arg2)
+        => arg2 ? v : [];
 
     public void GetNothing(String v)
     {
@@ -64,10 +62,10 @@ class CsharpStringifier : StoredForeignStringifier
 {
     public String FromSimpleType(Int32 value)
     {
-        return "C#: " + value.ToString();
+        return "C#: " + value;
     }
 
-    public String FromComplexType(List<Double?>? values)
+    public String FromComplexType(Double?[]? values)
     {
         if (values == null)
         {
@@ -75,10 +73,7 @@ class CsharpStringifier : StoredForeignStringifier
         }
         else
         {
-            var stringValues = values.Select(number =>
-            {
-                return number == null ? "null" : number.ToString();
-            });
+            var stringValues = values.Select(number => { return number == null ? "null" : number.ToString(); });
             return "C#: " + string.Join(" ", stringValues);
         }
     }
@@ -98,13 +93,13 @@ public class TestCallbacksFixture
                 Assert.Equal(callback.GetBool(v, flag), rustGetters.GetBool(callback, v, flag));
             }
 
-            foreach (
-                var v in new List<List<Int32>>
-                {
-                    new List<Int32> { 1, 2 },
-                    new List<Int32> { 0, 1 }
-                }
-            )
+            Int32[][] items =
+            [
+                [1, 2],
+                [0, 1]
+            ];
+
+            foreach (var v in items)
             {
                 var flag = true;
                 Assert.Equal(callback.GetList(v, flag), rustGetters.GetList(callback, v, flag));
