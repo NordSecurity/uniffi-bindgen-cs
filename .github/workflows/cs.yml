@@ -55,7 +55,6 @@ jobs:
       #   # https://github.com/actions/runner/issues/863
       #   HOME: /root
       run: |
-        source ~/.bashrc
         ./build.sh
         ./generate_bindings.sh
         ./test_bindings.sh
