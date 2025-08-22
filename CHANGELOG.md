@@ -1,7 +1,12 @@
 ### UNRELEASED
 
 ### v0.10.0+v0.29.4
-- Upgrade to [uniFFI 0.29.4](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html) [#124](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/124)
+- **BREAKING** Upgrade to [uniFFI 0.29.4](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html) [#124](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/124)
+- **BREAKING** Use Arrays instead of Lists for sequence collections [#137](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/137)
+- Add support csharpier 1.0.0 [#116](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/116)
+- Improve read/write operations [#131](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/131)
+- Improve objects disposal [#128](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/128)
+- Allow config file to be specified alongside --library [#119](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/119)
 
 ### v0.9.1+v0.28.3
 - Add calling convention cdecl to DllImport
