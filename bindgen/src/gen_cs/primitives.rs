@@ -80,7 +80,7 @@ macro_rules! impl_code_type_for_primitive {
 }
 
 impl_code_type_for_primitive!(BooleanCodeType, "bool", "Boolean", "false");
-impl_code_type_for_primitive!(StringCodeType, "string", "String", "\"\"");
+impl_code_type_for_primitive!(StringCodeType, "string", "String", "string.Empty");
 impl_code_type_for_primitive!(Int8CodeType, "sbyte", "Int8", "0");
 impl_code_type_for_primitive!(Int16CodeType, "short", "Int16", "0");
 impl_code_type_for_primitive!(Int32CodeType, "int", "Int32", "0");
@@ -91,4 +91,4 @@ impl_code_type_for_primitive!(UInt32CodeType, "uint", "UInt32", "0");
 impl_code_type_for_primitive!(UInt64CodeType, "ulong", "UInt64", "0");
 impl_code_type_for_primitive!(Float32CodeType, "float", "Float", "0.0f");
 impl_code_type_for_primitive!(Float64CodeType, "double", "Double", "0.0");
-impl_code_type_for_primitive!(BytesCodeType, "byte[]", "ByteArray", "new byte[] {}");
+impl_code_type_for_primitive!(BytesCodeType, "byte[]", "ByteArray", "Array.Empty<byte>()");
