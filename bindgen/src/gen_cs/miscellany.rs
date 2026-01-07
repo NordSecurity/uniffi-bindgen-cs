@@ -4,10 +4,10 @@
 
 use super::CodeType;
 use paste::paste;
-use uniffi_bindgen::{backend::Literal, ComponentInterface};
+use uniffi_bindgen::{interface::Literal, ComponentInterface};
 
 macro_rules! impl_code_type_for_miscellany {
-    ($T:ty, $class_name:literal, $canonical_name:literal) => {
+    ($T:ty, $class_name:literal, $canonical_name:literal, $default:literal) => {
         paste! {
             #[derive(Debug)]
             pub struct $T;
@@ -24,11 +24,15 @@ macro_rules! impl_code_type_for_miscellany {
                 fn literal(&self, _literal: &Literal, _ci: &ComponentInterface) -> String {
                     unreachable!()
                 }
+
+                fn default_value(&self, _ci: &ComponentInterface) -> String {
+                    $default.into()
+                }
             }
         }
     };
 }
 
-impl_code_type_for_miscellany!(TimestampCodeType, "DateTime", "Timestamp");
+impl_code_type_for_miscellany!(TimestampCodeType, "DateTime", "Timestamp", "default(DateTime)");
 
-impl_code_type_for_miscellany!(DurationCodeType, "TimeSpan", "Duration");
+impl_code_type_for_miscellany!(DurationCodeType, "TimeSpan", "Duration", "default(TimeSpan)");
