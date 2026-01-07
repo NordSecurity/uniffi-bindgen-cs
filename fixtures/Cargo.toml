@@ -23,20 +23,20 @@ uniffi-cs-positional-enums = { path = "positional-enums" }
 uniffi-cs-stringify = { path = "stringify" }
 
 # Examples
-uniffi-example-arithmetic = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
-uniffi-example-callbacks = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
-uniffi-example-custom-types = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
-uniffi-example-geometry = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
-uniffi-example-rondpoint = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
-uniffi-example-sprites = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
-uniffi-example-todolist = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
-uniffi-example-traits = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
+uniffi-example-arithmetic = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
+uniffi-example-callbacks = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
+uniffi-example-custom-types = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
+uniffi-example-geometry = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
+uniffi-example-rondpoint = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
+uniffi-example-sprites = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
+uniffi-example-todolist = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
+uniffi-example-traits = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
 
 # Fixtures
-uniffi-fixture-callbacks = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
-uniffi-fixture-coverall = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
-uniffi-fixture-docstring = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
-uniffi-fixture-error-types = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
-uniffi-fixture-futures = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
-uniffi-fixture-time = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
-uniffi-fixture-trait-methods = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.29.4"}
+uniffi-fixture-callbacks = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
+uniffi-fixture-coverall = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
+uniffi-fixture-docstring = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
+uniffi-fixture-error-types = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
+uniffi-fixture-futures = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
+uniffi-fixture-time = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}
+uniffi-fixture-trait-methods = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.30.0"}

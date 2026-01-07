@@ -5,14 +5,19 @@
 use super::CodeType;
 use paste::paste;
 use uniffi_bindgen::{
-    backend::{Literal, Type},
+    interface::{DefaultValue, Literal, Type},
     ComponentInterface,
 };
 
 fn render_literal(literal: &Literal, inner: &Type, ci: &ComponentInterface) -> String {
     match literal {
         Literal::None => "null".into(),
-        Literal::Some { inner: meta } => super::CsCodeOracle.find(inner).literal(meta, ci),
+        Literal::Some { inner: default_meta } => {
+            match default_meta.as_ref() {
+                DefaultValue::Default => super::CsCodeOracle.find(inner).default_value(ci),
+                DefaultValue::Literal(lit) => super::CsCodeOracle.find(inner).literal(lit, ci),
+            }
+        }
 
         // details/1-empty-list-as-default-method-parameter.md
         Literal::EmptySequence => "null".into(),
@@ -24,7 +29,7 @@ fn render_literal(literal: &Literal, inner: &Type, ci: &ComponentInterface) -> S
 }
 
 macro_rules! impl_code_type_for_compound {
-     ($T:ty, $type_label_pattern:literal, $canonical_name_pattern: literal) => {
+     ($T:ty, $type_label_pattern:literal, $canonical_name_pattern: literal, $default_pattern:literal) => {
         paste! {
             #[derive(Debug)]
             pub struct $T {
@@ -52,13 +57,17 @@ macro_rules! impl_code_type_for_compound {
                 fn literal(&self, literal: &Literal, ci: &ComponentInterface) -> String {
                     render_literal(literal, self.inner(), ci)
                 }
+
+                fn default_value(&self, _ci: &ComponentInterface) -> String {
+                    $default_pattern.into()
+                }
             }
         }
     }
  }
 
-impl_code_type_for_compound!(OptionalCodeType, "{}?", "Optional{}");
-impl_code_type_for_compound!(SequenceCodeType, "{}[]", "Sequence{}");
+impl_code_type_for_compound!(OptionalCodeType, "{}?", "Optional{}", "null");
+impl_code_type_for_compound!(SequenceCodeType, "{}[]", "Sequence{}", "null");
 
 #[derive(Debug)]
 pub struct MapCodeType {
@@ -99,5 +108,9 @@ impl CodeType for MapCodeType {
 
     fn literal(&self, literal: &Literal, ci: &ComponentInterface) -> String {
         render_literal(literal, &self.value, ci)
+    }
+
+    fn default_value(&self, _ci: &ComponentInterface) -> String {
+        "null".into()
     }
 }

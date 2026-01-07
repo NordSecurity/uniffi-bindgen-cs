@@ -12,7 +12,6 @@ use askama::Template;
 use heck::{ToLowerCamelCase, ToUpperCamelCase};
 use serde::{Deserialize, Serialize};
 
-use uniffi_bindgen::backend::Type;
 use uniffi_bindgen::interface::*;
 use uniffi_bindgen::ComponentInterface;
 
@@ -41,6 +40,10 @@ trait CodeType: Debug {
     fn canonical_name(&self) -> String;
 
     fn literal(&self, _literal: &Literal, ci: &ComponentInterface) -> String {
+        unimplemented!("Unimplemented for {}", self.type_label(ci))
+    }
+
+    fn default_value(&self, ci: &ComponentInterface) -> String {
         unimplemented!("Unimplemented for {}", self.type_label(ci))
     }
 
@@ -381,7 +384,6 @@ impl CsCodeOracle {
             FfiType::Int16 => "short".to_string(),
             FfiType::Int32 => "int".to_string(),
             FfiType::Int64 => "long".to_string(),
-            FfiType::Handle => "IntPtr".to_string(),
             FfiType::Int8 => "sbyte".to_string(),
             FfiType::UInt16 => "ushort".to_string(),
             FfiType::UInt32 => "uint".to_string(),
@@ -389,7 +391,7 @@ impl CsCodeOracle {
             FfiType::UInt8 => "byte".to_string(),
             FfiType::Float32 => "float".to_string(),
             FfiType::Float64 => "double".to_string(),
-            FfiType::RustArcPtr(_) => "IntPtr".to_string(),
+            FfiType::Handle => "ulong".to_string(),
             FfiType::RustBuffer(_) => "RustBuffer".to_string(),
             FfiType::ForeignBytes => "ForeignBytes".to_string(),
             FfiType::Callback(_) => "IntPtr".to_string(),
