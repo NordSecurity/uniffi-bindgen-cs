@@ -55,14 +55,14 @@
         _UniFFILib.{{ func.ffi_func().name() }}({% call lower_arg_list(func) %}),
         {%- endif%}
         // Poll
-        (IntPtr future, IntPtr continuation, IntPtr data) => _UniFFILib.{{ func.ffi_rust_future_poll(ci) }}(future, continuation, data),
+        (ulong future, IntPtr continuation, ulong data) => _UniFFILib.{{ func.ffi_rust_future_poll(ci) }}(future, continuation, data),
         // Complete
-        (IntPtr future, ref UniffiRustCallStatus status) => {
+        (ulong future, ref UniffiRustCallStatus status) => {
             {%- if func.return_type().is_some() %}
             return {% endif %}_UniFFILib.{{ func.ffi_rust_future_complete(ci) }}(future, ref status);
         },
         // Free
-        (IntPtr future) => _UniFFILib.{{ func.ffi_rust_future_free(ci) }}(future),
+        (ulong future) => _UniFFILib.{{ func.ffi_rust_future_free(ci) }}(future),
         {%- match func.return_type() %}
         {%- when Some(return_type) %}
         // Lift
