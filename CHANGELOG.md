@@ -1,6 +1,6 @@
 ### UNRELEASED
 - **BREAKING** Upgrade to [UniFFI 0.30.0](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html)
-  - Object handles now use `ulong` (u64) instead of `IntPtr` for better cross-platform consistency
+  - Object handles now use `ulong` (u64) instead of `IntPtr` due to UniFFI's change from pointer-based handles to explicit u64 values in the FFI interface
   - Updated to handle new DefaultValue API for method parameters and record fields
   - Adapted to removal of `uniffi_bindgen::backend` module (types now in `uniffi_bindgen::interface`)
 
