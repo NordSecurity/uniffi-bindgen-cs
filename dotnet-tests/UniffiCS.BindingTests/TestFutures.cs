@@ -234,8 +234,8 @@ public class TestFutures {
         for (int i = 0; i < 1000; i++) {
             await ReturnsImmediately(async () => {
                 var record = await FuturesMethods.NewMyRecord("foo", 42U);
-                Assert.Equal("foo", record.a);
-                Assert.Equal(42U, record.b);
+                Assert.Equal("foo", record.A);
+                Assert.Equal(42U, record.B);
             });
         }
     }

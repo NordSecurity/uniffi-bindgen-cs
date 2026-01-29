@@ -12,6 +12,6 @@ public class ClassIssue110
     public void TestIssue110()
     {
         var @string = new Value.String("test");
-        Assert.Equal("test", @string.value);
+        Assert.Equal("test", @string.Value);
     }
 }

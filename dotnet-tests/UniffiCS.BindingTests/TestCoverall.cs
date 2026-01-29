@@ -31,27 +31,27 @@ public class TestCoverall
     {
         using (var d = CoverallMethods.CreateSomeDict())
         {
-            Assert.Equal("text", d.text);
-            Assert.Equal("maybe_text", d.maybeText);
-            Assert.True(d.aBool);
-            Assert.False(d.maybeABool);
-            Assert.Equal((byte)1, d.unsigned8);
-            Assert.Equal((byte)2, d.maybeUnsigned8);
-            Assert.Equal((ushort)3, d.unsigned16);
-            Assert.Equal((ushort)4, d.maybeUnsigned16);
-            Assert.Equal(18446744073709551615UL, d.unsigned64);
-            Assert.Equal(0ul, d.maybeUnsigned64);
-            Assert.Equal((sbyte)8, d.signed8);
-            Assert.Equal((sbyte)0, d.maybeSigned8);
-            Assert.Equal(9223372036854775807L, d.signed64);
-            Assert.Equal(0L, d.maybeSigned64);
+            Assert.Equal("text", d.Text);
+            Assert.Equal("maybe_text", d.MaybeText);
+            Assert.True(d.ABool);
+            Assert.False(d.MaybeABool);
+            Assert.Equal((byte)1, d.Unsigned8);
+            Assert.Equal((byte)2, d.MaybeUnsigned8);
+            Assert.Equal((ushort)3, d.Unsigned16);
+            Assert.Equal((ushort)4, d.MaybeUnsigned16);
+            Assert.Equal(18446744073709551615UL, d.Unsigned64);
+            Assert.Equal(0ul, d.MaybeUnsigned64);
+            Assert.Equal((sbyte)8, d.Signed8);
+            Assert.Equal((sbyte)0, d.MaybeSigned8);
+            Assert.Equal(9223372036854775807L, d.Signed64);
+            Assert.Equal(0L, d.MaybeSigned64);
 
-            Assert.Equal(1.2345f, d.float32);
-            Assert.Equal(22.0f / 7.0f, d.maybeFloat32);
-            Assert.Equal(0.0, d.float64);
-            Assert.Equal(1.0, d.maybeFloat64);
+            Assert.Equal(1.2345f, d.Float32);
+            Assert.Equal(22.0f / 7.0f, d.MaybeFloat32);
+            Assert.Equal(0.0, d.Float64);
+            Assert.Equal(1.0, d.MaybeFloat64);
 
-            Assert.Equal("some_dict", d.coveralls!.GetName());
+            Assert.Equal("some_dict", d.Coveralls!.GetName());
         }
     }
 
@@ -162,7 +162,7 @@ public class TestCoverall
 
             var complexError = CoverallMethods.GetComplexError(null);
             Assert.True(complexError is ComplexException.PermissionDenied);
-            Assert.Null(CoverallMethods.GetErrorDict(null).complexError);
+            Assert.Null(CoverallMethods.GetErrorDict(null).ComplexError);
         }
     }
 
@@ -378,14 +378,14 @@ public class TestCoverall
     public void TestDictWithDefaults()
     {
         var d = new DictWithDefaults();
-        Assert.Equal("default-value", d.name);
-        Assert.Equal(31UL, d.integer);
-        Assert.Null(d.category);
+        Assert.Equal("default-value", d.Name);
+        Assert.Equal(31UL, d.Integer);
+        Assert.Null(d.Category);
 
         var d1 = new DictWithDefaults("this", "that", 42UL);
-        Assert.Equal("this", d1.name);
-        Assert.Equal("that", d1.category);
-        Assert.Equal(42UL, d1.integer);
+        Assert.Equal("this", d1.Name);
+        Assert.Equal("that", d1.Category);
+        Assert.Equal(42UL, d1.Integer);
     }
 
     [Fact]

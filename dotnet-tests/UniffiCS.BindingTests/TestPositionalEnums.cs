@@ -12,10 +12,10 @@ public class TestPositionalEnums
     public void PositionalEnumsWork()
     {
         var good = new PositionalEnum.GoodVariant("Hi good");
-        Assert.Equal("Hi good", good.v1);
-        
+        Assert.Equal("Hi good", good.V1);
+
         var nice = new PositionalEnum.NiceVariant(10, "Hi nice");
-        Assert.Equal(10, nice.v1);
-        Assert.Equal("Hi nice", nice.v2);
+        Assert.Equal(10, nice.V1);
+        Assert.Equal("Hi nice", nice.V2);
     }
 }
