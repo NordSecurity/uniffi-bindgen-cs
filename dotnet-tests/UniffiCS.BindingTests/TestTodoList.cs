@@ -27,20 +27,20 @@ public class TestTodoList
         var entry = TodolistMethods.CreateEntryWith("Write bindings for strings as record members");
         todo.AddEntry(entry);
         Assert.Equal("Write bindings for strings as record members", todo.GetLast());
-        Assert.Equal("Write bindings for strings as record members", todo.GetLastEntry().text);
+        Assert.Equal("Write bindings for strings as record members", todo.GetLastEntry().Text);
 
         todo.AddItem("Test Ünicode hàndling without an entry 🤣");
         Assert.Equal("Test Ünicode hàndling without an entry 🤣", todo.GetLast());
 
         var entry2 = new TodoEntry("Test Ünicode hàndling in an entry 🤣");
         todo.AddEntry(entry2);
-        Assert.Equal("Test Ünicode hàndling in an entry 🤣", todo.GetLastEntry().text);
+        Assert.Equal("Test Ünicode hàndling in an entry 🤣", todo.GetLastEntry().Text);
 
         Assert.Equal(5, todo.GetEntries().Length);
 
         todo.AddEntries([new TodoEntry("foo"), new TodoEntry("bar") ]);
         Assert.Equal(7, todo.GetEntries().Length);
-        Assert.Equal("bar", todo.GetLastEntry().text);
+        Assert.Equal("bar", todo.GetLastEntry().Text);
 
         todo.AddItems([ "bobo", "fofo"] );
         Assert.Equal(9, todo.GetItems().Length);

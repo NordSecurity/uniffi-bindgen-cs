@@ -335,6 +335,36 @@ impl CsCodeOracle {
         format!("@{}", nm.to_string().to_lower_camel_case())
     }
 
+    /// Get the idiomatic C# rendering of a property name (for record positional parameters).
+    /// Uses PascalCase per Microsoft naming conventions. Prefixes with @ only for C# keywords.
+    fn property_name(&self, nm: &str) -> String {
+        let name = nm.to_string().to_upper_camel_case();
+        if Self::is_csharp_keyword(&name) {
+            format!("@{}", name)
+        } else {
+            name
+        }
+    }
+
+    /// Check if a name is a C# keyword that requires an @ prefix.
+    fn is_csharp_keyword(name: &str) -> bool {
+        matches!(
+            name,
+            // C# reserved keywords (case-sensitive)
+            "Abstract" | "As" | "Base" | "Bool" | "Break" | "Byte" | "Case" | "Catch"
+            | "Char" | "Checked" | "Class" | "Const" | "Continue" | "Decimal" | "Default"
+            | "Delegate" | "Do" | "Double" | "Else" | "Enum" | "Event" | "Explicit"
+            | "Extern" | "False" | "Finally" | "Fixed" | "Float" | "For" | "Foreach"
+            | "Goto" | "If" | "Implicit" | "In" | "Int" | "Interface" | "Internal" | "Is"
+            | "Lock" | "Long" | "Namespace" | "New" | "Null" | "Object" | "Operator"
+            | "Out" | "Override" | "Params" | "Private" | "Protected" | "Public"
+            | "Readonly" | "Ref" | "Return" | "Sbyte" | "Sealed" | "Short" | "Sizeof"
+            | "Stackalloc" | "Static" | "String" | "Struct" | "Switch" | "This" | "Throw"
+            | "True" | "Try" | "Typeof" | "Uint" | "Ulong" | "Unchecked" | "Unsafe"
+            | "Ushort" | "Using" | "Virtual" | "Void" | "Volatile" | "While"
+        )
+    }
+
     /// Get the idiomatic C# rendering of an individual enum variant.
     fn enum_variant_name(&self, nm: &str) -> String {
         nm.to_string().to_upper_camel_case()
