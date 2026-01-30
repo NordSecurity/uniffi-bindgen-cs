@@ -9,7 +9,7 @@
 {%- for field in ordered_fields %}
 {%- match field.docstring() %}
 {%- when Some with(docstring) %}
-/// <param name="{{ field.name() }}">
+/// <param name="{{ field.name()|property_name }}">
 {%- let docstring = textwrap::dedent(docstring) %}
 {%- for line in docstring.lines() %}
 /// {{ line.trim_end() }}
