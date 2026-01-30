@@ -10,14 +10,14 @@ pub struct Person {
     pub age: u32,
 }
 
-/// A record with a field that becomes a C# keyword when PascalCased
+/// A record with fields that are C# keywords in lowercase but valid identifiers in PascalCase
 #[derive(uniffi::Record)]
 pub struct KeywordFields {
-    /// This becomes "Event" which is a C# keyword
+    /// This becomes "Event" - a valid identifier (lowercase "event" is a keyword)
     pub event: String,
-    /// This becomes "Class" which is a C# keyword
+    /// This becomes "Class" - a valid identifier (lowercase "class" is a keyword)
     pub class: String,
-    /// This stays "Name" which is not a keyword
+    /// This becomes "Name" - a valid identifier
     pub name: String,
 }
 
