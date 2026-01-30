@@ -35,18 +35,19 @@ public class ClassIssue152
     }
 
     [Fact]
-    public void KeywordFieldsUseAtPrefix()
+    public void KeywordFieldsArePascalCase()
     {
-        // Fields that become C# keywords when PascalCased should have @ prefix
+        // Fields named after C# keywords (lowercase) become valid PascalCase identifiers
+        // e.g., "event" -> "Event", "class" -> "Class" (no @ prefix needed)
         var fields = new KeywordFields(
-            @Event: "click",
-            @Class: "button",
+            Event: "click",
+            Class: "button",
             Name: "submit"
         );
 
-        // Access using @ prefix for keywords
-        Assert.Equal("click", fields.@Event);
-        Assert.Equal("button", fields.@Class);
+        // Access using PascalCase property names (no @ prefix needed)
+        Assert.Equal("click", fields.Event);
+        Assert.Equal("button", fields.Class);
         Assert.Equal("submit", fields.Name);
     }
 
@@ -55,7 +56,7 @@ public class ClassIssue152
     {
         var fields = Issue152Methods.CreateKeywordFields("hover", "link", "nav");
 
-        Assert.Equal("hover", fields.@Event);
+        Assert.Equal("hover", fields.Event);
         Assert.Equal("hover", Issue152Methods.GetEvent(fields));
     }
 }
