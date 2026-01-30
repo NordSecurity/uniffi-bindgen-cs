@@ -22,7 +22,7 @@ public class TestCustomTypesBuiltin
 
     void AssertDemo(CustomTypesBuiltin demo)
     {
-        Assert.Equal("Hello, world!", demo.@String);
+        Assert.Equal("Hello, world!", demo.String);
         Assert.Equal(new List<String> { "Hello, world!" }, demo.Array);
         Assert.Equal(new Dictionary<String, String> { { "hello", "world" } }, demo.Table);
         Assert.True(demo.Boolean);
@@ -34,7 +34,7 @@ public class TestCustomTypesBuiltin
         Assert.Equal(UInt16.MaxValue, demo.Uint16);
         Assert.Equal(UInt32.MaxValue, demo.Uint32);
         Assert.Equal(UInt64.MaxValue, demo.Uint64);
-        Assert.Equal(Single.MaxValue, demo.@Float);
-        Assert.Equal(Double.MaxValue, demo.@Double);
+        Assert.Equal(Single.MaxValue, demo.Float);
+        Assert.Equal(Double.MaxValue, demo.Double);
     }
 }
