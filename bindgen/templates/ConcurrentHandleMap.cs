@@ -2,11 +2,11 @@ class ConcurrentHandleMap<T> where T: notnull {
     Dictionary<ulong, T> map = new Dictionary<ulong, T>();
 
     Object lock_ = new Object();
-    ulong currentHandle = 0;
+    ulong currentHandle = 1;
 
     public ulong Insert(T obj) {
         lock (lock_) {
-            currentHandle += 1;
+            currentHandle += 2;
             map[currentHandle] = obj;
             return currentHandle;
         }
