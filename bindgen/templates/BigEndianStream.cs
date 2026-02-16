@@ -14,7 +14,7 @@ static class BigEndianStreamExtensions
 {
     public static void WriteInt32(this Stream stream, int value, int bytesToWrite = 4)
     {
-#if DOTNET_8_0_OR_GREATER
+#if NET8_0_OR_GREATER
         Span<byte> buffer = stackalloc byte[bytesToWrite];
 #else
         byte[] buffer = new byte[bytesToWrite];
@@ -27,7 +27,7 @@ static class BigEndianStreamExtensions
             value >>= 8;
         }
 
-#if DOTNET_8_0_OR_GREATER
+#if NET8_0_OR_GREATER
         stream.Write(buffer);
 #else
         stream.Write(buffer, 0, buffer.Length);
@@ -37,7 +37,7 @@ static class BigEndianStreamExtensions
     public static void WriteInt64(this Stream stream, long value)
     {
         int bytesToWrite = 8;
-#if DOTNET_8_0_OR_GREATER
+#if NET8_0_OR_GREATER
          Span<byte> buffer = stackalloc byte[bytesToWrite];
  #else
          byte[] buffer = new byte[bytesToWrite];
@@ -50,7 +50,7 @@ static class BigEndianStreamExtensions
             value >>= 8;
         }
 
-#if DOTNET_8_0_OR_GREATER
+#if NET8_0_OR_GREATER
         stream.Write(buffer);
 #else
         stream.Write(buffer, 0, buffer.Length);
@@ -59,7 +59,7 @@ static class BigEndianStreamExtensions
 
     public static uint ReadUint32(this Stream stream, int bytesToRead = 4) {
         CheckRemaining(stream, bytesToRead);
-#if DOTNET_8_0_OR_GREATER
+#if NET8_0_OR_GREATER
          Span<byte> buffer = stackalloc byte[bytesToRead];
          stream.Read(buffer);
 #else
@@ -82,7 +82,7 @@ static class BigEndianStreamExtensions
     public static ulong ReadUInt64(this Stream stream) {
         int bytesToRead = 8;
         CheckRemaining(stream, bytesToRead);
-#if DOTNET_8_0_OR_GREATER
+#if NET8_0_OR_GREATER
          Span<byte> buffer = stackalloc byte[bytesToRead];
          stream.Read(buffer);
 #else
@@ -131,7 +131,7 @@ class BigEndianStream {
     }
 
     public void WriteBytes(byte[] buffer) {
-#if DOTNET_8_0_OR_GREATER
+#if NET8_0_OR_GREATER
         stream.Write(buffer);
 #else
         stream.Write(buffer, 0, buffer.Length);
