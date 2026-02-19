@@ -31,9 +31,9 @@ internal static class _UniFFIAsync {
         }
     }
 
-    public class UniffiForeignFutureFreeCallback
+    public class UniffiForeignFutureDroppedCallbackImpl
     {
-        public static _UniFFILib.UniffiForeignFutureFree callback = Callback;
+        public static _UniFFILib.UniffiForeignFutureDroppedCallback callback = Callback;
 
         public static void Callback(ulong handle)
         {
@@ -48,11 +48,11 @@ internal static class _UniFFIAsync {
         }
     }
 
-    public delegate F CompleteFuncDelegate<F>(IntPtr ptr, ref UniffiRustCallStatus status);
+    public delegate F CompleteFuncDelegate<F>(ulong handle, ref UniffiRustCallStatus status);
 
-    public delegate void CompleteActionDelegate(IntPtr ptr, ref UniffiRustCallStatus status);
+    public delegate void CompleteActionDelegate(ulong handle, ref UniffiRustCallStatus status);
 
-    private static async Task PollFuture(IntPtr rustFuture, Action<IntPtr, IntPtr, IntPtr> pollFunc)
+    private static async Task PollFuture(ulong rustFuture, Action<ulong, IntPtr, ulong> pollFunc)
     {
         byte pollResult;
         do 
@@ -60,17 +60,17 @@ internal static class _UniFFIAsync {
             var tcs = new TaskCompletionSource<byte>(TaskCreationOptions.RunContinuationsAsynchronously);
             IntPtr callback = Marshal.GetFunctionPointerForDelegate(UniffiRustFutureContinuationCallback.callback);
             ulong mapEntry = _async_handle_map.Insert(tcs);
-            pollFunc(rustFuture, callback, (IntPtr)mapEntry);
+            pollFunc(rustFuture, callback, mapEntry);
             pollResult = await tcs.Task;
         }
         while(pollResult != UNIFFI_RUST_FUTURE_POLL_READY);
     }
 
     public static async Task<T> UniffiRustCallAsync<T, F, E>(
-        IntPtr rustFuture,
-        Action<IntPtr, IntPtr, IntPtr> pollFunc,
+        ulong rustFuture,
+        Action<ulong, IntPtr, ulong> pollFunc,
         CompleteFuncDelegate<F> completeFunc,
-        Action<IntPtr> freeFunc,
+        Action<ulong> freeFunc,
         Func<F, T> liftFunc,
         CallStatusErrorHandler<E> errorHandler
     ) where E : UniffiException
@@ -87,10 +87,10 @@ internal static class _UniFFIAsync {
     }
 
     public static async Task UniffiRustCallAsync<E>(
-        IntPtr rustFuture,
-        Action<IntPtr, IntPtr, IntPtr> pollFunc,
+        ulong rustFuture,
+        Action<ulong, IntPtr, ulong> pollFunc,
         CompleteActionDelegate completeFunc,
-        Action<IntPtr> freeFunc,
+        Action<ulong> freeFunc,
         CallStatusErrorHandler<E> errorHandler
     ) where E : UniffiException
     {
