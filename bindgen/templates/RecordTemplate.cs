@@ -9,7 +9,7 @@
 {%- for field in ordered_fields %}
 {%- match field.docstring() %}
 {%- when Some with(docstring) %}
-/// <param name="{{ field.name() }}">
+/// <param name="{{ field.name()|property_name }}">
 {%- let docstring = textwrap::dedent(docstring) %}
 {%- for line in docstring.lines() %}
 /// {{ line.trim_end() }}
@@ -29,7 +29,7 @@
 {{ config.access_modifier() }} record {{ type_name }} (
     {%- for field in ordered_fields %}
     {%- call cs::docstring(field, 4) %}
-    {{ field|type_name(ci) }} {{ field.name()|var_name -}}
+    {{ field|type_name(ci) }} {{ field.name()|property_name -}}
     {%- match field.default_value() %}
         {%- when Some with(literal) %} = {{ literal|render_literal(field, ci) }}
         {%- else %}
@@ -50,7 +50,7 @@ class {{ rec|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
     public override {{ type_name }} Read(BigEndianStream stream) {
         return new {{ type_name }}(
         {%- for field in rec.fields() %}
-            {{ field.name()|var_name }}: {{ field|read_fn }}(stream){% if !loop.last %},{% endif%}
+            {{ field.name()|property_name }}: {{ field|read_fn }}(stream){% if !loop.last %},{% endif%}
         {%- endfor %}
         );
     }
@@ -58,13 +58,13 @@ class {{ rec|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
     public override int AllocationSize({{ type_name }} value) {
         return 0
         {%- for field in rec.fields() %}
-            + {{ field|allocation_size_fn }}(value.{{ field.name()|var_name }})
+            + {{ field|allocation_size_fn }}(value.{{ field.name()|property_name }})
         {%- endfor -%};
     }
 
     public override void Write({{ type_name }} value, BigEndianStream stream) {
         {%- for field in rec.fields() %}
-            {{ field|write_fn }}(value.{{ field.name()|var_name }}, stream);
+            {{ field|write_fn }}(value.{{ field.name()|property_name }}, stream);
         {%- endfor %}
     }
 }

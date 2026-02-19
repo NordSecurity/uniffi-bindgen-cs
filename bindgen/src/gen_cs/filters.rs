@@ -122,6 +122,11 @@ pub(super) fn var_name(nm: impl AsRef<str>) -> Result<String, askama::Error> {
     Ok(oracle().var_name(nm.as_ref()))
 }
 
+/// Get the idiomatic C# rendering of a property name (for record positional parameters).
+pub(super) fn property_name(nm: impl AsRef<str>) -> Result<String, askama::Error> {
+    Ok(oracle().property_name(nm.as_ref()))
+}
+
 /// Get the idiomatic C# rendering of an individual enum variant.
 pub(super) fn enum_variant(nm: &str) -> Result<String, askama::Error> {
     Ok(oracle().enum_variant_name(nm))

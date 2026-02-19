@@ -251,23 +251,23 @@ public class TestRondpoint
         var defaultes = new OptionneurDictionnaire();
         var explicite = new OptionneurDictionnaire()
         {
-            i8Var = (sbyte)-8,
-            u8Var = (byte)8,
-            i16Var = (short)-16,
-            u16Var = (ushort)0x10,
-            i32Var = (int)-32,
-            u32Var = (uint)32,
-            i64Var = (long)-64,
-            u64Var = (ulong)64,
-            floatVar = 4.0f,
-            doubleVar = 8.0,
-            booleanVar = true,
-            stringVar = "default",
+            I8Var = (sbyte)-8,
+            U8Var = (byte)8,
+            I16Var = (short)-16,
+            U16Var = (ushort)0x10,
+            I32Var = (int)-32,
+            U32Var = (uint)32,
+            I64Var = (long)-64,
+            U64Var = (ulong)64,
+            FloatVar = 4.0f,
+            DoubleVar = 8.0,
+            BooleanVar = true,
+            StringVar = "default",
 #pragma warning disable 8625
-            listVar = null,
+            ListVar = null,
 #pragma warning restore 8625
-            enumerationVar = Enumeration.Deux,
-            dictionnaireVar = null,
+            EnumerationVar = Enumeration.Deux,
+            DictionnaireVar = null,
         };
         Assert.Equal(defaultes, explicite);
 
@@ -276,7 +276,7 @@ public class TestRondpoint
             // a default list value (null) is transformed into an empty list after a roundtrip
             defaultes = defaultes with
             {
-                listVar = []
+                ListVar = []
             };
 
             // TODO(CS): C# record comparison doesn't work if the record contains lists/maps.

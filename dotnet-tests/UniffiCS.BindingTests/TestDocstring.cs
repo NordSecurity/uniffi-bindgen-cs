@@ -43,7 +43,7 @@ public class TestDocstring
         obj2.Test();
 
         var record = new RecordTest(123);
-        _ = record.test;
+        _ = record.Test;
 
         CallbackTest callback = new CallbackImpls();
         callback.Test();
