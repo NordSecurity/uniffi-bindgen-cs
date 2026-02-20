@@ -180,6 +180,19 @@ void
 {%- endif %}
 {%- endmacro %}
 
+{#
+// Break the following collision, where a field name after PascalCase conversion
+// matches the variant record name (CS8866).
+// https://github.com/nicktomlin/uniffi-bindgen-cs/issues/152
+//     public record S(string S) : UdlEnum {}  // CS8866
+//     public record S(string @S) : UdlEnum {} // OK — '@' prefix disambiguates
+#}
+{%- macro enum_field_name(field_name, variant_name) %}
+{%- if field_name == variant_name %}{{ field_name }}Value
+{%- else %}{{ field_name }}
+{%- endif %}
+{%- endmacro %}
+
 {%- macro docstring(defn, indent_spaces) %}
 {%- call docstring_value(defn.docstring(), indent_spaces) %}
 {%- endmacro %}
