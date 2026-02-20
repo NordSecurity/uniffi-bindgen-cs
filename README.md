@@ -39,8 +39,8 @@ There are a few requirements depending on your target framework version.
         <TargetFramework>net461</TargetFramework>
         <LangVersion>10.0</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <PackageReference Include="IsExternalInit" Version="1.0.3"/>
         <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+        <PackageReference Include="PolySharp" Version="1.15.0"/>
     </PropertyGroup>
     ```
 
