@@ -23,6 +23,7 @@
 {{- self.add_import("System.Collections.Generic") }}
 {{- self.add_import("System.IO") }}
 {{- self.add_import("System.Linq") }}
+{{- self.add_import("System.Runtime.CompilerServices") }}
 {{- self.add_import("System.Runtime.InteropServices") }}
 
 {%- for imported_class in self.imports() %}
