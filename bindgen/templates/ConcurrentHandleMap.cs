@@ -1,27 +1,26 @@
-class ConcurrentHandleMap<T> where T: notnull {
-    Dictionary<ulong, T> map = new Dictionary<ulong, T>();
+{{- self.add_import("System.Collections.Concurrent") }}
+{{- self.add_import("System.Diagnostics.CodeAnalysis") }}
+{{- self.add_import("System.Threading") }}
 
-    Object lock_ = new Object();
-    ulong currentHandle = 0;
+class ConcurrentHandleMap<T> where T: notnull {
+    readonly ConcurrentDictionary<ulong, T> _map = new();
+
+    long _currentHandle = 0;
 
     public ulong Insert(T obj) {
-        lock (lock_) {
-            currentHandle += 1;
-            map[currentHandle] = obj;
-            return currentHandle;
+        var handle = (ulong)Interlocked.Increment(ref _currentHandle);
+        if (!_map.TryAdd(handle, obj)) {
+            throw new InternalException("ConcurrentHandleMap: Duplicate handle");
         }
+        return handle;
     }
 
-    public bool TryGet(ulong handle, out T result) {
-        lock (lock_) {
-            #pragma warning disable 8601 // Possible null reference assignment
-            return map.TryGetValue(handle, out result);
-            #pragma warning restore 8601
-        }
+    public bool TryGet(ulong handle, [NotNullWhen(true)] out T? result) {
+        return _map.TryGetValue(handle, out result);
     }
 
     public T Get(ulong handle) {
-        if (TryGet(handle, out var result)) {
+        if (_map.TryGetValue(handle, out var result)) {
             return result;
         } else {
             throw new InternalException("ConcurrentHandleMap: Invalid handle");
@@ -29,20 +28,10 @@ class ConcurrentHandleMap<T> where T: notnull {
     }
 
     public bool Remove(ulong handle) {
-        return Remove(handle, out T result);
+        return _map.TryRemove(handle, out _);
     }
 
-    public bool Remove(ulong handle, out T result) {
-        lock (lock_) {
-            // Possible null reference assignment
-            #pragma warning disable 8601
-            if (map.TryGetValue(handle, out result)) {
-            #pragma warning restore 8601
-                map.Remove(handle);
-                return true;
-            } else {
-                return false;
-            }
-        }
+    public bool Remove(ulong handle, [NotNullWhen(true)] out T? result) {
+        return _map.TryRemove(handle, out result);
     }
 }
