@@ -3,7 +3,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
 // This is an implementation detail that will be called internally by the public API.
+#if NET8_0_OR_GREATER
+static partial class _UniFFILib {
+#else
 static class _UniFFILib {
+#endif
     {%- for def in ci.ffi_definitions() %}
     {%- match def %}
     {%- when FfiDefinition::CallbackFunction(callback) %}
@@ -34,8 +38,15 @@ static class _UniFFILib {
     }
 
     {% for func in ci.iter_ffi_function_definitions() -%}
+#if NET8_0_OR_GREATER
+    [LibraryImport("{{ config.cdylib_name() }}")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    public static partial
+#else
     [DllImport("{{ config.cdylib_name() }}", CallingConvention = CallingConvention.Cdecl)]
-    public static extern {%- match func.return_type() -%}{%- when Some with (type_) %} {{ type_.borrow()|ffi_type_name }}{% when None %} void{% endmatch %} {{ func.name() }}(
+    public static extern
+#endif
+    {% match func.return_type() -%}{%- when Some with (type_) %} {{ type_.borrow()|ffi_type_name }}{% when None %} void{% endmatch %} {{ func.name() }}(
         {%- call cs::arg_list_ffi_decl(func) %}
     );
 
