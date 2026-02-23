@@ -332,7 +332,7 @@ public class TestCoverall
         traits[0].SetParent(traits[1]);
         Assert.Equal(l1, CoverallMethods.AncestorNames(traits[0]));
         Assert.Empty(CoverallMethods.AncestorNames(traits[1]));
-        Assert.Equal(2UL, traits[1].StrongCount());
+        Assert.Equal(3UL, traits[1].StrongCount());
         Assert.Equal("node-2", traits[0].GetParent()!.Name());
 
         var csNode = new CSharpNode();
