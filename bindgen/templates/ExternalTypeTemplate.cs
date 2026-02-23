@@ -32,7 +32,7 @@ class {{ local_ffi_converter_name }}: FfiConverterRustBuffer<{{ type_label }}>
     }
 {%- if ci.is_name_used_as_error(name) %}
 
-    public {{ type_label }} Lift(RustBuffer buf) {
+    public new {{ type_label }} Lift(RustBuffer buf) {
         return Read(buf.AsStream());
     }
 {%- endif %}
