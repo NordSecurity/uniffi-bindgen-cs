@@ -12,12 +12,12 @@ use uniffi_bindgen::{
 fn render_literal(literal: &Literal, inner: &Type, ci: &ComponentInterface) -> String {
     match literal {
         Literal::None => "null".into(),
-        Literal::Some { inner: default_meta } => {
-            match default_meta.as_ref() {
-                DefaultValue::Default => super::CsCodeOracle.find(inner).default_value(ci),
-                DefaultValue::Literal(lit) => super::CsCodeOracle.find(inner).literal(lit, ci),
-            }
-        }
+        Literal::Some {
+            inner: default_meta,
+        } => match default_meta.as_ref() {
+            DefaultValue::Default => super::CsCodeOracle.find(inner).default_value(ci),
+            DefaultValue::Literal(lit) => super::CsCodeOracle.find(inner).literal(lit, ci),
+        },
 
         // details/1-empty-list-as-default-method-parameter.md
         Literal::EmptySequence => "null".into(),

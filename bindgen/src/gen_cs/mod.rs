@@ -344,7 +344,11 @@ impl CsCodeOracle {
     fn class_name(&self, nm: &str, ci: &ComponentInterface) -> String {
         let name = nm.to_string().to_upper_camel_case();
         // fixup errors.
-        if ci.is_name_used_as_error(nm) { self.convert_error_suffix(&name) } else { name }
+        if ci.is_name_used_as_error(nm) {
+            self.convert_error_suffix(&name)
+        } else {
+            name
+        }
     }
 
     fn convert_error_suffix(&self, nm: &str) -> String {
@@ -429,7 +433,9 @@ impl CsCodeOracle {
             FfiType::RustBuffer(_) => "RustBuffer".to_string(),
             FfiType::ForeignBytes => "ForeignBytes".to_string(),
             FfiType::Callback(_) => "IntPtr".to_string(),
-            FfiType::Reference(typ) => format!("IntPtr /*{}*/", self.ffi_type_label(typ, prefix_struct)),
+            FfiType::Reference(typ) => {
+                format!("IntPtr /*{}*/", self.ffi_type_label(typ, prefix_struct))
+            }
             FfiType::MutReference(typ) => {
                 format!("IntPtr /*{}*/", self.ffi_type_label(typ, prefix_struct))
             }

@@ -33,6 +33,16 @@ macro_rules! impl_code_type_for_miscellany {
     };
 }
 
-impl_code_type_for_miscellany!(TimestampCodeType, "DateTime", "Timestamp", "default(DateTime)");
+impl_code_type_for_miscellany!(
+    TimestampCodeType,
+    "DateTime",
+    "Timestamp",
+    "default(DateTime)"
+);
 
-impl_code_type_for_miscellany!(DurationCodeType, "TimeSpan", "Duration", "default(TimeSpan)");
+impl_code_type_for_miscellany!(
+    DurationCodeType,
+    "TimeSpan",
+    "Duration",
+    "default(TimeSpan)"
+);
