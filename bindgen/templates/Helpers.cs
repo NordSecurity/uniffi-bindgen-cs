@@ -84,7 +84,7 @@ class _UniffiHelpers {
 
     // Call a rust function that returns a Result<>.  Pass in the Error class companion that corresponds to the Err
     public static U RustCallWithError<U, E>(CallStatusErrorHandler<E> errorHandler, RustCallFunc<U> callback)
-        where E: UniffiException
+        where E: System.Exception
     {
         var status = new UniffiRustCallStatus();
         var return_value = callback(ref status);
@@ -108,7 +108,7 @@ class _UniffiHelpers {
 
     // Call a rust function that returns a Result<>.  Pass in the Error class companion that corresponds to the Err
     public static void RustCallWithError<E>(CallStatusErrorHandler<E> errorHandler, RustCallAction callback)
-        where E: UniffiException
+        where E: System.Exception
     {
         _UniffiHelpers.RustCallWithError(errorHandler, (ref UniffiRustCallStatus status) => {
             callback(ref status);

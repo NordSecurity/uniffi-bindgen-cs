@@ -10,6 +10,7 @@ use clap::Parser;
 use fs_err::File;
 pub use gen_cs::generate_bindings;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::io::Write;
 use uniffi_bindgen::{Component, GenerationSettings};
 
@@ -116,23 +117,22 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
                 uniffi_bindgen::interface::rename(&mut c.ci, c.config.rename());
             }
         }
-        // TODO: external types are not supported
-        // let packages = HashMap::<String, String>::from_iter(
-        //     components
-        //         .iter()
-        //         .map(|c| (c.ci.crate_name().to_string(), c.config.package_name())),
-        // );
-        // for c in components {
-        //     for (ext_crate, ext_package) in &packages {
-        //         if ext_crate != c.ci.crate_name()
-        //             && !c.config.external_packages.contains_key(ext_crate)
-        //         {
-        //             c.config
-        //                 .external_packages
-        //                 .insert(ext_crate.to_string(), ext_package.clone());
-        //         }
-        //     }
-        // }
+        let packages = HashMap::<String, String>::from_iter(
+            components
+                .iter()
+                .map(|c| (c.ci.crate_name().to_string(), c.config.package_name())),
+        );
+        for c in &mut *components {
+            for (ext_crate, ext_package) in &packages {
+                if ext_crate != c.ci.crate_name()
+                    && !c.config.external_packages.contains_key(ext_crate)
+                {
+                    c.config
+                        .external_packages
+                        .insert(ext_crate.to_string(), ext_package.clone());
+                }
+            }
+        }
         Ok(())
     }
 }

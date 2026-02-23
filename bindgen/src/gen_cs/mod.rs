@@ -76,7 +76,7 @@ pub struct Config {
     #[serde(default)]
     custom_types: HashMap<String, CustomTypeConfig>,
     #[serde(default)]
-    external_packages: HashMap<String, String>,
+    pub(crate) external_packages: HashMap<String, String>,
     #[serde(default)]
     rename: HashMap<String, toml::value::Table>,
     global_methods_class_name: Option<String>,
@@ -127,6 +127,18 @@ impl Config {
 
     pub fn rename(&self) -> &HashMap<String, toml::value::Table> {
         &self.rename
+    }
+
+    pub fn package_name(&self) -> String {
+        self.namespace()
+    }
+
+    pub fn external_package_name(&self, module_path: &str, namespace: Option<&str>) -> String {
+        let crate_name = module_path.split("::").next().unwrap();
+        match self.external_packages.get(crate_name) {
+            Some(name) => name.clone(),
+            None => format!("uniffi.{}", namespace.unwrap_or(module_path)),
+        }
     }
 }
 
@@ -205,6 +217,11 @@ impl<'a> TypeRenderer<'a> {
             original_type: original_type.to_owned(),
         });
         ""
+    }
+
+    fn external_type_package_name(&self, module_path: &str, namespace: &str) -> String {
+        self.config
+            .external_package_name(module_path, Some(namespace))
     }
 }
 
@@ -308,7 +325,9 @@ impl<T: AsType> AsCodeType for T {
                 key_type,
                 value_type,
             } => Box::new(compounds::MapCodeType::new(*key_type, *value_type)),
-            Type::Custom { name, .. } => Box::new(custom::CustomCodeType::new(name)),
+            Type::Custom { name, builtin, .. } => {
+                Box::new(custom::CustomCodeType::new(name, builtin.as_codetype()))
+            }
         }
     }
 }

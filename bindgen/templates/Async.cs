@@ -73,7 +73,7 @@ internal static class _UniFFIAsync {
         Action<ulong> freeFunc,
         Func<F, T> liftFunc,
         CallStatusErrorHandler<E> errorHandler
-    ) where E : UniffiException
+    ) where E : System.Exception
     {
         try {
             await PollFuture(rustFuture, pollFunc);
@@ -92,7 +92,7 @@ internal static class _UniFFIAsync {
         CompleteActionDelegate completeFunc,
         Action<ulong> freeFunc,
         CallStatusErrorHandler<E> errorHandler
-    ) where E : UniffiException
+    ) where E : System.Exception
     {
          try {
             await PollFuture(rustFuture, pollFunc);

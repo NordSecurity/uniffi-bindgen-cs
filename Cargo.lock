@@ -1342,6 +1342,8 @@ dependencies = [
  "null-to-empty-string",
  "uniffi-cs-custom-types-builtin",
  "uniffi-cs-disposable-fixture",
+ "uniffi-cs-ext-types-base",
+ "uniffi-cs-ext-types-consumer",
  "uniffi-cs-optional-parameters-fixture",
  "uniffi-cs-positional-enums",
  "uniffi-cs-stringify",
@@ -1381,6 +1383,22 @@ dependencies = [
  "thiserror 1.0.69",
  "uniffi 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "uniffi_macros 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "uniffi-cs-ext-types-base"
+version = "0.1.0"
+dependencies = [
+ "thiserror 2.0.12",
+ "uniffi 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "uniffi-cs-ext-types-consumer"
+version = "0.1.0"
+dependencies = [
+ "uniffi 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uniffi-cs-ext-types-base",
 ]
 
 [[package]]

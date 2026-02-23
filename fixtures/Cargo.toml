@@ -23,6 +23,10 @@ uniffi-cs-optional-parameters-fixture = { path = "optional-parameters" }
 uniffi-cs-positional-enums = { path = "positional-enums" }
 uniffi-cs-stringify = { path = "stringify" }
 
+# Local ext-types fixtures
+uniffi-cs-ext-types-base = { path = "ext-types-csharp/base-crate" }
+uniffi-cs-ext-types-consumer = { path = "ext-types-csharp/consumer-crate" }
+
 # Examples
 uniffi-example-arithmetic = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.31.0"}
 uniffi-example-callbacks = { git = "https://github.com/mozilla/uniffi-rs.git", tag = "v0.31.0"}
