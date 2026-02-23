@@ -215,11 +215,27 @@ class {{ ffi_converter_type }}: FfiConverter<{{ interface_name }}, ulong> {
 
 
     public override ulong Lower({{ interface_name }} value) {
-        return handleMap.Insert(value);
+        if (value is {{ impl_name }} rustObj) {
+            // Rust-implemented object. Clone the handle and return it.
+            return rustObj.CallWithPointer(thisPtr => thisPtr);
+        } else {
+            // C# object, generate a new handle map entry and return it.
+            return handleMap.Insert(value);
+        }
     }
 
     public override {{ interface_name }} Lift(ulong value) {
-        return new {{ impl_name }}(value);
+        if ((value & 1UL) == 0UL) {
+            // Rust-generated handle, construct a new wrapper.
+            return new {{ impl_name }}(value);
+        } else {
+            // C#-generated handle, retrieve and remove from the handle map.
+            if (handleMap.Remove(value, out var obj)) {
+                return obj;
+            } else {
+                throw new InternalException($"No callback in handlemap '{value}'");
+            }
+        }
     }
 
     public override {{ interface_name }} Read(BigEndianStream stream) {

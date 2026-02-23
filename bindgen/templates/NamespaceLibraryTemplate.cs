@@ -30,7 +30,9 @@ static class _UniFFILib {
 
     static _UniFFILib() {
         _UniFFILib.uniffiCheckContractApiVersion();
+        {%- if !config.omit_checksums %}
         _UniFFILib.uniffiCheckApiChecksums();
+        {%- endif %}
         {% let initialization_fns = self.initialization_fns() %}
         {% for func in initialization_fns -%}
         {{ func }}();
@@ -59,6 +61,7 @@ static class _UniFFILib {
         }
     }
 
+    {%- if !config.omit_checksums %}
     static void uniffiCheckApiChecksums() {
         {%- for (name, expected_checksum) in ci.iter_checksums() %}
         {
@@ -69,4 +72,5 @@ static class _UniFFILib {
         }
         {%- endfor %}
     }
+    {%- endif %}
 }

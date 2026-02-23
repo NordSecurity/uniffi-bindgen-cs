@@ -8,6 +8,8 @@
 
 {% if e.is_flat() %}
 {%- call cs::docstring(e, 0) %}
+{%- let error_ffi_converter = ffi_converter_name %}
+{%- let self_lower_prefix = format!("{}.INSTANCE.Lower(this)", error_ffi_converter) %}
 {{ config.access_modifier() }} class {{ type_name }}: UniffiException {
     {{ type_name }}(string message): base(message) {}
 
@@ -19,6 +21,24 @@
         public {{ variant|error_variant_name }}(string message): base(message) {}
     }
     {% endfor %}
+
+    {%- let uniffi_trait_methods = e.uniffi_trait_methods() %}
+    {%- match uniffi_trait_methods.display_fmt %}
+    {%- when Some(fmt) %}
+    public override string ToString() {
+        return {{ Type::String.borrow()|lift_fn }}({%- call cs::to_ffi_value_method_call(self_lower_prefix, fmt) %});
+    }
+    {%- when None %}
+    {%- endmatch %}
+    {%- match uniffi_trait_methods.debug_fmt %}
+    {%- when Some(fmt) %}
+    {%- if uniffi_trait_methods.display_fmt.is_none() %}
+    public override string ToString() {
+        return {{ Type::String.borrow()|lift_fn }}({%- call cs::to_ffi_value_method_call(self_lower_prefix, fmt) %});
+    }
+    {%- endif %}
+    {%- when None %}
+    {%- endmatch %}
 }
 
 class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallStatusErrorHandler<{{ type_name }}> {
@@ -54,6 +74,8 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
 
 {%- else %}
 {%- call cs::docstring(e, 0) %}
+{%- let error_ffi_converter = ffi_converter_name %}
+{%- let self_lower_prefix = format!("{}.INSTANCE.Lower(this)", error_ffi_converter) %}
 {{ config.access_modifier() }} class {{ type_name }}: UniffiException{% if contains_object_references %}, IDisposable {% endif %} {
     {{ type_name }}() : base() {}
     {{ type_name }}(String @Message) : base(@Message) {}
@@ -119,6 +141,24 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
         }
     }
     {% endif %}
+
+    {%- let uniffi_trait_methods = e.uniffi_trait_methods() %}
+    {%- match uniffi_trait_methods.display_fmt %}
+    {%- when Some(fmt) %}
+    public override string ToString() {
+        return {{ Type::String.borrow()|lift_fn }}({%- call cs::to_ffi_value_method_call(self_lower_prefix, fmt) %});
+    }
+    {%- when None %}
+    {%- endmatch %}
+    {%- match uniffi_trait_methods.debug_fmt %}
+    {%- when Some(fmt) %}
+    {%- if uniffi_trait_methods.display_fmt.is_none() %}
+    public override string ToString() {
+        return {{ Type::String.borrow()|lift_fn }}({%- call cs::to_ffi_value_method_call(self_lower_prefix, fmt) %});
+    }
+    {%- endif %}
+    {%- when None %}
+    {%- endmatch %}
 }
 
 class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallStatusErrorHandler<{{ type_name }}> {

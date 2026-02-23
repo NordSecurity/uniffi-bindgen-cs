@@ -43,6 +43,18 @@
 )
 {%- endmacro -%}
 
+{%- macro to_ffi_value_method_call(self_lower_prefix, func) %}
+    {%- match func.throws_type() %}
+    {%- when Some with (e) %}
+    _UniffiHelpers.RustCallWithError({{ e|error_converter_name}}.INSTANCE,
+    {%- else %}
+    _UniffiHelpers.RustCall(
+    {%- endmatch %} (ref UniffiRustCallStatus _status) =>
+    _UniFFILib.{{ func.ffi_func().name() }}(
+        {{- self_lower_prefix }}, {% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
+)
+{%- endmacro -%}
+
 {%- macro async_call(func, is_method) %}
     {%- if func.return_type().is_some() %}
     return {% endif %}await _UniFFIAsync.UniffiRustCallAsync(
@@ -54,6 +66,36 @@
         {%- else %}
         _UniFFILib.{{ func.ffi_func().name() }}({% call lower_arg_list(func) %}),
         {%- endif%}
+        // Poll
+        (ulong future, IntPtr continuation, ulong data) => _UniFFILib.{{ func.ffi_rust_future_poll(ci) }}(future, continuation, data),
+        // Complete
+        (ulong future, ref UniffiRustCallStatus status) => {
+            {%- if func.return_type().is_some() %}
+            return {% endif %}_UniFFILib.{{ func.ffi_rust_future_complete(ci) }}(future, ref status);
+        },
+        // Free
+        (ulong future) => _UniFFILib.{{ func.ffi_rust_future_free(ci) }}(future),
+        {%- match func.return_type() %}
+        {%- when Some(return_type) %}
+        // Lift
+        (result) => {{ return_type|lift_fn }}(result),
+        {% else %}
+        {% endmatch -%}
+        // Error
+        {%- match func.throws_type() %}
+        {%- when Some(e)  %}
+        {{ e|error_converter_name }}.INSTANCE
+        {%- when None %}
+        NullCallStatusErrorHandler.INSTANCE
+        {% endmatch %}
+    );
+{%- endmacro -%}
+
+{%- macro async_value_method_call(self_lower_prefix, func) %}
+    {%- if func.return_type().is_some() %}
+    return {% endif %}await _UniFFIAsync.UniffiRustCallAsync(
+        // Get rust future
+        _UniFFILib.{{ func.ffi_func().name() }}({{ self_lower_prefix }}{%- if func.arguments().len() > 0 %}, {% endif -%}{% call lower_arg_list(func) %}),
         // Poll
         (ulong future, IntPtr continuation, ulong data) => _UniFFILib.{{ func.ffi_rust_future_poll(ci) }}(future, continuation, data),
         // Complete
@@ -195,4 +237,125 @@ void
 
 {%- macro docstring(defn, indent_spaces) %}
 {%- call docstring_value(defn.docstring(), indent_spaces) %}
+{%- endmacro %}
+
+{#
+// Render methods for value types (records and enums).
+// `self_lower_prefix` is the expression to lower `this` for FFI calls.
+#}
+{%- macro value_type_methods(methods, self_lower_prefix) %}
+    {% for meth in methods -%}
+    {%- call docstring(meth, 4) %}
+    {%- call method_throws_annotation(meth.throws_type()) %}
+    {%- if meth.is_async() %}
+    public async {% call return_type(meth) %} {{ meth.name()|fn_name }}({%- call arg_list_decl(meth) -%}) {
+        {%- call async_value_method_call(self_lower_prefix, meth) %}
+    }
+    {%- else %}
+
+    {%- match meth.return_type() -%}
+    {%- when Some with (return_type) %}
+    public {{ return_type|type_name(ci) }} {{ meth.name()|fn_name }}({% call arg_list_decl(meth) %}) {
+        return {{ return_type|lift_fn }}({%- call to_ffi_value_method_call(self_lower_prefix, meth) %});
+    }
+
+    {%- when None %}
+    public void {{ meth.name()|fn_name }}({% call arg_list_decl(meth) %}) {
+        {%- call to_ffi_value_method_call(self_lower_prefix, meth) %};
+    }
+    {% endmatch %}
+    {% endif %}
+    {% endfor %}
+{%- endmacro %}
+
+{#
+// Render uniffi trait impls for value types (records and enums).
+// `self_lower_prefix` is the expression to lower `this` for FFI calls.
+// Display is preferred over Debug for ToString().
+#}
+{%- macro value_type_uniffi_traits(uniffi_trait_methods, self_lower_prefix) %}
+    {%- if uniffi_trait_methods.display_fmt.is_some() %}
+    {%- match uniffi_trait_methods.display_fmt %}
+    {%- when Some(fmt) %}
+    public override string ToString() {
+        return {{ Type::String.borrow()|lift_fn }}({%- call to_ffi_value_method_call(self_lower_prefix, fmt) %});
+    }
+    {%- when None %}
+    {%- endmatch %}
+    {%- else %}
+    {%- match uniffi_trait_methods.debug_fmt %}
+    {%- when Some(fmt) %}
+    public override string ToString() {
+        return {{ Type::String.borrow()|lift_fn }}({%- call to_ffi_value_method_call(self_lower_prefix, fmt) %});
+    }
+    {%- when None %}
+    {%- endmatch %}
+    {%- endif %}
+    {%- match uniffi_trait_methods.eq_eq %}
+    {%- when Some(eq) %}
+    public virtual bool Equals({{ eq.object_name()|class_name(ci) }}? other) {
+        if (other is null) return false;
+        return {{ Type::Boolean.borrow()|lift_fn }}({%- call to_ffi_call_with_prefix(self_lower_prefix, eq) %});
+    }
+    public override int GetHashCode() {
+        {%- match uniffi_trait_methods.hash_hash %}
+        {%- when Some(hash) %}
+        return (int){{ Type::UInt64.borrow()|lift_fn }}({%- call to_ffi_value_method_call(self_lower_prefix, hash) %});
+        {%- when None %}
+        return base.GetHashCode();
+        {%- endmatch %}
+    }
+    {%- when None %}
+    {%- endmatch %}
+{%- endmacro %}
+
+{#
+// Render methods for flat enums as extension methods.
+// `self_param_type` is the enum type name.
+// `self_lower_prefix` is the pre-formatted expression to lower self for FFI calls.
+#}
+{%- macro flat_enum_extension_methods(methods, self_param_type, self_lower_prefix) %}
+    {% for meth in methods -%}
+    {%- call docstring(meth, 4) %}
+    {%- call method_throws_annotation(meth.throws_type()) %}
+    {%- if meth.is_async() %}
+    public static async {% call return_type(meth) %} {{ meth.name()|fn_name }}(this {{ self_param_type }} self_{%- if meth.arguments().len() > 0 %}, {% endif -%}{%- call arg_list_decl(meth) -%}) {
+        {%- call async_value_method_call(self_lower_prefix, meth) %}
+    }
+    {%- else %}
+
+    {%- match meth.return_type() -%}
+    {%- when Some with (return_type) %}
+    public static {{ return_type|type_name(ci) }} {{ meth.name()|fn_name }}(this {{ self_param_type }} self_{%- if meth.arguments().len() > 0 %}, {% endif -%}{% call arg_list_decl(meth) %}) {
+        return {{ return_type|lift_fn }}({%- call to_ffi_value_method_call(self_lower_prefix, meth) %});
+    }
+
+    {%- when None %}
+    public static void {{ meth.name()|fn_name }}(this {{ self_param_type }} self_{%- if meth.arguments().len() > 0 %}, {% endif -%}{% call arg_list_decl(meth) %}) {
+        {%- call to_ffi_value_method_call(self_lower_prefix, meth) %};
+    }
+    {% endmatch %}
+    {% endif %}
+    {% endfor %}
+{%- endmacro %}
+
+{#
+// Render uniffi trait impls for flat enums as extension methods.
+// `self_lower_prefix` is the pre-formatted expression to lower self for FFI calls.
+#}
+{%- macro flat_enum_uniffi_traits(uniffi_trait_methods, self_param_type, self_lower_prefix) %}
+    {%- match uniffi_trait_methods.debug_fmt %}
+    {%- when Some(fmt) %}
+    public static string ToDebugString(this {{ self_param_type }} self_) {
+        return {{ Type::String.borrow()|lift_fn }}({%- call to_ffi_value_method_call(self_lower_prefix, fmt) %});
+    }
+    {%- when None %}
+    {%- endmatch %}
+    {%- match uniffi_trait_methods.display_fmt %}
+    {%- when Some(fmt) %}
+    public static string ToDisplayString(this {{ self_param_type }} self_) {
+        return {{ Type::String.borrow()|lift_fn }}({%- call to_ffi_value_method_call(self_lower_prefix, fmt) %});
+    }
+    {%- when None %}
+    {%- endmatch %}
 {%- endmacro %}

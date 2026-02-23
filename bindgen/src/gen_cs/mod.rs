@@ -78,9 +78,13 @@ pub struct Config {
     custom_types: HashMap<String, CustomTypeConfig>,
     #[serde(default)]
     external_packages: HashMap<String, String>,
+    #[serde(default)]
+    rename: HashMap<String, toml::value::Table>,
     global_methods_class_name: Option<String>,
     access_modifier: Option<String>,
     null_string_to_empty: Option<bool>,
+    #[serde(default)]
+    omit_checksums: bool,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -120,6 +124,10 @@ impl Config {
             Some(value) => value.clone(),
             None => "internal".to_string(),
         }
+    }
+
+    pub fn rename(&self) -> &HashMap<String, toml::value::Table> {
+        &self.rename
     }
 }
 

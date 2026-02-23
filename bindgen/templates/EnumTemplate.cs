@@ -17,6 +17,16 @@
     {%- endfor %}
 }
 
+{%- let enum_ffi_converter = e|ffi_converter_name %}
+{%- let flat_self_lower = format!("{}.INSTANCE.Lower(self_)", enum_ffi_converter) %}
+{%- let uniffi_trait_methods = e.uniffi_trait_methods() %}
+{%- if !e.methods().is_empty() || uniffi_trait_methods.display_fmt.is_some() || uniffi_trait_methods.debug_fmt.is_some() %}
+{{ config.access_modifier() }} static class {{ type_name }}Extensions {
+    {%- call cs::flat_enum_extension_methods(e.methods(), type_name, flat_self_lower) %}
+    {%- call cs::flat_enum_uniffi_traits(uniffi_trait_methods, type_name, flat_self_lower) %}
+}
+{%- endif %}
+
 class {{ e|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
     public static {{ e|ffi_converter_name }} INSTANCE = new {{ e|ffi_converter_name }}();
 
@@ -41,6 +51,8 @@ class {{ e|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
 {% else %}
 
 {%- call cs::docstring(e, 0) %}
+{%- let enum_ffi_converter = e|ffi_converter_name %}
+{%- let self_lower_prefix = format!("{}.INSTANCE.Lower(this)", enum_ffi_converter) %}
 {{ config.access_modifier() }} record {{ type_name }}{% if contains_object_references %}: IDisposable {% endif %} {
     {% for variant in e.variants() -%}
     {%- call cs::docstring(variant, 4) %}
@@ -71,6 +83,13 @@ class {{ e|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
         }
     }
     {% endif %}
+
+    {%- if !e.methods().is_empty() %}
+    {%- call cs::value_type_methods(e.methods(), self_lower_prefix) %}
+    {%- endif %}
+
+    {%- let uniffi_trait_methods = e.uniffi_trait_methods() %}
+    {%- call cs::value_type_uniffi_traits(uniffi_trait_methods, self_lower_prefix) %}
 }
 
 class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>{

@@ -4,6 +4,8 @@
 
 {%- let rec = ci.get_record_definition(name).unwrap() %}
 {%- let (ordered_fields, is_reordered) = rec.fields()|order_fields %}
+{%- let rec_ffi_converter = rec|ffi_converter_name %}
+{%- let self_lower_prefix = format!("{}.INSTANCE.Lower(this)", rec_ffi_converter) %}
 
 {%- call cs::docstring(rec, 0) %}
 {%- for field in ordered_fields %}
@@ -42,6 +44,13 @@
         {%- call cs::destroy_fields(rec, "this") %}
     }
     {%- endif %}
+
+    {%- if !rec.methods().is_empty() %}
+    {%- call cs::value_type_methods(rec.methods(), self_lower_prefix) %}
+    {%- endif %}
+
+    {%- let uniffi_trait_methods = rec.uniffi_trait_methods() %}
+    {%- call cs::value_type_uniffi_traits(uniffi_trait_methods, self_lower_prefix) %}
 }
 
 class {{ rec|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
