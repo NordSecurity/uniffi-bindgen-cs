@@ -19,7 +19,6 @@ mod callback_interface;
 mod compounds;
 mod custom;
 mod enum_;
-mod external;
 mod filters;
 pub mod formatting;
 mod miscellany;
