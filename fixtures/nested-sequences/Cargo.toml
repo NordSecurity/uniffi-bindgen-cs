@@ -1,0 +1,16 @@
+[package]
+name = "uniffi-cs-nested-sequences"
+version = "1.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["lib", "cdylib"]
+name = "nested_sequences"
+
+[dependencies]
+uniffi = { workspace = true, features = ["build"] }
+uniffi_macros.workspace = true
+
+[build-dependencies]
+uniffi = { workspace = true, features = ["bindgen-tests"] }

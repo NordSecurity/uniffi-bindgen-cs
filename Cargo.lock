@@ -1355,6 +1355,7 @@ dependencies = [
  "uniffi-cs-disposable-fixture",
  "uniffi-cs-ext-types-base",
  "uniffi-cs-ext-types-consumer",
+ "uniffi-cs-nested-sequences",
  "uniffi-cs-optional-parameters-fixture",
  "uniffi-cs-positional-enums",
  "uniffi-cs-stringify",
@@ -1410,6 +1411,14 @@ version = "0.1.0"
 dependencies = [
  "uniffi 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "uniffi-cs-ext-types-base",
+]
+
+[[package]]
+name = "uniffi-cs-nested-sequences"
+version = "1.0.0"
+dependencies = [
+ "uniffi 0.29.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uniffi_macros 0.29.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
