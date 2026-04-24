@@ -1,0 +1,12 @@
+[package]
+name = "uniffi-cs-ext-types-consumer"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["lib", "cdylib"]
+name = "uniffi_cs_ext_types_consumer"
+
+[dependencies]
+uniffi = { workspace = true }
+uniffi-cs-ext-types-base = { path = "../base-crate" }

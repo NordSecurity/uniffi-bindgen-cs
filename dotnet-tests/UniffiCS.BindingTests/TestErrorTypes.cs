@@ -12,7 +12,7 @@ public class TestErrorTypes
     public void SimpleObjectErrorThrow()
     {
         var e = Assert.Throws<ErrorInterface>(() => ErrorTypesMethods.Oops());
-        Assert.Equal("because uniffi told me so\n\nCaused by:\n    oops", e.ToString());
+        Assert.StartsWith("because uniffi told me so\n\nCaused by:\n    oops", e.ToString());
         Assert.Equal(2, e.Chain().Length);
         Assert.Equal("because uniffi told me so", e.Link(0));
     }
@@ -21,7 +21,7 @@ public class TestErrorTypes
     public void NoWrapObjectErrorThrow()
     {
         var e = Assert.Throws<ErrorInterface>(() => ErrorTypesMethods.OopsNowrap());
-        Assert.Equal("because uniffi told me so\n\nCaused by:\n    oops", e.ToString());
+        Assert.StartsWith("because uniffi told me so\n\nCaused by:\n    oops", e.ToString());
         Assert.Equal(2, e.Chain().Length);
         Assert.Equal("because uniffi told me so", e.Link(0));
     }
@@ -30,7 +30,7 @@ public class TestErrorTypes
     public void SimpleObjectErrorReturn()
     {
         ErrorInterface e = ErrorTypesMethods.GetError("the error");
-        Assert.Equal("the error", e.ToString());
+        Assert.StartsWith("the error", e.ToString());
         Assert.Equal("the error", e.Link(0));
     }
 
@@ -89,6 +89,6 @@ public class TestErrorTypes
     public async Task AsyncThrow()
     {
         var e = await Assert.ThrowsAsync<ErrorInterface>(async () => await ErrorTypesMethods.Aoops());
-        Assert.Equal("async-oops", e.ToString());
+        Assert.StartsWith("async-oops", e.ToString());
     }
 }

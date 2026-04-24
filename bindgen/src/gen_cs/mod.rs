@@ -12,7 +12,6 @@ use askama::Template;
 use heck::{ToLowerCamelCase, ToUpperCamelCase};
 use serde::{Deserialize, Serialize};
 
-use uniffi_bindgen::backend::Type;
 use uniffi_bindgen::interface::*;
 use uniffi_bindgen::ComponentInterface;
 
@@ -20,7 +19,6 @@ mod callback_interface;
 mod compounds;
 mod custom;
 mod enum_;
-mod external;
 mod filters;
 pub mod formatting;
 mod miscellany;
@@ -41,6 +39,10 @@ trait CodeType: Debug {
     fn canonical_name(&self) -> String;
 
     fn literal(&self, _literal: &Literal, ci: &ComponentInterface) -> String {
+        unimplemented!("Unimplemented for {}", self.type_label(ci))
+    }
+
+    fn default_value(&self, ci: &ComponentInterface) -> String {
         unimplemented!("Unimplemented for {}", self.type_label(ci))
     }
 
@@ -74,10 +76,14 @@ pub struct Config {
     #[serde(default)]
     custom_types: HashMap<String, CustomTypeConfig>,
     #[serde(default)]
-    external_packages: HashMap<String, String>,
+    pub(crate) external_packages: HashMap<String, String>,
+    #[serde(default)]
+    rename: HashMap<String, toml::value::Table>,
     global_methods_class_name: Option<String>,
     access_modifier: Option<String>,
     null_string_to_empty: Option<bool>,
+    #[serde(default)]
+    omit_checksums: bool,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -116,6 +122,22 @@ impl Config {
         match self.access_modifier.as_ref() {
             Some(value) => value.clone(),
             None => "internal".to_string(),
+        }
+    }
+
+    pub fn rename(&self) -> &HashMap<String, toml::value::Table> {
+        &self.rename
+    }
+
+    pub fn package_name(&self) -> String {
+        self.namespace()
+    }
+
+    pub fn external_package_name(&self, module_path: &str, namespace: Option<&str>) -> String {
+        let crate_name = module_path.split("::").next().unwrap();
+        match self.external_packages.get(crate_name) {
+            Some(name) => name.clone(),
+            None => format!("uniffi.{}", namespace.unwrap_or(module_path)),
         }
     }
 }
@@ -195,6 +217,11 @@ impl<'a> TypeRenderer<'a> {
             original_type: original_type.to_owned(),
         });
         ""
+    }
+
+    fn external_type_package_name(&self, module_path: &str, namespace: &str) -> String {
+        self.config
+            .external_package_name(module_path, Some(namespace))
     }
 }
 
@@ -298,7 +325,9 @@ impl<T: AsType> AsCodeType for T {
                 key_type,
                 value_type,
             } => Box::new(compounds::MapCodeType::new(*key_type, *value_type)),
-            Type::Custom { name, .. } => Box::new(custom::CustomCodeType::new(name)),
+            Type::Custom { name, builtin, .. } => {
+                Box::new(custom::CustomCodeType::new(name, builtin.as_codetype()))
+            }
         }
     }
 }
@@ -315,7 +344,11 @@ impl CsCodeOracle {
     fn class_name(&self, nm: &str, ci: &ComponentInterface) -> String {
         let name = nm.to_string().to_upper_camel_case();
         // fixup errors.
-        if ci.is_name_used_as_error(nm) { self.convert_error_suffix(&name) } else { name }
+        if ci.is_name_used_as_error(nm) {
+            self.convert_error_suffix(&name)
+        } else {
+            name
+        }
     }
 
     fn convert_error_suffix(&self, nm: &str) -> String {
@@ -389,7 +422,6 @@ impl CsCodeOracle {
             FfiType::Int16 => "short".to_string(),
             FfiType::Int32 => "int".to_string(),
             FfiType::Int64 => "long".to_string(),
-            FfiType::Handle => "IntPtr".to_string(),
             FfiType::Int8 => "sbyte".to_string(),
             FfiType::UInt16 => "ushort".to_string(),
             FfiType::UInt32 => "uint".to_string(),
@@ -397,11 +429,13 @@ impl CsCodeOracle {
             FfiType::UInt8 => "byte".to_string(),
             FfiType::Float32 => "float".to_string(),
             FfiType::Float64 => "double".to_string(),
-            FfiType::RustArcPtr(_) => "IntPtr".to_string(),
+            FfiType::Handle => "ulong".to_string(),
             FfiType::RustBuffer(_) => "RustBuffer".to_string(),
             FfiType::ForeignBytes => "ForeignBytes".to_string(),
             FfiType::Callback(_) => "IntPtr".to_string(),
-            FfiType::Reference(typ) => format!("IntPtr /*{}*/", self.ffi_type_label(typ, prefix_struct)),
+            FfiType::Reference(typ) => {
+                format!("IntPtr /*{}*/", self.ffi_type_label(typ, prefix_struct))
+            }
             FfiType::MutReference(typ) => {
                 format!("IntPtr /*{}*/", self.ffi_type_label(typ, prefix_struct))
             }

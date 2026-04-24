@@ -4,8 +4,8 @@
 
 use super::CodeType;
 use paste::paste;
-use uniffi_bindgen::interface::{Radix, Type};
-use uniffi_bindgen::{backend::Literal, ComponentInterface};
+use uniffi_bindgen::interface::{Literal, Radix, Type};
+use uniffi_bindgen::ComponentInterface;
 
 fn render_literal(literal: &Literal) -> String {
     fn typed_number(type_: &Type, num_str: String) -> String {
@@ -53,7 +53,7 @@ fn render_literal(literal: &Literal) -> String {
 }
 
 macro_rules! impl_code_type_for_primitive {
-    ($T:ty, $type_label:literal, $canonical_name:literal) => {
+    ($T:ty, $type_label:literal, $canonical_name:literal, $default:literal) => {
         paste! {
             #[derive(Debug)]
             pub struct $T;
@@ -70,21 +70,25 @@ macro_rules! impl_code_type_for_primitive {
                 fn literal(&self, literal: &Literal, _ci: &ComponentInterface) -> String {
                     render_literal(&literal)
                 }
+
+                fn default_value(&self, _ci: &ComponentInterface) -> String {
+                    $default.into()
+                }
             }
         }
     };
 }
 
-impl_code_type_for_primitive!(BooleanCodeType, "bool", "Boolean");
-impl_code_type_for_primitive!(StringCodeType, "string", "String");
-impl_code_type_for_primitive!(Int8CodeType, "sbyte", "Int8");
-impl_code_type_for_primitive!(Int16CodeType, "short", "Int16");
-impl_code_type_for_primitive!(Int32CodeType, "int", "Int32");
-impl_code_type_for_primitive!(Int64CodeType, "long", "Int64");
-impl_code_type_for_primitive!(UInt8CodeType, "byte", "UInt8");
-impl_code_type_for_primitive!(UInt16CodeType, "ushort", "UInt16");
-impl_code_type_for_primitive!(UInt32CodeType, "uint", "UInt32");
-impl_code_type_for_primitive!(UInt64CodeType, "ulong", "UInt64");
-impl_code_type_for_primitive!(Float32CodeType, "float", "Float");
-impl_code_type_for_primitive!(Float64CodeType, "double", "Double");
-impl_code_type_for_primitive!(BytesCodeType, "byte[]", "ByteArray");
+impl_code_type_for_primitive!(BooleanCodeType, "bool", "Boolean", "false");
+impl_code_type_for_primitive!(StringCodeType, "string", "String", "string.Empty");
+impl_code_type_for_primitive!(Int8CodeType, "sbyte", "Int8", "0");
+impl_code_type_for_primitive!(Int16CodeType, "short", "Int16", "0");
+impl_code_type_for_primitive!(Int32CodeType, "int", "Int32", "0");
+impl_code_type_for_primitive!(Int64CodeType, "long", "Int64", "0L");
+impl_code_type_for_primitive!(UInt8CodeType, "byte", "UInt8", "0");
+impl_code_type_for_primitive!(UInt16CodeType, "ushort", "UInt16", "0");
+impl_code_type_for_primitive!(UInt32CodeType, "uint", "UInt32", "0");
+impl_code_type_for_primitive!(UInt64CodeType, "ulong", "UInt64", "0");
+impl_code_type_for_primitive!(Float32CodeType, "float", "Float", "0.0f");
+impl_code_type_for_primitive!(Float64CodeType, "double", "Double", "0.0");
+impl_code_type_for_primitive!(BytesCodeType, "byte[]", "ByteArray", "Array.Empty<byte>()");

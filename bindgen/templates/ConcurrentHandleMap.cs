@@ -5,10 +5,15 @@
 class ConcurrentHandleMap<T> where T: notnull {
     readonly ConcurrentDictionary<ulong, T> _map = new();
 
-    long _currentHandle = 0;
+    // Handles are odd numbers (1, 3, 5, ...) — the lowest bit must always be set.
+    // Rust uses (handle & 1) to distinguish foreign-language handles from Rust Arc
+    // pointers, which are always even due to memory alignment. See uniffi_core/src/ffi/handle.rs.
+    const long HANDLE_INITIAL = 1;
+    const long HANDLE_DELTA = 2;
+    long _currentHandle = HANDLE_INITIAL - HANDLE_DELTA;
 
     public ulong Insert(T obj) {
-        var handle = (ulong)Interlocked.Increment(ref _currentHandle);
+        var handle = (ulong)Interlocked.Add(ref _currentHandle, HANDLE_DELTA);
         if (!_map.TryAdd(handle, obj)) {
             throw new InternalException("ConcurrentHandleMap: Duplicate handle");
         }

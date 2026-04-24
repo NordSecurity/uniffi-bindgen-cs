@@ -5,11 +5,12 @@
 pub mod gen_cs;
 
 use anyhow::Result;
-use camino::Utf8PathBuf;
+use camino::{Utf8Path, Utf8PathBuf};
 use clap::Parser;
 use fs_err::File;
 pub use gen_cs::generate_bindings;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::io::Write;
 use uniffi_bindgen::{Component, GenerationSettings};
 
@@ -26,12 +27,8 @@ struct Cli {
     #[clap(long, short)]
     config: Option<Utf8PathBuf>,
 
-    /// Extract proc-macro metadata from cdylib for this crate.
-    #[clap(long)]
-    lib_file: Option<Utf8PathBuf>,
-
     /// Pass in a cdylib path rather than a UDL file
-    #[clap(long = "library", conflicts_with_all = &["lib-file"], requires = "out-dir")]
+    #[clap(long = "library", requires = "out-dir")]
     library_mode: bool,
 
     /// When `--library` is passed, only generate bindings for one crate
@@ -115,24 +112,27 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
                     .clone()
                     .unwrap_or_else(|| format!("uniffi_{}", c.ci.namespace()))
             });
+
+            if !c.config.rename().is_empty() {
+                uniffi_bindgen::interface::rename(&mut c.ci, c.config.rename());
+            }
         }
-        // TODO: external types are not supported
-        // let packages = HashMap::<String, String>::from_iter(
-        //     components
-        //         .iter()
-        //         .map(|c| (c.ci.crate_name().to_string(), c.config.package_name())),
-        // );
-        // for c in components {
-        //     for (ext_crate, ext_package) in &packages {
-        //         if ext_crate != c.ci.crate_name()
-        //             && !c.config.external_packages.contains_key(ext_crate)
-        //         {
-        //             c.config
-        //                 .external_packages
-        //                 .insert(ext_crate.to_string(), ext_package.clone());
-        //         }
-        //     }
-        // }
+        let packages = HashMap::<String, String>::from_iter(
+            components
+                .iter()
+                .map(|c| (c.ci.crate_name().to_string(), c.config.package_name())),
+        );
+        for c in &mut *components {
+            for (ext_crate, ext_package) in &packages {
+                if ext_crate != c.ci.crate_name()
+                    && !c.config.external_packages.contains_key(ext_crate)
+                {
+                    c.config
+                        .external_packages
+                        .insert(ext_crate.to_string(), ext_package.clone());
+                }
+            }
+        }
         Ok(())
     }
 }
@@ -147,9 +147,7 @@ pub fn main() -> Result<()> {
 
         let config_supplier = {
             use uniffi_bindgen::cargo_metadata::CrateConfigSupplier;
-            let cmd = ::cargo_metadata::MetadataCommand::new();
-            let metadata = cmd.exec().unwrap();
-            CrateConfigSupplier::from(metadata)
+            CrateConfigSupplier::from_cargo_metadata_command(false)?
         };
 
         uniffi_bindgen::library_mode::generate_bindings(
@@ -172,7 +170,7 @@ pub fn main() -> Result<()> {
             &cli.source,
             cli.config.as_deref(),
             cli.out_dir.as_deref(),
-            cli.lib_file.as_deref(),
+            None::<&Utf8Path>,
             cli.crate_name.as_deref(),
             !cli.no_format,
         )

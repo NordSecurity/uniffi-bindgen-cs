@@ -57,3 +57,12 @@ uniffi-bindgen-cs path/to/definitions.udl --config path/to/uniffi.toml
 - `access_modifier` - override the default `internal` access modifier for "exported" uniffi symbols.
 
 - `null_string_to_empty` - when set to `true`, `null` strings will be converted to empty strings even if they are not optional.
+
+- `omit_checksums` - when set to `true`, the generated bindings will skip verifying API checksums
+    when the library is initialized. This may speed up initialization but removes a safety check
+    that catches mismatches between the generated bindings and the Rust library. Only use this if
+    you tightly control your build pipeline.
+    ```toml
+    [bindings.csharp]
+    omit_checksums = true
+    ```

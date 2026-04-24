@@ -93,8 +93,25 @@
 {% include "DurationHelper.cs" %}
 
 {%- when Type::Custom { module_path, name, builtin } %}
+{%- if ci.is_external(type_) %}
+{% include "ExternalTypeTemplate.cs" %}
+{%- else %}
 {% include "CustomTypeTemplate.cs" %}
+{%- endif %}
 
+{%- endmatch %}
+{%- endfor %}
+
+{%- for type_ in ci.iter_external_types() %}
+{%- let name = type_.name().unwrap() %}
+{%- let module_path = type_.module_path().unwrap() %}
+{%- match type_ %}
+{%- when Type::Object { .. } %}
+{% include "ExternalObjectTypeTemplate.cs" %}
+{%- when Type::CallbackInterface { .. } %}
+{% include "ExternalObjectTypeTemplate.cs" %}
+{%- else %}
+{% include "ExternalTypeTemplate.cs" %}
 {%- endmatch %}
 {%- endfor %}
 

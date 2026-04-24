@@ -4,7 +4,7 @@ pub enum Value {
     Double { value: f64 },
     I64 { value: i64 },
     Binary { value: Vec<u8> },
-    String { value: String }
+    String { value: String },
 }
 
 uniffi::include_scaffolding!("issue-110");

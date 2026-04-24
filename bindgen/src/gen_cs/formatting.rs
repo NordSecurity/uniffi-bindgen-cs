@@ -10,12 +10,10 @@ pub fn format(path: &Utf8PathBuf) -> Result<(), anyhow::Error> {
 
     let output = csharpier.wait_with_output()?;
     if !output.status.success() {
-        Err(std::io::Error::other(
-            format!(
-                "command returned non-zero exit status: {:?}",
-                output.status.code()
-            ),
-        ))?;
+        Err(std::io::Error::other(format!(
+            "command returned non-zero exit status: {:?}",
+            output.status.code()
+        )))?;
     }
     Ok(())
 }

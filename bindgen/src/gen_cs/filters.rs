@@ -87,11 +87,14 @@ pub(super) fn read_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> 
 }
 
 pub(super) fn render_literal(
-    literal: &Literal,
+    default: &DefaultValue,
     as_ct: &impl AsCodeType,
     ci: &ComponentInterface,
 ) -> Result<String, askama::Error> {
-    Ok(as_ct.as_codetype().literal(literal, ci))
+    match default {
+        DefaultValue::Default => Ok(as_ct.as_codetype().default_value(ci)),
+        DefaultValue::Literal(literal) => Ok(as_ct.as_codetype().literal(literal, ci)),
+    }
 }
 
 pub(super) fn ffi_type(type_: &impl AsType) -> Result<FfiType, askama::Error> {
