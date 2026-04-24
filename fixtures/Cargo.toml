@@ -15,6 +15,7 @@ issue-60 = { path = "regressions/issue-60" }
 issue-75 = { path = "regressions/issue-75" }
 issue-76 = { path = "regressions/issue-76" }
 issue-110 = { path = "regressions/issue-110" }
+loro-ffi-compat = { path = "regressions/loro-ffi-compat" }
 issue-152 = { path = "regressions/issue-152" }
 issue-165 = { path = "regressions/issue-165" }
 csharp-gap-fixes = { path = "regressions/csharp-gap-fixes" }

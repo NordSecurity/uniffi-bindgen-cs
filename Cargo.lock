@@ -790,6 +790,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
 
 [[package]]
+name = "loro-ffi-compat"
+version = "1.0.0"
+dependencies = [
+ "uniffi 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uniffi_macros 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "memchr"
 version = "2.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1359,6 +1367,7 @@ dependencies = [
  "issue-60",
  "issue-75",
  "issue-76",
+ "loro-ffi-compat",
  "null-to-empty-string",
  "uniffi-cs-custom-types-builtin",
  "uniffi-cs-disposable-fixture",
