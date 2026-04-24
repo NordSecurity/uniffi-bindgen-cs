@@ -35,7 +35,7 @@
     {%- match field.default_value() %}
         {%- when Some with(defval) %}
             {%- match defval %}
-            {%- when DefaultValueMetadata::Literal with(literal) %} = {{ literal|render_literal(field, ci) }}
+            {%- when DefaultValueMetadata::Literal with(_) %} = {{ defval|render_literal(field, ci) }}
             {%- when DefaultValueMetadata::Default %} = default
             {%- endmatch %}
         {%- else %}
