@@ -118,7 +118,6 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>{
                 return 4
                     {%- for field in variant.fields() %}
                     {%- let field_name = field.name()|or_pos_var(loop.index)|property_name %}
-                    + {{ field|allocation_size_fn }}(variant_value.{{ field_name }})
                     + {{ field|allocation_size_fn }}(variant_value.{% call cs::enum_field_name(field_name, variant.name()|class_name(ci)) %})
                     {%- endfor %};
             {%- endfor %}
@@ -134,7 +133,6 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>{
                 stream.WriteInt({{ loop.index }});
                 {%- for field in variant.fields() %}
                 {%- let field_name = field.name()|or_pos_var(loop.index)|property_name %}
-                {{ field|write_fn }}(variant_value.{{ field_name }}, stream);
                 {{ field|write_fn }}(variant_value.{% call cs::enum_field_name(field_name, variant.name()|class_name(ci)) %}, stream);
                 {%- endfor %}
                 break;
