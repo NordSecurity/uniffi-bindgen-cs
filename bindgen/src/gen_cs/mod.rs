@@ -13,6 +13,7 @@ use heck::{ToLowerCamelCase, ToUpperCamelCase};
 use serde::{Deserialize, Serialize};
 
 use uniffi_bindgen::interface::*;
+use uniffi_meta::DefaultValueMetadata;
 use uniffi_bindgen::ComponentInterface;
 
 mod callback_interface;

@@ -2,6 +2,24 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
+{%- macro callback_arg_list(callback) %}
+    {%- match callback.return_type() %}
+    {%- when Some with (_type) %}
+    {# Method returns a value - include all args including uniffiOutReturn #}
+    {%- for arg in callback.arguments() %}
+    {%- if !loop.first %}, {% endif %}{{ arg.type_().borrow()|ffi_type_name }} {{ arg.name()|var_name }}
+    {%- endfor %}
+    {%- when None %}
+    {# Void method - filter out uniffiOutReturn #}
+    {%- for arg in callback.arguments() %}
+    {%- if arg.name() != "uniffiOutReturn" %}
+    {%- if !loop.first %}, {% endif %}{{ arg.type_().borrow()|ffi_type_name }} {{ arg.name()|var_name }}
+    {%- endif %}
+    {%- endfor %}
+    {%- endmatch %}
+    {%- if callback.has_rust_call_status_arg() %}{% if callback.arguments().len() > 0 %}, {% endif %}ref UniffiRustCallStatus _uniffi_out_err{% endif %}
+{%- endmacro %}
+
 // This is an implementation detail that will be called internally by the public API.
 #if NET8_0_OR_GREATER
 static partial class _UniFFILib {
@@ -13,7 +31,7 @@ static class _UniFFILib {
     {%- when FfiDefinition::CallbackFunction(callback) %}
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate {% call cs::ffi_return_type(callback) %} {{ callback.name()|ffi_callback_name }}(
-        {% call cs::arg_list_ffi_decl(callback) %}
+        {% call callback_arg_list(callback) %}
     );
     {%- when FfiDefinition::Struct(ffi_struct) %}
     [StructLayout(LayoutKind.Sequential)]

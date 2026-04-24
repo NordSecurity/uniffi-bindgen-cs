@@ -33,7 +33,11 @@
     {%- call cs::docstring(field, 4) %}
     {{ field|type_name(ci) }} {{ field.name()|property_name -}}
     {%- match field.default_value() %}
-        {%- when Some with(literal) %} = {{ literal|render_literal(field, ci) }}
+        {%- when Some with(defval) %}
+            {%- match defval %}
+            {%- when DefaultValueMetadata::Literal with(literal) %} = {{ literal|render_literal(field, ci) }}
+            {%- when DefaultValueMetadata::Default %} = default
+            {%- endmatch %}
         {%- else %}
     {%- endmatch -%}
     {% if !loop.last %}, {% endif %}

@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */#}
 
 {%- let inner_type_name = inner_type|type_name(ci) %}
+{# Handle jagged arrays: byte[] -> byte[length][], not byte[][length] #}
+{%- let array_new_expr = inner_type_name|array_new_expr %}
 
 class {{ ffi_converter_name }}: FfiConverterRustBuffer<{{ inner_type_name }}[]> {
     public static {{ ffi_converter_name }} INSTANCE = new {{ ffi_converter_name }}();
@@ -10,10 +12,10 @@ class {{ ffi_converter_name }}: FfiConverterRustBuffer<{{ inner_type_name }}[]> 
     public override {{ inner_type_name }}[]  Read(BigEndianStream stream) {
         var length = stream.ReadInt();
         if (length == 0) {
-            return [];
+            return Array.Empty<{{ inner_type_name }}>();
         }
 
-        var result = new {{ inner_type_name }}[(length)];
+        var result = {{ array_new_expr }};
         var readFn = {{ inner_type|read_fn }};
         for (int i = 0; i < length; i++) {
             result[i] = readFn(stream);

@@ -1,0 +1,9 @@
+namespace csharp_gap_fixes {
+    sequence<sequence<sequence<u8>>> nested_bytes();
+};
+
+interface Monitor {
+    constructor();
+    string monitor();
+    string monitor_method();
+};

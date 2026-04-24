@@ -17,6 +17,7 @@ issue-76 = { path = "regressions/issue-76" }
 issue-110 = { path = "regressions/issue-110" }
 issue-152 = { path = "regressions/issue-152" }
 issue-165 = { path = "regressions/issue-165" }
+csharp-gap-fixes = { path = "regressions/csharp-gap-fixes" }
 null-to-empty-string = { path = "null-to-empty-string" }
 uniffi-cs-custom-types-builtin = { path = "custom-types-builtin" }
 uniffi-cs-disposable-fixture = { path = "disposable" }

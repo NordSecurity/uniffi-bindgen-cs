@@ -34,6 +34,7 @@ mod uniffi_fixtures {
     issue_110::uniffi_reexport_scaffolding!();
     issue_152::uniffi_reexport_scaffolding!();
     issue_165::uniffi_reexport_scaffolding!();
+    csharp_gap_fixes::uniffi_reexport_scaffolding!();
 
     uniffi_cs_ext_types_base::uniffi_reexport_scaffolding!();
     uniffi_cs_ext_types_consumer::uniffi_reexport_scaffolding!();

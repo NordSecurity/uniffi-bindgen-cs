@@ -19,7 +19,7 @@
     {%- for meth in obj.methods() %}
     {%- call cs::docstring(meth, 4) %}
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
-    {%  call cs::return_type(meth) %} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
+    {%  call cs::return_type(meth) %} {{ meth.name()|method_name(impl_name) }}({% call cs::arg_list_decl(meth) %});
     {%- endfor %}
 }
 
@@ -130,7 +130,7 @@
     {%- call cs::docstring(meth, 4) %}
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
     {%- if meth.is_async() %}
-    public async {% call cs::return_type(meth) %} {{ meth.name()|fn_name }}({%- call cs::arg_list_decl(meth) -%}) {
+    public async {% call cs::return_type(meth) %} {{ meth.name()|method_name(impl_name) }}({%- call cs::arg_list_decl(meth) -%}) {
         {%- call cs::async_call(meth, true) %}
     }
     {%- else %}
@@ -138,17 +138,17 @@
     {%- match meth.return_type() -%}
     {%- when Some with (return_type) %}
     {%- if meth.name() == "Message" %}
-    public new {{ return_type|type_name(ci) }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %}) {
+    public new {{ return_type|type_name(ci) }} {{ meth.name()|method_name(impl_name) }}({% call cs::arg_list_decl(meth) %}) {
         return CallWithPointer(thisPtr => {{ return_type|lift_fn }}({%- call cs::to_ffi_call_with_prefix("thisPtr", meth) %}));
     }
     {%- else %}
-    public {{ return_type|type_name(ci) }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %}) {
+    public {{ return_type|type_name(ci) }} {{ meth.name()|method_name(impl_name) }}({% call cs::arg_list_decl(meth) %}) {
         return CallWithPointer(thisPtr => {{ return_type|lift_fn }}({%- call cs::to_ffi_call_with_prefix("thisPtr", meth) %}));
     }
     {%- endif %}
 
     {%- when None %}
-    public void {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %}) {
+    public void {{ meth.name()|method_name(impl_name) }}({% call cs::arg_list_decl(meth) %}) {
         CallWithPointer(thisPtr => {%- call cs::to_ffi_call_with_prefix("thisPtr", meth) %});
     }
     {% endmatch %}
