@@ -335,6 +335,14 @@ impl CsCodeOracle {
         format!("@{}", nm.to_string().to_lower_camel_case())
     }
 
+    /// Get the idiomatic C# rendering of a property name (for record positional parameters).
+    /// Uses PascalCase per Microsoft naming conventions.
+    /// Note: No keyword escaping is needed because C# keywords are lowercase,
+    /// and PascalCase conversion naturally avoids conflicts (e.g., "class" → "Class").
+    fn property_name(&self, nm: &str) -> String {
+        nm.to_string().to_upper_camel_case()
+    }
+
     /// Get the idiomatic C# rendering of an individual enum variant.
     fn enum_variant_name(&self, nm: &str) -> String {
         nm.to_string().to_upper_camel_case()

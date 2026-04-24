@@ -12,7 +12,7 @@ public class OptionalParameterTests
     [Fact]
     public void OptionalParameter_CanBeOmitted()
     {
-        var person = new Person(isSpecial: false);
+        var person = new Person(IsSpecial: false);
         string message = Hello(person);
         Assert.Equal("Hello stranger!", message);
     }
@@ -20,7 +20,7 @@ public class OptionalParameterTests
     [Fact]
     public void OptionalParameter_CanBeSpecified()
     {
-        var person = new Person(name: "John Connor", isSpecial: false);
+        var person = new Person(Name: "John Connor", IsSpecial: false);
         string message = Hello(person);
         Assert.Equal("Hello John Connor!", message);
     }
