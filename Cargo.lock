@@ -706,6 +706,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "issue-165"
+version = "1.0.0"
+dependencies = [
+ "async-trait",
+ "thiserror 1.0.69",
+ "uniffi 0.29.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uniffi_macros 0.29.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "issue-28"
 version = "0.1.0"
 dependencies = [
@@ -1335,6 +1345,7 @@ dependencies = [
  "global-methods-class-name",
  "issue-110",
  "issue-152",
+ "issue-165",
  "issue-28",
  "issue-60",
  "issue-75",

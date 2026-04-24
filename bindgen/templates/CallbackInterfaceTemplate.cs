@@ -17,12 +17,7 @@
     {%- for meth in cbi.methods() %}
     {%- call cs::docstring(meth, 4) %}
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
-    {%- match meth.return_type() %}
-    {%- when Some with (return_type) %}
-    {{ return_type|type_name(ci) }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
-    {%- else %}
-    void {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
-    {%- endmatch %}
+    {% call cs::return_type(meth) %} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
     {%- endfor %}
 }
 
