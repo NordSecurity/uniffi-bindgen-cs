@@ -1,12 +1,12 @@
 [package]
-name = "loro-ffi-compat"
+name = "enum-variant-field-name-conflict"
 version = "1.0.0"
 edition = "2021"
 publish = false
 
 [lib]
 crate-type = ["lib", "cdylib"]
-name = "loro_ffi_compat"
+name = "enum_variant_field_name_conflict"
 
 [dependencies]
 uniffi = { workspace = true, features = ["build"] }
