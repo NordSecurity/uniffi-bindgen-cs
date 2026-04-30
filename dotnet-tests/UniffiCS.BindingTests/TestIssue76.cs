@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using uniffi.issue_76;
+using Exception = uniffi.issue_76.Exception;
 
 namespace UniffiCS.BindingTests;
 
@@ -11,6 +12,6 @@ public class ClassIssue76
     [Fact]
     public void TestIssue76()
     {
-        Assert.Throws<Exception.Example>(() => Issue76Methods.AlwaysError());
+        Assert.Throws<Exception.Example>(Issue76Methods.AlwaysError);
     }
 }
