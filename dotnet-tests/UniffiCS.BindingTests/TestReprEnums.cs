@@ -14,6 +14,8 @@ public class TestReprEnums
         Assert.Equal(0x4000, (int)IndexExport.Other);
         Assert.Equal(0xFFFFFFF0u, (uint)LargeUnsigned.Big);
         Assert.Equal(0u, (uint)LargeUnsigned.Zero);
+        Assert.Equal(0x7FFF_FFFF_FFFF_FFFFul, (ulong)HugeUnsigned.BeforeWrap);
+        Assert.Equal(0x8000_0000_0000_0000ul, (ulong)HugeUnsigned.Wrapped);
     }
 
     [Fact]
@@ -21,6 +23,7 @@ public class TestReprEnums
     {
         Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(IndexExport)));
         Assert.Equal(typeof(uint), Enum.GetUnderlyingType(typeof(LargeUnsigned)));
+        Assert.Equal(typeof(ulong), Enum.GetUnderlyingType(typeof(HugeUnsigned)));
     }
 
     [Fact]
@@ -37,5 +40,12 @@ public class TestReprEnums
     {
         Assert.Equal(LargeUnsigned.Zero, UniffiCsReprEnumsMethods.RoundtripLarge(LargeUnsigned.Zero));
         Assert.Equal(LargeUnsigned.Big, UniffiCsReprEnumsMethods.RoundtripLarge(LargeUnsigned.Big));
+    }
+
+    [Fact]
+    public void HugeUnsignedRoundTrips()
+    {
+        Assert.Equal(HugeUnsigned.BeforeWrap, UniffiCsReprEnumsMethods.RoundtripHuge(HugeUnsigned.BeforeWrap));
+        Assert.Equal(HugeUnsigned.Wrapped, UniffiCsReprEnumsMethods.RoundtripHuge(HugeUnsigned.Wrapped));
     }
 }

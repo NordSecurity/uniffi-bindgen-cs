@@ -14,6 +14,13 @@ pub enum LargeUnsigned {
     Big = 0xFFFF_FFF0,
 }
 
+#[derive(uniffi::Enum, Debug, PartialEq)]
+#[repr(u64)]
+pub enum HugeUnsigned {
+    BeforeWrap = 0x7FFF_FFFF_FFFF_FFFF,
+    Wrapped,
+}
+
 #[uniffi::export]
 fn roundtrip_index(value: IndexExport) -> IndexExport {
     value
@@ -21,6 +28,11 @@ fn roundtrip_index(value: IndexExport) -> IndexExport {
 
 #[uniffi::export]
 fn roundtrip_large(value: LargeUnsigned) -> LargeUnsigned {
+    value
+}
+
+#[uniffi::export]
+fn roundtrip_huge(value: HugeUnsigned) -> HugeUnsigned {
     value
 }
 
