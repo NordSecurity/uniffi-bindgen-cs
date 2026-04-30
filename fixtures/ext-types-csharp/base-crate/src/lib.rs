@@ -38,6 +38,8 @@ pub trait BaseTrait: Send + Sync {
 pub enum BaseError {
     #[error("{0}")]
     General(String),
+    #[error("not found: {name} (code={code})")]
+    NotFound { name: String, code: i32 },
 }
 
 #[uniffi::export]
@@ -58,6 +60,20 @@ fn invoke_base_trait(t: Arc<dyn BaseTrait>) -> String {
 #[uniffi::export]
 fn throw_base_error(msg: String) -> Result<(), BaseError> {
     Err(BaseError::General(msg))
+}
+
+#[uniffi::export]
+fn throw_base_not_found(name: String, code: i32) -> Result<(), BaseError> {
+    Err(BaseError::NotFound { name, code })
+}
+
+#[uniffi::export]
+fn base_error_identity(val: i32) -> Result<i32, BaseError> {
+    if val >= 0 {
+        Ok(val)
+    } else {
+        Err(BaseError::General("negative".to_string()))
+    }
 }
 
 uniffi::setup_scaffolding!();

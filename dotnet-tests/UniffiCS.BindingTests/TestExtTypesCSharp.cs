@@ -56,6 +56,33 @@ public class TestExtTypesCSharp
     }
 
     [Fact]
+    public void TestExternalErrorNotFoundVariant()
+    {
+        var e = Assert.Throws<BaseException.NotFound>(
+            () => UniffiCsExtTypesConsumerMethods.ThrowExternalNotFound("widget", 404));
+        Assert.Equal("widget", e.name);
+        Assert.Equal(404, e.code);
+    }
+
+    [Fact]
+    public void TestExternalErrorOkPath()
+    {
+        var result = UniffiCsExtTypesConsumerMethods.ExternalErrorIdentity(42);
+        Assert.Equal(42, result);
+    }
+
+    [Fact]
+    public void TestExternalErrorOkThenErr()
+    {
+        var result = UniffiCsExtTypesConsumerMethods.ExternalErrorIdentity(0);
+        Assert.Equal(0, result);
+
+        var e = Assert.Throws<BaseException.General>(
+            () => UniffiCsExtTypesConsumerMethods.ExternalErrorIdentity(-1));
+        Assert.Contains("negative", e.ToString());
+    }
+
+    [Fact]
     public void TestMaybeRecordNone()
     {
         var r = UniffiCsExtTypesConsumerMethods.GetMaybeBaseRecord(null);
@@ -119,6 +146,30 @@ public class TestExtTypesCSharp
         var e = Assert.Throws<BaseException.General>(
             () => UniffiCsExtTypesBaseMethods.ThrowBaseError("base error"));
         Assert.Contains("base error", e.ToString());
+    }
+
+    [Fact]
+    public void TestBaseErrorNotFoundFromBase()
+    {
+        var e = Assert.Throws<BaseException.NotFound>(
+            () => UniffiCsExtTypesBaseMethods.ThrowBaseNotFound("item", 500));
+        Assert.Equal("item", e.name);
+        Assert.Equal(500, e.code);
+    }
+
+    [Fact]
+    public void TestBaseErrorIdentityOk()
+    {
+        var result = UniffiCsExtTypesBaseMethods.BaseErrorIdentity(10);
+        Assert.Equal(10, result);
+    }
+
+    [Fact]
+    public void TestBaseErrorIdentityErr()
+    {
+        var e = Assert.Throws<BaseException.General>(
+            () => UniffiCsExtTypesBaseMethods.BaseErrorIdentity(-5));
+        Assert.Contains("negative", e.ToString());
     }
 
     class CSharpBaseTrait : BaseTrait

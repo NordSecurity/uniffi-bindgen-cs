@@ -38,6 +38,20 @@ fn throw_external_error() -> Result<(), BaseError> {
 }
 
 #[uniffi::export]
+fn throw_external_not_found(name: String, code: i32) -> Result<(), BaseError> {
+    Err(BaseError::NotFound { name, code })
+}
+
+#[uniffi::export]
+fn external_error_identity(val: i32) -> Result<i32, BaseError> {
+    if val >= 0 {
+        Ok(val)
+    } else {
+        Err(BaseError::General("negative".to_string()))
+    }
+}
+
+#[uniffi::export]
 fn get_maybe_base_record(r: Option<BaseRecord>) -> BaseRecord {
     r.unwrap_or_else(|| BaseRecord {
         name: "default".to_string(),
