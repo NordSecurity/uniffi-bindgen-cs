@@ -205,3 +205,35 @@ pub(super) fn or_pos_var(nm: &str, pos: &usize) -> Result<String, askama::Error>
         Ok(nm.to_string())
     }
 }
+
+// Bare decimal with no suffix or radix — C# enum initializers don't accept type suffixes.
+// When UniFFI wraps an unsigned variant value into Literal::Int (e.g. an implicit u64
+// value above i64::MAX), reinterpret the bits as the repr's unsigned type so the emitted
+// literal is valid in a `enum : ulong` (or u32/u16/u8) context.
+pub(super) fn variant_discr_literal(e: &Enum, index: &usize) -> Result<String, askama::Error> {
+    match e.variant_discr(*index).expect("invalid discriminant index") {
+        Literal::UInt(v, _, _) => Ok(v.to_string()),
+        Literal::Int(v, _, _) => match e.variant_discr_type() {
+            Some(Type::UInt8) => Ok((v as u8).to_string()),
+            Some(Type::UInt16) => Ok((v as u16).to_string()),
+            Some(Type::UInt32) => Ok((v as u32).to_string()),
+            Some(Type::UInt64) => Ok((v as u64).to_string()),
+            _ => Ok(v.to_string()),
+        },
+        _ => Err(askama::Error::Fmt),
+    }
+}
+
+pub(super) fn variant_discr_type_name(typ: &Type) -> Result<String, askama::Error> {
+    match typ {
+        Type::Int8 => Ok("sbyte".to_string()),
+        Type::Int16 => Ok("short".to_string()),
+        Type::Int32 => Ok("int".to_string()),
+        Type::Int64 => Ok("long".to_string()),
+        Type::UInt8 => Ok("byte".to_string()),
+        Type::UInt16 => Ok("ushort".to_string()),
+        Type::UInt32 => Ok("uint".to_string()),
+        Type::UInt64 => Ok("ulong".to_string()),
+        _ => Err(askama::Error::Fmt),
+    }
+}

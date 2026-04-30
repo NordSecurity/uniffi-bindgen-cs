@@ -1346,6 +1346,7 @@ dependencies = [
  "uniffi-cs-ext-types-consumer",
  "uniffi-cs-optional-parameters-fixture",
  "uniffi-cs-positional-enums",
+ "uniffi-cs-repr-enums",
  "uniffi-cs-stringify",
  "uniffi-example-arithmetic",
  "uniffi-example-callbacks",
@@ -1411,6 +1412,14 @@ dependencies = [
 
 [[package]]
 name = "uniffi-cs-positional-enums"
+version = "0.1.0"
+dependencies = [
+ "uniffi 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uniffi_macros 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "uniffi-cs-repr-enums"
 version = "0.1.0"
 dependencies = [
  "uniffi 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",

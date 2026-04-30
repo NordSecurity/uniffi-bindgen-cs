@@ -10,12 +10,22 @@
 {%- if e.is_flat() %}
 
 {%- call cs::docstring(e, 0) %}
+{%- match e.variant_discr_type() %}
+{%- when None %}
 {{ config.access_modifier() }} enum {{ type_name }}: int {
-    {% for variant in e.variants() -%}
+    {%- for variant in e.variants() %}
     {%- call cs::docstring(variant, 4) %}
     {{ variant.name()|enum_variant }}{% if !loop.last %},{% endif %}
     {%- endfor %}
 }
+{%- when Some with (discr_type) %}
+{{ config.access_modifier() }} enum {{ type_name }}: {{ discr_type|variant_discr_type_name }} {
+    {%- for variant in e.variants() %}
+    {%- call cs::docstring(variant, 4) %}
+    {{ variant.name()|enum_variant }} = {{ e|variant_discr_literal(loop.index0) }}{% if !loop.last %},{% endif %}
+    {%- endfor %}
+}
+{%- endmatch %}
 
 {%- let enum_ffi_converter = e|ffi_converter_name %}
 {%- let flat_self_lower = format!("{}.INSTANCE.Lower(self_)", enum_ffi_converter) %}
@@ -31,11 +41,12 @@ class {{ e|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
     public static {{ e|ffi_converter_name }} INSTANCE = new {{ e|ffi_converter_name }}();
 
     public override {{ type_name }} Read(BigEndianStream stream) {
-        var value = stream.ReadInt() - 1;
-        if (Enum.IsDefined(typeof({{ type_name }}), value)) {
-            return ({{ type_name }})value;
-        } else {
-            throw new InternalException(String.Format("invalid enum value '{0}' in {{ e|ffi_converter_name }}.Read()", value));
+        var value = stream.ReadInt();
+        switch (value) {
+            {%- for variant in e.variants() %}
+            case {{ loop.index }}: return {{ type_name }}.{{ variant.name()|enum_variant }};
+            {%- endfor %}
+            default: throw new InternalException(String.Format("invalid enum value '{0}' in {{ e|ffi_converter_name }}.Read()", value));
         }
     }
 
@@ -44,7 +55,12 @@ class {{ e|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
     }
 
     public override void Write({{ type_name }} value, BigEndianStream stream) {
-        stream.WriteInt((int)value + 1);
+        switch (value) {
+            {%- for variant in e.variants() %}
+            case {{ type_name }}.{{ variant.name()|enum_variant }}: stream.WriteInt({{ loop.index }}); break;
+            {%- endfor %}
+            default: throw new InternalException(String.Format("invalid enum value '{0}' in {{ e|ffi_converter_name }}.Write()", value));
+        }
     }
 }
 
