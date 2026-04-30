@@ -30,10 +30,4 @@ class {{ local_ffi_converter_name }}: FfiConverterRustBuffer<{{ type_label }}>
             new {{ package_name }}.BigEndianStream(stream.InnerStream)
         );
     }
-{%- if ci.is_name_used_as_error(name) %}
-
-    public new {{ type_label }} Lift(RustBuffer buf) {
-        return Read(buf.AsStream());
-    }
-{%- endif %}
 }

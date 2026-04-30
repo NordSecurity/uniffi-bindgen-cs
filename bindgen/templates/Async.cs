@@ -20,7 +20,7 @@ internal static class _UniFFIAsync {
 
         public static void Callback(IntPtr continuationHandle, byte pollResult)
         {
-            if (_async_handle_map.Remove((ulong)continuationHandle.ToInt64(), out TaskCompletionSource<byte> task))
+            if (_async_handle_map.Remove((ulong)continuationHandle.ToInt64(), out TaskCompletionSource<byte>? task))
             {
                 task.SetResult(pollResult);
             }
@@ -37,7 +37,7 @@ internal static class _UniFFIAsync {
 
         public static void Callback(ulong handle)
         {
-            if (_foreign_futures_map.Remove(handle, out CancellationTokenSource task))
+            if (_foreign_futures_map.Remove(handle, out CancellationTokenSource? task))
             {
                 task.Cancel();
             }

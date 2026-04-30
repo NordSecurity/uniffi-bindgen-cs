@@ -135,7 +135,12 @@ class {{ callback_impl_name }} {
     {%- endfor %}
     static _UniFFILib.UniffiCallbackInterfaceFree _callback_interface_free = new _UniFFILib.UniffiCallbackInterfaceFree(UniffiFree);
 
+    static int _registered = 0;
+
     public static void Register() {
+        if (Interlocked.CompareExchange(ref _registered, 1, 0) != 0) {
+            return;
+        }
         _UniFFILib.{{ vtable|ffi_type_name }} _vtable = new _UniFFILib.{{ vtable|ffi_type_name }} {
             {%- for (ffi_callback, meth) in vtable_methods.iter() %}
             {%- let fn_type = format!("_UniFFILib.{}Method", callback_impl_name) %}
