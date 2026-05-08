@@ -322,6 +322,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b94f61472cee1439c0b966b47e3aca9ae07e45d070759512cd390ea2bebc6675"
 
 [[package]]
+name = "csharp-gap-fixes"
+version = "0.1.0"
+dependencies = [
+ "uniffi 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uniffi_macros 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "displaydoc"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -330,6 +338,14 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.104",
+]
+
+[[package]]
+name = "enum-variant-field-name-conflict"
+version = "0.1.0"
+dependencies = [
+ "uniffi 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uniffi_macros 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -706,6 +722,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "issue-165"
+version = "1.0.0"
+dependencies = [
+ "async-trait",
+ "thiserror 1.0.69",
+ "uniffi 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uniffi_macros 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "issue-28"
 version = "0.1.0"
 dependencies = [
@@ -801,6 +827,14 @@ dependencies = [
  "libc",
  "wasi 0.11.1+wasi-snapshot-preview1",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "nested-sequences"
+version = "0.1.0"
+dependencies = [
+ "uniffi 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uniffi_macros 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1332,13 +1366,17 @@ dependencies = [
 name = "uniffi-bindgen-cs-fixtures"
 version = "0.1.0"
 dependencies = [
+ "csharp-gap-fixes",
+ "enum-variant-field-name-conflict",
  "global-methods-class-name",
  "issue-110",
  "issue-152",
+ "issue-165",
  "issue-28",
  "issue-60",
  "issue-75",
  "issue-76",
+ "nested-sequences",
  "null-to-empty-string",
  "uniffi-cs-custom-types-builtin",
  "uniffi-cs-disposable-fixture",
