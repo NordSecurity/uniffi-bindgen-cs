@@ -90,7 +90,11 @@ class {{ e|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
             {%- for variant in e.variants() %}
             case {{ type_name }}.{{ variant.name()|class_name(ci) }} variant_value:
                 {%- if variant.has_fields() %}
-                {% call cs::destroy_fields(variant, "variant_value") %}
+                FFIObjectUtil.DisposeAll(
+                    {%- for field in variant.fields() %}
+                    {%- let field_name = field.name()|or_pos_var(loop.index)|property_name %}
+                    variant_value.{% call cs::enum_field_name(field_name, variant.name()|class_name(ci)) %}{% if !loop.last %},{% endif %}
+                    {%- endfor %});
                 {%- endif %}
                 break;
             {%- endfor %}

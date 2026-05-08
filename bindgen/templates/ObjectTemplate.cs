@@ -19,7 +19,7 @@
     {%- for meth in obj.methods() %}
     {%- call cs::docstring(meth, 4) %}
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
-    {%  call cs::return_type(meth) %} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
+    {%  call cs::return_type(meth) %} {{ meth.name()|method_name(impl_name) }}({% call cs::arg_list_decl(meth) %});
     {%- endfor %}
 }
 
@@ -130,19 +130,19 @@
     {%- call cs::docstring(meth, 4) %}
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
     {%- if meth.is_async() %}
-    public {% if is_error && meth.name()|fn_name == "Message" %}new {% endif %}async {% call cs::return_type(meth) %} {{ meth.name()|fn_name }}({%- call cs::arg_list_decl(meth) -%}) {
+    public {% if is_error && meth.name()|fn_name == "Message" %}new {% endif %}async {% call cs::return_type(meth) %} {{ meth.name()|method_name(impl_name) }}({%- call cs::arg_list_decl(meth) -%}) {
         {%- call cs::async_call(meth, true) %}
     }
     {%- else %}
 
     {%- match meth.return_type() -%}
     {%- when Some with (return_type) %}
-    public {% if is_error && meth.name()|fn_name == "Message" %}new {% endif %}{{ return_type|type_name(ci) }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %}) {
+    public {% if is_error && meth.name()|fn_name == "Message" %}new {% endif %}{{ return_type|type_name(ci) }} {{ meth.name()|method_name(impl_name) }}({% call cs::arg_list_decl(meth) %}) {
         return CallWithPointer(thisPtr => {{ return_type|lift_fn }}({%- call cs::to_ffi_call_with_prefix("thisPtr", meth) %}));
     }
 
     {%- when None %}
-    public {% if is_error && meth.name()|fn_name == "Message" %}new {% endif %}void {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %}) {
+    public {% if is_error && meth.name()|fn_name == "Message" %}new {% endif %}void {{ meth.name()|method_name(impl_name) }}({% call cs::arg_list_decl(meth) %}) {
         CallWithPointer(thisPtr => {%- call cs::to_ffi_call_with_prefix("thisPtr", meth) %});
     }
     {% endmatch %}
@@ -179,11 +179,11 @@
     {%- call cs::docstring(cons, 4) %}
     {%- call cs::method_throws_annotation(cons.throws_type()) %}
     {%- if cons.is_async() %}
-    public static async Task<{{ impl_name }}> {{ cons.name()|fn_name }} ({%- call cs::arg_list_decl(cons) -%}) {
+    public static async Task<{{ impl_name }}> {{ cons.name()|method_name(impl_name) }} ({%- call cs::arg_list_decl(cons) -%}) {
         {%- call cs::async_call(cons, false) %}
     }
     {%- else %}
-    public static {{ impl_name }} {{ cons.name()|fn_name }}({% call cs::arg_list_decl(cons) %}) {
+    public static {{ impl_name }} {{ cons.name()|method_name(impl_name) }}({% call cs::arg_list_decl(cons) %}) {
         return new {{ impl_name }}({% call cs::to_ffi_call(cons) %});
     }
     {%- endif %}

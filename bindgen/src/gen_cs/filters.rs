@@ -120,6 +120,26 @@ pub(super) fn fn_name(nm: &str) -> Result<String, askama::Error> {
     Ok(oracle().fn_name(nm))
 }
 
+/// Rename a method to avoid CS0542 when the method name matches the enclosing class name.
+/// Applied to both interface and class method declarations using the impl class name.
+pub(super) fn method_name(nm: &str, class_name: &str) -> Result<String, askama::Error> {
+    let method_name = oracle().fn_name(nm);
+    if method_name == class_name {
+        Ok(format!("{}ClassMethod", method_name))
+    } else {
+        Ok(method_name)
+    }
+}
+
+/// Generate a correct array allocation expression for potentially jagged arrays.
+/// Transforms e.g. "byte[]" → "new byte[length][]" to avoid the invalid "new byte[][length]" form.
+pub(super) fn array_new_expr(inner_type_name: &str) -> Result<String, askama::Error> {
+    let bracket_pos = inner_type_name.find('[').unwrap_or(inner_type_name.len());
+    let base = &inner_type_name[..bracket_pos];
+    let suffix = &inner_type_name[bracket_pos..];
+    Ok(format!("new {}[length]{}", base, suffix))
+}
+
 /// Get the idiomatic C# rendering of a variable name.
 pub(super) fn var_name(nm: impl AsRef<str>) -> Result<String, askama::Error> {
     Ok(oracle().var_name(nm.as_ref()))

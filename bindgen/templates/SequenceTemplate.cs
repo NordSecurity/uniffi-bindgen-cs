@@ -13,7 +13,7 @@ class {{ ffi_converter_name }}: FfiConverterRustBuffer<{{ inner_type_name }}[]> 
             return [];
         }
 
-        var result = new {{ inner_type_name }}[(length)];
+        var result = {{ inner_type_name|array_new_expr }};
         var readFn = {{ inner_type|read_fn }};
         for (int i = 0; i < length; i++) {
             result[i] = readFn(stream);
