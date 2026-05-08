@@ -6,12 +6,35 @@
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 delegate void UniFfiFutureCallback(IntPtr continuationHandle, byte pollResult);
 
+internal sealed class UniffiForeignFutureHandle : System.IDisposable {
+    internal CancellationTokenSource Cts { get; } = new CancellationTokenSource();
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new Lock();
+#else
+    private readonly object _lock = new object();
+#endif
+
+    internal void MarkDropped() {
+        lock (_lock) { Cts.Cancel(); }
+    }
+
+    internal void TryInvokeCallback(Action invoke) {
+        lock (_lock) {
+            if (!Cts.IsCancellationRequested) { invoke(); }
+        }
+    }
+
+    // Dispose() is always called after MarkDropped() removes the handle from the map,
+    // so Cts.IsCancellationRequested cannot be observed after Dispose() by any other path.
+    public void Dispose() { Cts.Dispose(); }
+}
+
 internal static class _UniFFIAsync {
     internal const byte UNIFFI_RUST_FUTURE_POLL_READY = 0;
     // internal const byte UNIFFI_RUST_FUTURE_POLL_MAYBE_READY = 1;
 
     internal static ConcurrentHandleMap<TaskCompletionSource<byte>> _async_handle_map = new ConcurrentHandleMap<TaskCompletionSource<byte>>();
-    public static ConcurrentHandleMap<CancellationTokenSource> _foreign_futures_map = new ConcurrentHandleMap<CancellationTokenSource>();
+    public static ConcurrentHandleMap<UniffiForeignFutureHandle> _foreign_futures_map = new ConcurrentHandleMap<UniffiForeignFutureHandle>();
 
     // FFI type for Rust future continuations
     internal class UniffiRustFutureContinuationCallback
@@ -24,10 +47,7 @@ internal static class _UniFFIAsync {
             {
                 task.SetResult(pollResult);
             }
-            else 
-            {
-                throw new InternalException($"Unable to find continuation handle: {continuationHandle}");
-            }
+            // else: continuation already completed (e.g. waker called more than once), ignore
         }
     }
 
@@ -37,13 +57,9 @@ internal static class _UniFFIAsync {
 
         public static void Callback(ulong handle)
         {
-            if (_foreign_futures_map.Remove(handle, out CancellationTokenSource? task))
-            {
-                task.Cancel();
-            }
-            else
-            {
-                throw new InternalException($"Unable to find cancellation token: {handle}");
+            if (_foreign_futures_map.Remove(handle, out UniffiForeignFutureHandle? futureHandle) && futureHandle is not null) {
+                futureHandle.MarkDropped();
+                futureHandle.Dispose();
             }
         }
     }
@@ -55,7 +71,7 @@ internal static class _UniFFIAsync {
     private static async Task PollFuture(ulong rustFuture, Action<ulong, IntPtr, ulong> pollFunc)
     {
         byte pollResult;
-        do 
+        do
         {
             var tcs = new TaskCompletionSource<byte>(TaskCreationOptions.RunContinuationsAsynchronously);
             IntPtr callback = Marshal.GetFunctionPointerForDelegate(UniffiRustFutureContinuationCallback.callback);
