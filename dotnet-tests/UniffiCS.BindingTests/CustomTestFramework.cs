@@ -16,7 +16,7 @@ public sealed class DiagnosticTestStartEndAttribute : BeforeAfterTestAttribute
 
     public override void Before(MethodInfo methodUnderTest, IXunitTest test)
     {
-        _stopwatch.Start();
+        _stopwatch.Restart();
         TestContext.Current.SendDiagnosticMessage("STARTED: {0}.{1}", test.TestCase.TestClassName, test.TestCase.TestMethodName);
     }
 
