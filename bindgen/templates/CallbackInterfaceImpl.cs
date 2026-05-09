@@ -47,14 +47,29 @@ class {{ callback_impl_name }} {
         }
 
         {%- else %}
-        if (!{{ ffi_converter_var }}.handleMap.TryGet(handle, out var uniffiObject)) {
-            throw new InternalException($"No callback in handlemap '{handle}'");
-        }
         var futureHandle = new UniffiForeignFutureHandle();
         var foreignHandle = _UniFFIAsync._foreign_futures_map.Insert(futureHandle);
         unsafe {
             (*(_UniFFILib.UniffiForeignFutureDroppedCallbackStruct*)@uniffiOutDroppedCallback).handle = foreignHandle;
             (*(_UniFFILib.UniffiForeignFutureDroppedCallbackStruct*)@uniffiOutDroppedCallback).free = Marshal.GetFunctionPointerForDelegate(_UniFFIAsync.UniffiForeignFutureDroppedCallbackImpl.callback);
+        }
+        if (!{{ ffi_converter_var }}.handleMap.TryGet(handle, out var uniffiObject)) {
+            var ret = new _UniFFILib.{{ meth.foreign_future_ffi_result_struct().name()|ffi_struct_name }}();
+            ret.@callStatus = new UniffiRustCallStatus();
+            ret.@callStatus.code = UniffiCallbackResponseStatus.UNEXPECTED_ERROR;
+            try {
+                ret.@callStatus.error_buf = FfiConverterString.INSTANCE.Lower($"No callback in handlemap '{handle}'");
+            } catch { }
+            {%- match meth.return_type() %}
+            {%- when Some with (return_type) %}
+            {%- let complete_fn_type = return_type|ffi_foreign_future_complete %}
+            var earlyCb = Marshal.GetDelegateForFunctionPointer<_UniFFILib.{{ complete_fn_type }}>(@uniffiFutureCallback);
+            {%- when None %}
+            var earlyCb = Marshal.GetDelegateForFunctionPointer<_UniFFILib.UniffiForeignFutureCompleteVoid>(@uniffiFutureCallback);
+            {%- endmatch %}
+            futureHandle.InvokeCallbackOnce(() => { earlyCb(@uniffiCallbackData, ret); });
+            futureHandle.Dispose();
+            return;
         }
 
         Task.Run(async () => {
@@ -145,10 +160,14 @@ class {{ callback_impl_name }} {
     }
 
     static ulong UniffiClone(ulong @handle) {
-        if (!{{ ffi_converter_var }}.handleMap.TryGet(@handle, out var obj)) {
-            throw new InternalException($"No callback in handlemap '{@handle}'");
+        try {
+            if (!{{ ffi_converter_var }}.handleMap.TryGet(@handle, out var obj)) {
+                throw new InternalException($"No callback in handlemap '{@handle}'");
+            }
+            return {{ ffi_converter_var }}.handleMap.Insert(obj);
+        } catch (System.Exception) {
+            return 0; // 0 is never a valid handle; ConcurrentHandleMap starts at 1
         }
-        return {{ ffi_converter_var }}.handleMap.Insert(obj);
     }
 
     {%- for (ffi_callback, meth) in vtable_methods.iter() %}
