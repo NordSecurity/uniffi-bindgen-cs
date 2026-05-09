@@ -16,19 +16,19 @@ internal sealed class UniffiForeignFutureHandle : System.IDisposable {
 
     internal void MarkDropped() {
         lock (_lock) {
-            try { Cts.Cancel(); } catch (ObjectDisposedException) { }
+            if (!_callbackInvoked) { Cts.Cancel(); }
         }
     }
 
     private bool _callbackInvoked = false;
 
     internal void InvokeCallbackOnce(Action invoke) {
+        bool shouldInvoke;
         lock (_lock) {
-            if (!_callbackInvoked) {
-                _callbackInvoked = true;
-                invoke();
-            }
+            shouldInvoke = !_callbackInvoked;
+            if (shouldInvoke) _callbackInvoked = true;
         }
+        if (shouldInvoke) invoke();
     }
 
     // Dispose() is called from the Task.Run worker's finally block, exactly once after the worker exits.
