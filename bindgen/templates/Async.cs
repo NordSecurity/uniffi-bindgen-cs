@@ -15,17 +15,23 @@ internal sealed class UniffiForeignFutureHandle : System.IDisposable {
 #endif
 
     internal void MarkDropped() {
-        lock (_lock) { Cts.Cancel(); }
-    }
-
-    internal void TryInvokeCallback(Action invoke) {
         lock (_lock) {
-            if (!Cts.IsCancellationRequested) { invoke(); }
+            try { Cts.Cancel(); } catch (ObjectDisposedException) { }
         }
     }
 
-    // Dispose() is always called after MarkDropped() removes the handle from the map,
-    // so Cts.IsCancellationRequested cannot be observed after Dispose() by any other path.
+    private bool _callbackInvoked = false;
+
+    internal void InvokeCallbackOnce(Action invoke) {
+        lock (_lock) {
+            if (!_callbackInvoked) {
+                _callbackInvoked = true;
+                invoke();
+            }
+        }
+    }
+
+    // Dispose() is called from the Task.Run worker's finally block, exactly once after the worker exits.
     public void Dispose() { Cts.Dispose(); }
 }
 
@@ -59,7 +65,6 @@ internal static class _UniFFIAsync {
         {
             if (_foreign_futures_map.Remove(handle, out UniffiForeignFutureHandle? futureHandle) && futureHandle is not null) {
                 futureHandle.MarkDropped();
-                futureHandle.Dispose();
             }
         }
     }

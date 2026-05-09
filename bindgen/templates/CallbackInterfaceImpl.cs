@@ -62,6 +62,7 @@ class {{ callback_impl_name }} {
             ret.@callStatus = new UniffiRustCallStatus();
 
             try {
+            try {
 
             {%- match meth.return_type() %}
             {%- when Some with (return_type) %}
@@ -93,7 +94,10 @@ class {{ callback_impl_name }} {
                 ret.@callStatus.code = UniffiCallbackResponseStatus.ERROR;
                 ret.@callStatus.error_buf = {{ error_type|ffi_converter_name }}.INSTANCE.Lower(e);
             } catch (OperationCanceledException) when (futureHandle.Cts.IsCancellationRequested) {
-                return;
+                ret.@callStatus.code = UniffiCallbackResponseStatus.UNEXPECTED_ERROR;
+                try {
+                    ret.@callStatus.error_buf = FfiConverterString.INSTANCE.Lower("Future cancelled");
+                } catch { }
             } catch (System.Exception e) {
                 ret.@callStatus.code = UniffiCallbackResponseStatus.UNEXPECTED_ERROR;
                 try {
@@ -104,7 +108,10 @@ class {{ callback_impl_name }} {
             }
             {%- when None %}
             } catch (OperationCanceledException) when (futureHandle.Cts.IsCancellationRequested) {
-                return;
+                ret.@callStatus.code = UniffiCallbackResponseStatus.UNEXPECTED_ERROR;
+                try {
+                    ret.@callStatus.error_buf = FfiConverterString.INSTANCE.Lower("Future cancelled");
+                } catch { }
             } catch (System.Exception e) {
                 ret.@callStatus.code = UniffiCallbackResponseStatus.UNEXPECTED_ERROR;
                 try {
@@ -122,9 +129,12 @@ class {{ callback_impl_name }} {
             {%- when None %}
             var cb = Marshal.GetDelegateForFunctionPointer<_UniFFILib.UniffiForeignFutureCompleteVoid>(@uniffiFutureCallback);
             {%- endmatch %}
-            futureHandle.TryInvokeCallback(() => {
+            futureHandle.InvokeCallbackOnce(() => {
                 cb(@uniffiCallbackData, ret);
             });
+            } finally {
+                futureHandle.Dispose();
+            }
         }, futureHandle.Cts.Token);
         {%- endif %}
     }
