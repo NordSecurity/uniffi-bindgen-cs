@@ -31,7 +31,8 @@ internal sealed class UniffiForeignFutureHandle : System.IDisposable {
         if (shouldInvoke) invoke();
     }
 
-    // Dispose() is called from the Task.Run worker's finally block, exactly once after the worker exits.
+    // Dispose() is called exactly once — from the worker's finally (Task.Run path) or from the
+    // synchronous early-return path — always after InvokeCallbackOnce has set _callbackInvoked = true.
     public void Dispose() { Cts.Dispose(); }
 }
 
