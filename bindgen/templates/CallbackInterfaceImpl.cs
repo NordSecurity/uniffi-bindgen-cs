@@ -32,8 +32,12 @@ class {{ callback_impl_name }} {
         {%- match meth.throws_type() %}
         {%- when Some with (error_type) %}
         catch ({{ error_type|type_name(ci) }} e) {
-            _uniffi_out_err.code = UniffiCallbackResponseStatus.ERROR;
-            _uniffi_out_err.error_buf = {{ error_type|ffi_converter_name }}.INSTANCE.Lower(e);
+            try {
+                _uniffi_out_err.code = UniffiCallbackResponseStatus.ERROR;
+                _uniffi_out_err.error_buf = {{ error_type|ffi_converter_name }}.INSTANCE.Lower(e);
+            } catch {
+                _uniffi_out_err.code = UniffiCallbackResponseStatus.UNEXPECTED_ERROR;
+            }
         }
         {%- when None %}
         {%- endmatch %}
@@ -106,8 +110,12 @@ class {{ callback_impl_name }} {
             {%- match meth.throws_type() %}
             {%- when Some with (error_type) %}
             } catch ({{ error_type|type_name(ci) }} e) {
-                ret.@callStatus.code = UniffiCallbackResponseStatus.ERROR;
-                ret.@callStatus.error_buf = {{ error_type|ffi_converter_name }}.INSTANCE.Lower(e);
+                try {
+                    ret.@callStatus.code = UniffiCallbackResponseStatus.ERROR;
+                    ret.@callStatus.error_buf = {{ error_type|ffi_converter_name }}.INSTANCE.Lower(e);
+                } catch {
+                    ret.@callStatus.code = UniffiCallbackResponseStatus.UNEXPECTED_ERROR;
+                }
             } catch (OperationCanceledException) when (futureHandle.Cts.IsCancellationRequested) {
                 ret.@callStatus.code = UniffiCallbackResponseStatus.UNEXPECTED_ERROR;
                 try {
