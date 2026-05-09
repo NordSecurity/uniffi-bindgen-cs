@@ -1,8 +1,8 @@
-# Uprading upstream version
+# Upgrading upstream version
 
 ## C ABI
 
-Check that C ABI still matches between C# and Rust code. This includes , ,
+Check that C ABI still matches between C# and Rust code. This includes
 `FfiConverter*` types (`List`, `Map`, `Duration`, etc..), FFI types generated for
 functions in `NamespaceLibraryTemplate.cs`.
 

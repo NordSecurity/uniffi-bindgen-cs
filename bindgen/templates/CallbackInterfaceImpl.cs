@@ -76,6 +76,8 @@ class {{ callback_impl_name }} {
             return;
         }
 
+        // Optimization: skip queuing if already cancelled before Task.Run schedules.
+        // TryInvokeCallback is the definitive cancellation guard inside the task body.
         Task.Run(async () => {
             var ret = new _UniFFILib.{{ meth.foreign_future_ffi_result_struct().name()|ffi_struct_name }}();
             ret.@callStatus = new UniffiRustCallStatus();
@@ -185,7 +187,10 @@ class {{ callback_impl_name }} {
     static _UniFFILib.UniffiCallbackInterfaceFree _callback_interface_free = new _UniFFILib.UniffiCallbackInterfaceFree(UniffiFree);
     static _UniFFILib.UniffiCallbackInterfaceClone _callback_interface_clone = new _UniFFILib.UniffiCallbackInterfaceClone(UniffiClone);
 
+    private static GCHandle? _vtablePin;
+
     public static void Register() {
+        if (_vtablePin.HasValue) return;
         _UniFFILib.{{ vtable|ffi_type_name }} _vtable = new _UniFFILib.{{ vtable|ffi_type_name }} {
             {%- for (ffi_callback, meth) in vtable_methods.iter() %}
             {%- let fn_type = format!("_UniFFILib.{}Method", callback_impl_name) %}
@@ -195,8 +200,10 @@ class {{ callback_impl_name }} {
             @uniffiClone = Marshal.GetFunctionPointerForDelegate(_callback_interface_clone),
         };
 
-        // Pin vtable to ensure GC does not move the vtable across the heap
-        _UniFFILib.{{ ffi_init_callback.name() }}(GCHandle.Alloc(_vtable, GCHandleType.Pinned).AddrOfPinnedObject());
+        // Pin the vtable so the GC never moves it. The GCHandle is intentionally never freed —
+        // this pin must remain valid for the process lifetime.
+        _vtablePin = GCHandle.Alloc(_vtable, GCHandleType.Pinned);
+        _UniFFILib.{{ ffi_init_callback.name() }}(_vtablePin.Value.AddrOfPinnedObject());
     }
 }
 

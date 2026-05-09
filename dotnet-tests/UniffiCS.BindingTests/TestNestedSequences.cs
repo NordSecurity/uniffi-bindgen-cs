@@ -30,4 +30,11 @@ public class TestNestedSequences
         Assert.Equal(new uint[] { 0, 1, 2 }, g[0]);
         Assert.Equal(new uint[] { 3, 4, 5 }, g[1]);
     }
+
+    [Fact]
+    public void IdentityNestedIntsRoundTrip()
+    {
+        int[][] in_ = [[1, 2], [3]];
+        Assert.Equal(in_, NestedSequencesMethods.IdentityNestedInts(in_));
+    }
 }

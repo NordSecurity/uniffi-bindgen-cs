@@ -4,7 +4,7 @@
 {% if self.include_once_check("ConcurrentHandleMap.cs") %}{% include "ConcurrentHandleMap.cs" %}{% endif %}
 
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-delegate void UniFfiFutureCallback(IntPtr continuationHandle, byte pollResult);
+delegate void UniFfiFutureCallback(ulong continuationHandle, byte pollResult);
 
 internal sealed class UniffiForeignFutureHandle : System.IDisposable {
     internal CancellationTokenSource Cts { get; } = new CancellationTokenSource();
@@ -48,9 +48,9 @@ internal static class _UniFFIAsync {
     {
         public static UniFfiFutureCallback callback = Callback;
 
-        public static void Callback(IntPtr continuationHandle, byte pollResult)
+        public static void Callback(ulong continuationHandle, byte pollResult)
         {
-            if (_async_handle_map.Remove((ulong)continuationHandle.ToInt64(), out TaskCompletionSource<byte>? task))
+            if (_async_handle_map.Remove(continuationHandle, out TaskCompletionSource<byte>? task))
             {
                 task.SetResult(pollResult);
             }

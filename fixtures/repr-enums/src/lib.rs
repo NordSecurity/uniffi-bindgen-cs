@@ -21,8 +21,20 @@ pub enum HugeUnsigned {
     Wrapped,
 }
 
+#[derive(uniffi::Enum, Debug, PartialEq)]
+#[repr(u8)]
+pub enum SmallUnsigned {
+    Min = 0,
+    Max = 255,
+}
+
 #[uniffi::export]
 fn roundtrip_index(value: IndexExport) -> IndexExport {
+    value
+}
+
+#[uniffi::export]
+fn roundtrip_small(value: SmallUnsigned) -> SmallUnsigned {
     value
 }
 

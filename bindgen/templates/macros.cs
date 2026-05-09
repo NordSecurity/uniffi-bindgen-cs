@@ -302,7 +302,9 @@ void
         {%- when Some(hash) %}
         return (int){{ Type::UInt64.borrow()|lift_fn }}({%- call to_ffi_value_method_call(self_lower_prefix, hash) %});
         {%- when None %}
-        return base.GetHashCode();
+        // Eq is implemented but Hash is not exported — return 0 to satisfy the Equals/GetHashCode contract
+        // (equal objects must have equal hashes). This is correct but degrades hash-collection performance.
+        return 0;
         {%- endmatch %}
     }
     {%- when None %}

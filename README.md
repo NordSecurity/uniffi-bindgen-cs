@@ -44,12 +44,6 @@ There are a few requirements depending on your target framework version.
     </PropertyGroup>
     ```
 
-# Unsupported features
-
-The following uniffi features are unsupported.
-
-- External types [#40](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/40)
-
 # Known Limitations
 
 ### String/byte[]/lists size limit

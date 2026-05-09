@@ -144,7 +144,7 @@ impl Config {
 
 // Generate C# bindings for the given ComponentInterface, as a string.
 pub fn generate_bindings(config: &Config, ci: &ComponentInterface) -> Result<String> {
-    CsWrapper::new(config.clone(), ci)
+    CsWrapper::new(config.clone(), ci)?
         .render()
         .context("failed to render C# bindings")
 }
@@ -236,18 +236,20 @@ pub struct CsWrapper<'a> {
 }
 
 impl<'a> CsWrapper<'a> {
-    pub fn new(config: Config, ci: &'a ComponentInterface) -> Self {
+    pub fn new(config: Config, ci: &'a ComponentInterface) -> Result<Self> {
         let type_renderer = TypeRenderer::new(&config, ci);
-        let type_helper_code = type_renderer.render().unwrap();
+        let type_helper_code = type_renderer
+            .render()
+            .context("failed to render type helpers")?;
         let type_imports = type_renderer.imports.clone();
         let type_aliases = type_renderer.type_aliases.into_inner();
-        Self {
+        Ok(Self {
             config,
             ci,
             type_helper_code,
             type_imports,
             type_aliases,
-        }
+        })
     }
 
     pub fn initialization_fns(&self) -> Vec<String> {

@@ -48,4 +48,19 @@ public class TestReprEnums
         Assert.Equal(HugeUnsigned.BeforeWrap, UniffiCsReprEnumsMethods.RoundtripHuge(HugeUnsigned.BeforeWrap));
         Assert.Equal(HugeUnsigned.Wrapped, UniffiCsReprEnumsMethods.RoundtripHuge(HugeUnsigned.Wrapped));
     }
+
+    [Fact]
+    public void SmallUnsignedBoundaryDiscriminants()
+    {
+        Assert.Equal(typeof(byte), Enum.GetUnderlyingType(typeof(SmallUnsigned)));
+        Assert.Equal((byte)0, (byte)SmallUnsigned.Min);
+        Assert.Equal((byte)255, (byte)SmallUnsigned.Max);
+    }
+
+    [Fact]
+    public void SmallUnsignedRoundTrips()
+    {
+        Assert.Equal(SmallUnsigned.Min, UniffiCsReprEnumsMethods.RoundtripSmall(SmallUnsigned.Min));
+        Assert.Equal(SmallUnsigned.Max, UniffiCsReprEnumsMethods.RoundtripSmall(SmallUnsigned.Max));
+    }
 }

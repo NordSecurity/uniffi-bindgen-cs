@@ -167,10 +167,11 @@
         return Equals(obj as {{ impl_name }});
     }
     {%- when UniffiTrait::Hash  { hash }  %}
-    public override int GetHashCode() { 
+    public override int GetHashCode() {
         return (int)CallWithPointer(thisPtr => {{ Type::UInt64.borrow()|lift_fn }}({%- call cs::to_ffi_call_with_prefix("thisPtr", hash)  %}));
     }
     {%- else %}
+    // UniFFI: unrecognized UniffiTrait variant (e.g. Ord) — interface not yet implemented
     {%- endmatch %}
     {%- endfor %}
 
