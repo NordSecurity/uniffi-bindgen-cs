@@ -122,7 +122,11 @@ class {{ ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>, CallSt
             {%- for variant in e.variants() %}
             case {{ type_name }}.{{ variant|error_variant_name }} variant_value:
                 {%- if variant.has_fields() %}
-                {% call cs::destroy_fields(variant, "variant_value") %}
+                FFIObjectUtil.DisposeAll(
+                    {%- for field in variant.fields() %}
+                    {%- let field_name = field.name()|or_pos_var(loop.index)|var_name %}
+                    variant_value.{{ field_name }}{% if !loop.last %},{% endif %}
+                    {%- endfor %});
                 {%- endif %}
                 break;
             {%- endfor %}

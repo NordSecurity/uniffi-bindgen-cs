@@ -29,4 +29,15 @@ public class TestCsharpGapFixes
         byte[][] m = [[1, 2], [3, 4]];
         Assert.Equal((uint)10, CsharpGapFixesMethods.SumNestedBytes(m));
     }
+
+    // Regression: ErrorTemplate Dispose() for non-flat error enums with unnamed
+    // (tuple-style) object-type fields emitted `variant_value.` (CS1001) instead
+    // of `variant_value.@v1`. Verified by catching the error and disposing it.
+    [Fact]
+    public void TupleObjectErrorDisposeDoesNotThrow()
+    {
+        var ex = Assert.Throws<TupleObjectException.Detailed>(
+            () => CsharpGapFixesMethods.ThrowTupleObjectError("oops"));
+        using (ex) { }
+    }
 }

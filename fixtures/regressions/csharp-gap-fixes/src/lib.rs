@@ -33,4 +33,35 @@ pub fn sum_nested_bytes(matrix: Vec<Vec<u8>>) -> u32 {
     matrix.iter().flatten().map(|&b| b as u32).sum()
 }
 
+// Regression: ErrorTemplate Dispose() emitted `variant_value.` (CS1001) for
+// non-flat error enums whose variants have unnamed (tuple-style) object-type
+// fields. Requires a uniffi::Object field so the IDisposable path is generated.
+#[derive(Debug, uniffi::Object)]
+pub struct ErrorPayload {
+    message: String,
+}
+
+#[uniffi::export]
+impl ErrorPayload {
+    #[uniffi::constructor]
+    pub fn new(message: String) -> Arc<ErrorPayload> {
+        Arc::new(ErrorPayload { message })
+    }
+
+    pub fn message(&self) -> String {
+        self.message.clone()
+    }
+}
+
+#[derive(Debug, thiserror::Error, uniffi::Error)]
+pub enum TupleObjectError {
+    #[error("Detailed")]
+    Detailed(Arc<ErrorPayload>),
+}
+
+#[uniffi::export]
+pub fn throw_tuple_object_error(message: String) -> Result<(), TupleObjectError> {
+    Err(TupleObjectError::Detailed(Arc::new(ErrorPayload { message })))
+}
+
 uniffi::setup_scaffolding!();

@@ -9,6 +9,7 @@ crate-type = ["lib", "cdylib"]
 name = "csharp_gap_fixes"
 
 [dependencies]
+thiserror = "1.0"
 uniffi = { workspace = true, features = ["build"] }
 uniffi_macros.workspace = true
 
