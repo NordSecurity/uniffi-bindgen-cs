@@ -189,6 +189,19 @@ pub(super) fn order_fields(fields: &[Field]) -> Result<(Vec<Field>, bool), askam
     Ok((fields, is_reordered))
 }
 
+/// Generate correct C# array allocation expression for sequences.
+/// Handles jagged arrays where the inner type name itself contains brackets.
+/// e.g., "byte[]" → "new byte[(length)][]" instead of invalid "new byte[][(length)]"
+pub(super) fn new_array_expr(inner_type_name: &str) -> Result<String, askama::Error> {
+    if let Some(bracket_pos) = inner_type_name.find("[]") {
+        let base = &inner_type_name[..bracket_pos];
+        let brackets = &inner_type_name[bracket_pos..];
+        Ok(format!("new {base}[(length)]{brackets}"))
+    } else {
+        Ok(format!("new {inner_type_name}[(length)]"))
+    }
+}
+
 /// If the name is empty create one based on position of the variable
 pub(super) fn or_pos_var(nm: &str, pos: &usize) -> Result<String, askama::Error> {
     if nm.is_empty() {

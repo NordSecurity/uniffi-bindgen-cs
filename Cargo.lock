@@ -1252,6 +1252,7 @@ dependencies = [
  "null-to-empty-string",
  "uniffi-cs-custom-types-builtin",
  "uniffi-cs-disposable-fixture",
+ "uniffi-cs-nested-sequences",
  "uniffi-cs-optional-parameters-fixture",
  "uniffi-cs-positional-enums",
  "uniffi-cs-stringify",
@@ -1289,6 +1290,14 @@ version = "1.0.0"
 dependencies = [
  "once_cell",
  "thiserror 1.0.69",
+ "uniffi 0.29.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uniffi_macros 0.29.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "uniffi-cs-nested-sequences"
+version = "1.0.0"
+dependencies = [
  "uniffi 0.29.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "uniffi_macros 0.29.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
