@@ -22,19 +22,19 @@ public class TestCustomTypesBuiltin
 
     void AssertDemo(CustomTypesBuiltin demo)
     {
-        Assert.Equal("Hello, world!", demo.@string);
-        Assert.Equal(new List<String> { "Hello, world!" }, demo.array);
-        Assert.Equal(new Dictionary<String, String> { { "hello", "world" } }, demo.table);
-        Assert.True(demo.boolean);
-        Assert.Equal(SByte.MaxValue, demo.int8);
-        Assert.Equal(Int16.MaxValue, demo.int16);
-        Assert.Equal(Int32.MaxValue, demo.int32);
-        Assert.Equal(Int64.MaxValue, demo.int64);
-        Assert.Equal(Byte.MaxValue, demo.uint8);
-        Assert.Equal(UInt16.MaxValue, demo.uint16);
-        Assert.Equal(UInt32.MaxValue, demo.uint32);
-        Assert.Equal(UInt64.MaxValue, demo.uint64);
-        Assert.Equal(Single.MaxValue, demo.@float);
-        Assert.Equal(Double.MaxValue, demo.@double);
+        Assert.Equal("Hello, world!", demo.String);
+        Assert.Equal(new List<String> { "Hello, world!" }, demo.Array);
+        Assert.Equal(new Dictionary<String, String> { { "hello", "world" } }, demo.Table);
+        Assert.True(demo.Boolean);
+        Assert.Equal(SByte.MaxValue, demo.Int8);
+        Assert.Equal(Int16.MaxValue, demo.Int16);
+        Assert.Equal(Int32.MaxValue, demo.Int32);
+        Assert.Equal(Int64.MaxValue, demo.Int64);
+        Assert.Equal(Byte.MaxValue, demo.Uint8);
+        Assert.Equal(UInt16.MaxValue, demo.Uint16);
+        Assert.Equal(UInt32.MaxValue, demo.Uint32);
+        Assert.Equal(UInt64.MaxValue, demo.Uint64);
+        Assert.Equal(Single.MaxValue, demo.Float);
+        Assert.Equal(Double.MaxValue, demo.Double);
     }
 }

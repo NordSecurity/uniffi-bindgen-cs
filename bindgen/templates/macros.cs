@@ -124,7 +124,7 @@
 {%- macro destroy_fields(member, prefix) %}
     FFIObjectUtil.DisposeAll(
         {%- for field in member.fields() %}
-            {{ prefix }}.{{ field.name()|var_name }}{% if !loop.last %},{% endif %}
+            {{ prefix }}.{{ field.name()|property_name }}{% if !loop.last %},{% endif %}
         {%- endfor %});
 {%- endmacro -%}
 
