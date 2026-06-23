@@ -1,4 +1,4 @@
-### UNRELEASED
+### v0.11.0+v0.31.0
 - **BREAKING** Upgrade to [UniFFI 0.31.0](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html)
   - Removed `--lib-file` CLI argument (library files are now auto-detected)
   - Updated `CrateConfigSupplier` to use new `from_cargo_metadata_command` API
