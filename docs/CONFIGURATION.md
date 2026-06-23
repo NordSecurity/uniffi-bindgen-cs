@@ -57,3 +57,44 @@ uniffi-bindgen-cs path/to/definitions.udl --config path/to/uniffi.toml
 - `access_modifier` - override the default `internal` access modifier for "exported" uniffi symbols.
 
 - `null_string_to_empty` - when set to `true`, `null` strings will be converted to empty strings even if they are not optional.
+
+- `omit_checksums` - when set to `true`, the generated bindings will skip verifying API checksums
+    when the library is initialized. This may speed up initialization but removes a safety check
+    that catches mismatches between the generated bindings and the Rust library. Only use this if
+    you tightly control your build pipeline.
+    ```toml
+    [bindings.csharp]
+    omit_checksums = true
+    ```
+
+- `rename` - override the generated C# name for types, variants, methods, and fields. Keys are
+    dotted paths to the component being renamed; values are tables with a `name` field.
+    ```toml
+    # Rename a type
+    [bindings.csharp.rename.MyRustType]
+    name = "MyRenamedType"
+
+    # Rename a method on a type
+    [bindings.csharp.rename."MyObject.my_method"]
+    name = "BetterMethodName"
+
+    # Rename a variant of an enum
+    [bindings.csharp.rename."MyEnum.variant_name"]
+    name = "RenamedVariant"
+
+    # Rename a field inside a record or enum variant
+    [bindings.csharp.rename."MyRecord.field_name"]
+    name = "RenamedField"
+    ```
+    Renaming is applied before code generation, so all generated references (interface declarations,
+    FFI converter names, etc.) use the new name throughout.
+
+- `external_packages` - map Rust crate names to C# namespaces for types imported from external
+    uniffi crates (i.e., types declared with `[External]` in UDL or via `#[uniffi::remote]`). If
+    a crate is not listed here, the generated namespace defaults to `uniffi.<namespace>`.
+    ```toml
+    # Types from the "my_base_crate" Rust crate will be looked up in the "com.example.base" namespace
+    [bindings.csharp]
+    [bindings.csharp.external_packages]
+    my_base_crate = "com.example.base"
+    ```

@@ -1,0 +1,16 @@
+[package]
+name = "enum-variant-field-name-conflict"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["lib", "cdylib"]
+name = "enum_variant_field_name_conflict"
+
+[dependencies]
+uniffi = { workspace = true, features = ["build"] }
+uniffi_macros.workspace = true
+
+[build-dependencies]
+uniffi = { workspace = true, features = ["bindgen-tests"] }

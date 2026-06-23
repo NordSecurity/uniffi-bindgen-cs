@@ -2,22 +2,20 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
-using System;
 using uniffi.futures;
 
 namespace UniffiCS.BindingTests;
 
 public class TestFutures {
-    static async Task<long> MeasureTimeMillis(Func<Task> callback) {
-        Stopwatch stopwatch = new Stopwatch();
-        stopwatch.Start();
+
+    private static async Task<long> MeasureTimeMillis(Func<Task> callback) {
+        long start = Stopwatch.GetTimestamp();
         await callback();
-        stopwatch.Stop();
-        return stopwatch.ElapsedMilliseconds;
+        return (long)Stopwatch.GetElapsedTime(start).TotalMilliseconds;
     }
 
     static async Task ReturnsImmediately(Func<Task> callback) {
@@ -234,8 +232,8 @@ public class TestFutures {
         for (int i = 0; i < 1000; i++) {
             await ReturnsImmediately(async () => {
                 var record = await FuturesMethods.NewMyRecord("foo", 42U);
-                Assert.Equal("foo", record.a);
-                Assert.Equal(42U, record.b);
+                Assert.Equal("foo", record.A);
+                Assert.Equal(42U, record.B);
             });
         }
     }

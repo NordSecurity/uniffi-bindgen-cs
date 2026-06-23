@@ -26,10 +26,19 @@ mod uniffi_fixtures {
     uniffi_cs_disposable::uniffi_reexport_scaffolding!();
     uniffi_cs_optional_parameters::uniffi_reexport_scaffolding!();
     uniffi_cs_positional_enums::uniffi_reexport_scaffolding!();
+    uniffi_cs_repr_enums::uniffi_reexport_scaffolding!();
     stringify::uniffi_reexport_scaffolding!();
     issue_28::uniffi_reexport_scaffolding!();
     issue_60::uniffi_reexport_scaffolding!();
     issue_75::uniffi_reexport_scaffolding!();
     issue_76::uniffi_reexport_scaffolding!();
     issue_110::uniffi_reexport_scaffolding!();
+    issue_152::uniffi_reexport_scaffolding!();
+    csharp_gap_fixes::uniffi_reexport_scaffolding!();
+    enum_variant_field_name_conflict::uniffi_reexport_scaffolding!();
+    nested_sequences::uniffi_reexport_scaffolding!();
+    issue_165::uniffi_reexport_scaffolding!();
+
+    uniffi_cs_ext_types_base::uniffi_reexport_scaffolding!();
+    uniffi_cs_ext_types_consumer::uniffi_reexport_scaffolding!();
 }

@@ -19,17 +19,17 @@
     {%- for meth in obj.methods() %}
     {%- call cs::docstring(meth, 4) %}
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
-    {%  call cs::return_type(meth) %} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %});
+    {%  call cs::return_type(meth) %} {{ meth.name()|method_name(impl_name) }}({% call cs::arg_list_decl(meth) %});
     {%- endfor %}
 }
 
 {%- call cs::docstring(obj, 0) %}
 {{ config.access_modifier() }} class {{ impl_name }} : {% if is_error -%}UniffiException, {% endif -%}{{ interface_name }}, IDisposable {
-    protected IntPtr pointer;
+    protected ulong pointer;
     private int _wasDestroyed = 0;
     private long _callCounter = 1;
 
-    public {{ impl_name }}(IntPtr pointer) {
+    public {{ impl_name }}(ulong pointer) {
         this.pointer = pointer;
     }
 
@@ -57,7 +57,7 @@
         });
     }
 
-    protected IntPtr CloneRustArcPtr() {
+    protected ulong CloneRustArcPtr() {
         return _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
             return _UniFFILib.{{ obj.ffi_object_clone().name() }}(this.pointer, ref status);
         });
@@ -104,7 +104,7 @@
         }
     }
 
-    internal void CallWithPointer(Action<IntPtr> action)
+    internal void CallWithPointer(Action<ulong> action)
     {
         IncrementCallCounter();
         try {
@@ -115,7 +115,7 @@
         }
     }
 
-    internal T CallWithPointer<T>(Func<IntPtr, T> func)
+    internal T CallWithPointer<T>(Func<ulong, T> func)
     {   
         IncrementCallCounter();
         try {
@@ -130,25 +130,19 @@
     {%- call cs::docstring(meth, 4) %}
     {%- call cs::method_throws_annotation(meth.throws_type()) %}
     {%- if meth.is_async() %}
-    public async {% call cs::return_type(meth) %} {{ meth.name()|fn_name }}({%- call cs::arg_list_decl(meth) -%}) {
+    public {% if is_error && meth.name()|method_name(impl_name) == "Message" %}new {% endif %}async {% call cs::return_type(meth) %} {{ meth.name()|method_name(impl_name) }}({%- call cs::arg_list_decl(meth) -%}) {
         {%- call cs::async_call(meth, true) %}
     }
     {%- else %}
 
     {%- match meth.return_type() -%}
     {%- when Some with (return_type) %}
-    {%- if meth.name() == "Message" %}
-    public new {{ return_type|type_name(ci) }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %}) {
+    public {% if is_error && meth.name()|method_name(impl_name) == "Message" %}new {% endif %}{{ return_type|type_name(ci) }} {{ meth.name()|method_name(impl_name) }}({% call cs::arg_list_decl(meth) %}) {
         return CallWithPointer(thisPtr => {{ return_type|lift_fn }}({%- call cs::to_ffi_call_with_prefix("thisPtr", meth) %}));
     }
-    {%- else %}
-    public {{ return_type|type_name(ci) }} {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %}) {
-        return CallWithPointer(thisPtr => {{ return_type|lift_fn }}({%- call cs::to_ffi_call_with_prefix("thisPtr", meth) %}));
-    }
-    {%- endif %}
 
     {%- when None %}
-    public void {{ meth.name()|fn_name }}({% call cs::arg_list_decl(meth) %}) {
+    public {% if is_error && meth.name()|method_name(impl_name) == "Message" %}new {% endif %}void {{ meth.name()|method_name(impl_name) }}({% call cs::arg_list_decl(meth) %}) {
         CallWithPointer(thisPtr => {%- call cs::to_ffi_call_with_prefix("thisPtr", meth) %});
     }
     {% endmatch %}
@@ -173,10 +167,11 @@
         return Equals(obj as {{ impl_name }});
     }
     {%- when UniffiTrait::Hash  { hash }  %}
-    public override int GetHashCode() { 
+    public override int GetHashCode() {
         return (int)CallWithPointer(thisPtr => {{ Type::UInt64.borrow()|lift_fn }}({%- call cs::to_ffi_call_with_prefix("thisPtr", hash)  %}));
     }
     {%- else %}
+    // UniFFI: unrecognized UniffiTrait variant (e.g. Ord) — interface not yet implemented
     {%- endmatch %}
     {%- endfor %}
 
@@ -185,11 +180,11 @@
     {%- call cs::docstring(cons, 4) %}
     {%- call cs::method_throws_annotation(cons.throws_type()) %}
     {%- if cons.is_async() %}
-    public static async Task<{{ impl_name }}> {{ cons.name()|fn_name }} ({%- call cs::arg_list_decl(cons) -%}) {
+    public static async Task<{{ impl_name }}> {{ cons.name()|method_name(impl_name) }} ({%- call cs::arg_list_decl(cons) -%}) {
         {%- call cs::async_call(cons, false) %}
     }
     {%- else %}
-    public static {{ impl_name }} {{ cons.name()|fn_name }}({% call cs::arg_list_decl(cons) %}) {
+    public static {{ impl_name }} {{ cons.name()|method_name(impl_name) }}({% call cs::arg_list_decl(cons) %}) {
         return new {{ impl_name }}({% call cs::to_ffi_call(cons) %});
     }
     {%- endif %}
@@ -208,22 +203,41 @@
 {%- let callback_impl_name = interface_name|ffi_callback_impl %}
 {% include "CallbackInterfaceImpl.cs" %}
 
-class {{ ffi_converter_type }}: FfiConverter<{{ interface_name }}, IntPtr> {
+class {{ ffi_converter_type }}: FfiConverter<{{ interface_name }}, ulong> {
     public ConcurrentHandleMap<{{ interface_name }}> handleMap = new ConcurrentHandleMap<{{ interface_name }}>();
     
     public static {{ ffi_converter_type }} INSTANCE = new {{ ffi_converter_type }}();
 
-
-    public override IntPtr Lower({{ interface_name }} value) {
-        return (IntPtr)handleMap.Insert(value);
+    static {{ ffi_converter_type }}() {
+        {{ callback_impl_name }}.Register();
     }
 
-    public override {{ interface_name }} Lift(IntPtr value) {
-        return new {{ impl_name }}(value);
+    public override ulong Lower({{ interface_name }} value) {
+        if (value is {{ impl_name }} rustObj) {
+            // Rust-implemented object. Clone the handle and return it.
+            return rustObj.CallWithPointer(thisPtr => thisPtr);
+        } else {
+            // C# object, generate a new handle map entry and return it.
+            return handleMap.Insert(value);
+        }
+    }
+
+    public override {{ interface_name }} Lift(ulong value) {
+        if ((value & 1UL) == 0UL) {
+            // Rust-generated handle, construct a new wrapper.
+            return new {{ impl_name }}(value);
+        } else {
+            // C#-generated handle, retrieve and remove from the handle map.
+            if (handleMap.Remove(value, out var obj)) {
+                return obj;
+            } else {
+                throw new InternalException($"No callback in handlemap '{value}'");
+            }
+        }
     }
 
     public override {{ interface_name }} Read(BigEndianStream stream) {
-        return Lift(new IntPtr(stream.ReadLong()));
+        return Lift(stream.ReadULong());
     }
 
     public override int AllocationSize({{ interface_name }} value) {
@@ -231,24 +245,24 @@ class {{ ffi_converter_type }}: FfiConverter<{{ interface_name }}, IntPtr> {
     }
 
     public override void Write({{ interface_name }} value, BigEndianStream stream) {
-        stream.WriteLong(Lower(value).ToInt64());
+        stream.WriteULong(Lower(value));
     }
 }
 {%- else %}
-class {{ ffi_converter_type }}: FfiConverter<{{ impl_name }}, IntPtr> {
+class {{ ffi_converter_type }}: FfiConverter<{{ impl_name }}, ulong> {
     public static {{ ffi_converter_type }} INSTANCE = new {{ ffi_converter_type }}();
 
 
-    public override IntPtr Lower({{ impl_name }} value) {
+    public override ulong Lower({{ impl_name }} value) {
         return value.CallWithPointer(thisPtr => thisPtr);
     }
 
-    public override {{ impl_name }} Lift(IntPtr value) {
+    public override {{ impl_name }} Lift(ulong value) {
         return new {{ impl_name }}(value);
     }
 
     public override {{ impl_name }} Read(BigEndianStream stream) {
-        return Lift(new IntPtr(stream.ReadLong()));
+        return Lift(stream.ReadULong());
     }
 
     public override int AllocationSize({{ impl_name }} value) {
@@ -256,7 +270,7 @@ class {{ ffi_converter_type }}: FfiConverter<{{ impl_name }}, IntPtr> {
     }
 
     public override void Write({{ impl_name }} value, BigEndianStream stream) {
-        stream.WriteLong(Lower(value).ToInt64());
+        stream.WriteULong(Lower(value));
     }
 }
 {%- endif %}

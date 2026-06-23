@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #[derive(uniffi::Record)]
-pub struct EmptyDictionary {
-}
+pub struct EmptyDictionary {}
 
 uniffi::setup_scaffolding!();

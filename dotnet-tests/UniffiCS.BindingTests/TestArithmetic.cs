@@ -15,14 +15,14 @@ public class TestArithmetic
         Assert.Equal(6ul, ArithmeticMethods.Add(2, 4));
         Assert.Equal(12ul, ArithmeticMethods.Add(4, 8));
 
-        Assert.Throws<ArithmeticException.IntegerOverflow>(() => ArithmeticMethods.Sub(0, 2));
+        Assert.Throws<ArithmeticException.IntegerOverflow>(() => { ArithmeticMethods.Sub(0, 2); });
 
         Assert.Equal(2ul, ArithmeticMethods.Sub(4, 2));
         Assert.Equal(4ul, ArithmeticMethods.Sub(8, 4));
 
         Assert.Equal(2ul, ArithmeticMethods.Div(8, 4));
 
-        Assert.Throws<PanicException>(() => ArithmeticMethods.Div(8, 0));
+        Assert.Throws<PanicException>(() => { ArithmeticMethods.Div(8, 0); });
 
         Assert.True(ArithmeticMethods.Equal(2, 2));
         Assert.True(ArithmeticMethods.Equal(4, 4));

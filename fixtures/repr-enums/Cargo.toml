@@ -1,0 +1,15 @@
+[package]
+name = "uniffi-cs-repr-enums"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["lib", "cdylib"]
+name = "uniffi_cs_repr_enums"
+
+[dependencies]
+uniffi = { workspace = true, features = ["build"] }
+uniffi_macros.workspace = true
+
+[build-dependencies]
+uniffi = { workspace = true, features = ["bindgen-tests"] }

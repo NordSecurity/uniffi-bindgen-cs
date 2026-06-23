@@ -87,11 +87,14 @@ pub(super) fn read_fn(as_ct: &impl AsCodeType) -> Result<String, askama::Error> 
 }
 
 pub(super) fn render_literal(
-    literal: &Literal,
+    default: &DefaultValue,
     as_ct: &impl AsCodeType,
     ci: &ComponentInterface,
 ) -> Result<String, askama::Error> {
-    Ok(as_ct.as_codetype().literal(literal, ci))
+    match default {
+        DefaultValue::Default => Ok(as_ct.as_codetype().default_value(ci)),
+        DefaultValue::Literal(literal) => Ok(as_ct.as_codetype().literal(literal, ci)),
+    }
 }
 
 pub(super) fn ffi_type(type_: &impl AsType) -> Result<FfiType, askama::Error> {
@@ -117,9 +120,34 @@ pub(super) fn fn_name(nm: &str) -> Result<String, askama::Error> {
     Ok(oracle().fn_name(nm))
 }
 
+/// Rename a method to avoid CS0542 when the method name matches the enclosing class name.
+/// Applied to both interface and class method declarations using the impl class name.
+pub(super) fn method_name(nm: &str, class_name: &str) -> Result<String, askama::Error> {
+    let method_name = oracle().fn_name(nm);
+    if method_name == class_name {
+        Ok(format!("{}ClassMethod", method_name))
+    } else {
+        Ok(method_name)
+    }
+}
+
+/// Generate a correct array allocation expression for potentially jagged arrays.
+/// Transforms e.g. "byte[]" → "new byte[length][]" to avoid the invalid "new byte[][length]" form.
+pub(super) fn array_new_expr(inner_type_name: &str) -> Result<String, askama::Error> {
+    let bracket_pos = inner_type_name.find('[').unwrap_or(inner_type_name.len());
+    let base = &inner_type_name[..bracket_pos];
+    let suffix = &inner_type_name[bracket_pos..];
+    Ok(format!("new {}[length]{}", base, suffix))
+}
+
 /// Get the idiomatic C# rendering of a variable name.
 pub(super) fn var_name(nm: impl AsRef<str>) -> Result<String, askama::Error> {
     Ok(oracle().var_name(nm.as_ref()))
+}
+
+/// Get the idiomatic C# rendering of a property name (for record positional parameters).
+pub(super) fn property_name(nm: impl AsRef<str>) -> Result<String, askama::Error> {
+    Ok(oracle().property_name(nm.as_ref()))
 }
 
 /// Get the idiomatic C# rendering of an individual enum variant.
@@ -195,5 +223,37 @@ pub(super) fn or_pos_var(nm: &str, pos: &usize) -> Result<String, askama::Error>
         Ok(format!("v{pos}"))
     } else {
         Ok(nm.to_string())
+    }
+}
+
+// Bare decimal with no suffix or radix — C# enum initializers don't accept type suffixes.
+// When UniFFI wraps an unsigned variant value into Literal::Int (e.g. an implicit u64
+// value above i64::MAX), reinterpret the bits as the repr's unsigned type so the emitted
+// literal is valid in a `enum : ulong` (or u32/u16/u8) context.
+pub(super) fn variant_discr_literal(e: &Enum, index: &usize) -> Result<String, askama::Error> {
+    match e.variant_discr(*index).expect("invalid discriminant index") {
+        Literal::UInt(v, _, _) => Ok(v.to_string()),
+        Literal::Int(v, _, _) => match e.variant_discr_type() {
+            Some(Type::UInt8) => Ok((v as u8).to_string()),
+            Some(Type::UInt16) => Ok((v as u16).to_string()),
+            Some(Type::UInt32) => Ok((v as u32).to_string()),
+            Some(Type::UInt64) => Ok((v as u64).to_string()),
+            _ => Ok(v.to_string()),
+        },
+        _ => Err(askama::Error::Fmt),
+    }
+}
+
+pub(super) fn variant_discr_type_name(typ: &Type) -> Result<String, askama::Error> {
+    match typ {
+        Type::Int8 => Ok("sbyte".to_string()),
+        Type::Int16 => Ok("short".to_string()),
+        Type::Int32 => Ok("int".to_string()),
+        Type::Int64 => Ok("long".to_string()),
+        Type::UInt8 => Ok("byte".to_string()),
+        Type::UInt16 => Ok("ushort".to_string()),
+        Type::UInt32 => Ok("uint".to_string()),
+        Type::UInt64 => Ok("ulong".to_string()),
+        _ => Err(askama::Error::Fmt),
     }
 }

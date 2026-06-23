@@ -1,29 +1,30 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFrameworks>net461;net9.0</TargetFrameworks>
-    <LangVersion>latest</LangVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Nullable>warnings</Nullable>
-  </PropertyGroup>
-  <!-- Allow testing internals of generated code -->
-  <ItemGroup>
-    <InternalsVisibleTo Include="UniffiCS.BindingTests" />
-    <PackageReference Include="IsExternalInit" Version="1.0.3"/>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(SKIP_FIXTURE_COPY)' != 'true' and $([MSBuild]::IsOsPlatform('Windows')) == 'true'">
-    <Content Include="../../target/debug/uniffi_fixtures.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup Condition="'$(SKIP_FIXTURE_COPY)' != 'true' and $([MSBuild]::IsOsPlatform('OSX')) == 'true'">
-    <Content Include="../../target/debug/libuniffi_fixtures.dylib">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup Condition="'$(SKIP_FIXTURE_COPY)' != 'true' and $([MSBuild]::IsOsPlatform('Linux')) == 'true'">
-    <Content Include="../../target/debug/libuniffi_fixtures.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+        <LangVersion>latest</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <ImplicitUsings>true</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AnalysisLevel>latest-Recommended</AnalysisLevel>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- Allow testing internals of generated code -->
+        <InternalsVisibleTo Include="UniffiCS.BindingTests"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+        <PackageReference Include="PolySharp" Version="1.15.0"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(SKIP_FIXTURE_COPY)' != 'true' and $([MSBuild]::IsOsPlatform('Windows')) == 'true'">
+        <Content Include="../../target/debug/uniffi_fixtures.dll" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
+    <ItemGroup Condition="'$(SKIP_FIXTURE_COPY)' != 'true' and $([MSBuild]::IsOsPlatform('OSX')) == 'true'">
+        <Content Include="../../target/debug/libuniffi_fixtures.dylib" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
+    <ItemGroup Condition="'$(SKIP_FIXTURE_COPY)' != 'true' and $([MSBuild]::IsOsPlatform('Linux')) == 'true'">
+        <Content Include="../../target/debug/libuniffi_fixtures.so" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
 </Project>

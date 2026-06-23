@@ -38,7 +38,11 @@ impl fmt::Display for Rectangle {
 
 impl fmt::Display for Ellipse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "x_radius: {}, y_radius: {}", self.x_radius, self.y_radius)
+        write!(
+            f,
+            "x_radius: {}, y_radius: {}",
+            self.x_radius, self.y_radius
+        )
     }
 }
 

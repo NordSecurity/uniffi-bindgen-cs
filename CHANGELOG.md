@@ -1,4 +1,33 @@
-### UNRELEASED
+### v0.11.0+v0.31.0
+- **BREAKING** Upgrade to [UniFFI 0.31.0](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html)
+  - Removed `--lib-file` CLI argument (library files are now auto-detected)
+  - Updated `CrateConfigSupplier` to use new `from_cargo_metadata_command` API
+  - Removed direct `cargo_metadata` dependency (now provided transitively by `uniffi_bindgen`)
+  - Method checksums no longer include the self type (must rebuild both Rust and bindings together)
+- **BREAKING** Use PascalCase for record property names — generated record properties are now `FirstName` instead of `first_name`; any consumer code referencing record fields by their Rust-style name will require updates
+- **BREAKING** `#[repr(u64)]` enum discriminants above `i64::MAX` now emit the correct unsigned literal (e.g., `0x8000_0000_0000_0000UL`); previously these were emitted incorrectly as signed values
+- Add support for renaming types, fields, variants, methods via TOML configuration under `[bindings.csharp.rename]`
+- Add support for external types via `[bindings.csharp.external_packages]` configuration
+- Add `omit_checksums` configuration option to skip API checksum verification at startup
+- Add `#[repr(T)]` discriminant support for enums — generated C# enums use the Rust repr type as their underlying type (e.g., `enum Foo : uint`)
+- Add `LibraryImport` / `DllImport` conditional compilation — `NET8_0_OR_GREATER` targets use `[LibraryImport]` (source-generated P/Invoke), older targets fall back to `[DllImport]`
+- Add uniffi trait method support for records (ToString, Equals, GetHashCode via Debug/Display, Eq, Hash exports)
+- Add uniffi trait method support for enums, including extension methods for flat enum traits (ToDebugString, ToDisplayString)
+- Add support for regular methods and async methods on records and enums
+- Add `UniffiClone` vtable entry for callback interfaces — enables Rust to clone a C# callback handle across threads
+- Fix async foreign-future TOCTOU race — handle insertion and dropped-callback struct write now happen synchronously before `Task.Run` is scheduled, closing the window where Rust could drop the future before C# registered it
+- Fix managed exceptions escaping across the P/Invoke boundary in generated callback interfaces — error-type `Lower()` and the `UniffiClone` handle accessor now fall back to `UNEXPECTED_ERROR` / an invalid handle instead of crossing into Rust
+- Fix async callback futures left permanently suspended — the foreign-future completion callback is now invoked exactly once on every path (success, error, cancellation, missing handle) and the `CancellationTokenSource` lifetime is scoped to the worker task
+- Fix invalid `Dispose()` generated for error enums with unnamed (tuple-style) object-type fields — positional field names are now emitted (previously produced CS1001)
+- Fix CS0542 method-name collision — methods whose PascalCase name matches their enclosing class name are renamed to `{Name}ClassMethod` in the generated output
+- Fix jagged-array allocation — nested sequence types now emit `new T[length][]` instead of the invalid `new T[][length]`
+- Fix enum variant field-name collision (CS8866) — variant field names that conflict with the variant's own type name are disambiguated in the generated output
+- Rewrite `ConcurrentHandleMap` as a lock-free structure using `ConcurrentDictionary` and `Interlocked`
+- Migrate test suite to xUnit v3 and Microsoft.Testing.Platform (MTP)
+- **BREAKING** Upgrade to [UniFFI 0.30.0](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html)
+  - Object handles now use `ulong` (u64) instead of `IntPtr` due to UniFFI's change from pointer-based handles to explicit u64 values in the FFI interface
+  - Updated to handle new DefaultValue API for method parameters and record fields
+  - Adapted to removal of `uniffi_bindgen::backend` module (types now in `uniffi_bindgen::interface`)
 
 ### v0.10.0+v0.29.4
 - **BREAKING** Upgrade to [uniFFI 0.29.4](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html) [#124](https://github.com/NordSecurity/uniffi-bindgen-cs/issues/124)

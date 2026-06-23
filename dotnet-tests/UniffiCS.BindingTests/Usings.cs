@@ -3,3 +3,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 global using Xunit;
+
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
+[assembly: DiagnosticTestStartEnd]

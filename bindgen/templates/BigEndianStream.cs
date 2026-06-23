@@ -121,6 +121,8 @@ class BigEndianStream {
         this.stream = stream;
     }
 
+    public Stream InnerStream => stream;
+
     public bool HasRemaining() {
         return (stream.Length - Position) > 0;
     }
