@@ -16,6 +16,9 @@
 - Add support for regular methods and async methods on records and enums
 - Add `UniffiClone` vtable entry for callback interfaces — enables Rust to clone a C# callback handle across threads
 - Fix async foreign-future TOCTOU race — handle insertion and dropped-callback struct write now happen synchronously before `Task.Run` is scheduled, closing the window where Rust could drop the future before C# registered it
+- Fix managed exceptions escaping across the P/Invoke boundary in generated callback interfaces — error-type `Lower()` and the `UniffiClone` handle accessor now fall back to `UNEXPECTED_ERROR` / an invalid handle instead of crossing into Rust
+- Fix async callback futures left permanently suspended — the foreign-future completion callback is now invoked exactly once on every path (success, error, cancellation, missing handle) and the `CancellationTokenSource` lifetime is scoped to the worker task
+- Fix invalid `Dispose()` generated for error enums with unnamed (tuple-style) object-type fields — positional field names are now emitted (previously produced CS1001)
 - Fix CS0542 method-name collision — methods whose PascalCase name matches their enclosing class name are renamed to `{Name}ClassMethod` in the generated output
 - Fix jagged-array allocation — nested sequence types now emit `new T[length][]` instead of the invalid `new T[][length]`
 - Fix enum variant field-name collision (CS8866) — variant field names that conflict with the variant's own type name are disambiguated in the generated output
