@@ -1,0 +1,4 @@
+[bindings.csharp]
+cdylib_name = "uniffi_fixtures"
+# 0.32: items can be excluded from the generated bindings.
+exclude = ["excluded_function"]

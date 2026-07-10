@@ -68,6 +68,7 @@ macro_rules! impl_code_type_for_compound {
 
 impl_code_type_for_compound!(OptionalCodeType, "{}?", "Optional{}", "null");
 impl_code_type_for_compound!(SequenceCodeType, "{}[]", "Sequence{}", "null");
+impl_code_type_for_compound!(SetCodeType, "HashSet<{}>", "HashSet{}", "null");
 
 #[derive(Debug)]
 pub struct MapCodeType {

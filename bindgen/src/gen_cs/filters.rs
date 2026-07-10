@@ -140,6 +140,13 @@ pub(super) fn array_new_expr(inner_type_name: &str) -> Result<String, askama::Er
     Ok(format!("new {}[length]{}", base, suffix))
 }
 
+/// True if any argument is a `[ByRef] bytes` / `&[u8]`, which crosses the FFI as a
+/// borrowed `ForeignBytes` rather than an owned `RustBuffer`. Such calls must pin the
+/// managed array for the duration of the call.
+pub(super) fn has_borrowed_bytes(args: Vec<&Argument>) -> Result<bool, askama::Error> {
+    Ok(args.iter().any(|arg| arg.is_borrowed_bytes()))
+}
+
 /// Get the idiomatic C# rendering of a variable name.
 pub(super) fn var_name(nm: impl AsRef<str>) -> Result<String, askama::Error> {
     Ok(oracle().var_name(nm.as_ref()))
