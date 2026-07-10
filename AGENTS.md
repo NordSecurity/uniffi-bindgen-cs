@@ -9,7 +9,7 @@ A UniFFI C# bindings generator. It takes UniFFI component definitions (UDL files
 libraries) and generates C# code that calls into Rust shared libraries via FFI. Standalone from the
 main `uniffi-rs` repository.
 
-Current version: `0.11.0+v0.31.0` (generator v0.11, targeting uniffi-rs v0.31.0). Requires Rust 1.88+.
+Current version: `0.12.0+v0.32.0` (generator v0.12, targeting uniffi-rs v0.32.0). Requires Rust 1.88+.
 
 ## Build, Generate, and Test
 

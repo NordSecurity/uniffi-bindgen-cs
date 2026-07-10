@@ -1,6 +1,6 @@
 [package]
 name = "uniffi-bindgen-cs"
-version = "0.11.0+v0.31.0"
+version = "0.12.0+v0.32.0"
 edition = "2021"
 
 [lib]
