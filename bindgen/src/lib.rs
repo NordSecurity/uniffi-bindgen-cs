@@ -113,6 +113,11 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
                     .unwrap_or_else(|| format!("uniffi_{}", c.ci.namespace()))
             });
 
+            // Exclusions are applied before renaming, so `exclude` names the original items.
+            if !c.config.exclude().is_empty() {
+                uniffi_bindgen::interface::apply_exclusions(&mut c.ci, c.config.exclude());
+            }
+
             if !c.config.rename().is_empty() {
                 uniffi_bindgen::interface::rename(&mut c.ci, c.config.rename());
             }

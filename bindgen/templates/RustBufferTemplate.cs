@@ -63,13 +63,38 @@ internal struct RustBuffer {
 }
 
 // This is a helper for safely passing byte references into the rust code.
-// It's not actually used at the moment, because there aren't many things that you
-// can take a direct pointer to managed memory, and if we're going to copy something
-// then we might as well copy it into a `RustBuffer`. But it's here for API
-// completeness.
+// The pointer borrows foreign-owned memory, so it is only valid for the duration of
+// the call it is passed to.
 
 [StructLayout(LayoutKind.Sequential)]
 internal struct ForeignBytes {
     public int length;
     public IntPtr data;
+}
+
+// Pins a `byte[]` so Rust can borrow it as `ForeignBytes` without copying. `[ByRef] bytes`
+// (`&[u8]`) arguments take this zero-copy path instead of being copied into a `RustBuffer`.
+// The array must stay pinned until the FFI call returns, so this is always used as a
+// `using` declaration wrapping the call.
+internal struct ForeignBytesPin : IDisposable {
+    private GCHandle _handle;
+    private readonly int _length;
+
+    public ForeignBytesPin(byte[] value) {
+        if (value == null) {
+            throw new ArgumentNullException(nameof(value));
+        }
+        _handle = GCHandle.Alloc(value, GCHandleType.Pinned);
+        _length = value.Length;
+    }
+
+    public ForeignBytes Bytes {
+        get { return new ForeignBytes { length = _length, data = _handle.AddrOfPinnedObject() }; }
+    }
+
+    public void Dispose() {
+        if (_handle.IsAllocated) {
+            _handle.Free();
+        }
+    }
 }

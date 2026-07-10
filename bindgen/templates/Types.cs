@@ -83,6 +83,12 @@
 {%- when Type::Map { key_type, value_type } %}
 {% include "MapTemplate.cs" %}
 
+{%- when Type::Set { inner_type } %}
+{% include "SetTemplate.cs" %}
+
+{#- `Box<T>` is transparent to bindings; the inner type renders its own converter. #}
+{%- when Type::Box { inner_type } %}
+
 {%- when Type::CallbackInterface { name, module_path } %}
 {% include "CallbackInterfaceTemplate.cs" %}
 

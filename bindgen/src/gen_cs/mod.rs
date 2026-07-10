@@ -79,6 +79,8 @@ pub struct Config {
     pub(crate) external_packages: HashMap<String, String>,
     #[serde(default)]
     rename: HashMap<String, toml::value::Table>,
+    #[serde(default)]
+    exclude: Vec<String>,
     global_methods_class_name: Option<String>,
     access_modifier: Option<String>,
     null_string_to_empty: Option<bool>,
@@ -127,6 +129,10 @@ impl Config {
 
     pub fn rename(&self) -> &HashMap<String, toml::value::Table> {
         &self.rename
+    }
+
+    pub fn exclude(&self) -> &[String] {
+        &self.exclude
     }
 
     pub fn package_name(&self) -> String {
@@ -327,6 +333,9 @@ impl<T: AsType> AsCodeType for T {
                 key_type,
                 value_type,
             } => Box::new(compounds::MapCodeType::new(*key_type, *value_type)),
+            Type::Set { inner_type } => Box::new(compounds::SetCodeType::new(*inner_type)),
+            // `Box<T>` only affects the Rust scaffolding; bindings use the inner type directly.
+            Type::Box { inner_type } => inner_type.as_codetype(),
             Type::Custom { name, builtin, .. } => {
                 Box::new(custom::CustomCodeType::new(name, builtin.as_codetype()))
             }

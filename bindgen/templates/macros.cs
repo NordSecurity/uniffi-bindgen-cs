@@ -8,6 +8,37 @@
 // passed to rust via `lower_arg_list`
 #}
 
+{#
+// Renders the body of the lambda passed to `RustCall`/`RustCallWithError`.
+//
+// `[ByRef] bytes` (`&[u8]`) arguments cross the FFI as a borrowed `ForeignBytes` (pointer +
+// length) rather than an owned `RustBuffer`, so the managed array has to stay pinned until the
+// call returns. When such an argument is present we emit a statement body that pins it for the
+// duration of the call; otherwise an expression body, as before.
+//
+// `prefix` is a leading argument (a lowered `self`), or "" for free functions.
+#}
+{%- macro ffi_call_body(prefix, func) -%}
+{%- if func.arguments()|has_borrowed_bytes %} {
+    {%- for arg in func.arguments() %}
+    {%- if arg.is_borrowed_bytes() %}
+    using var _fb_{{ arg.name() }} = new ForeignBytesPin({{ arg.name()|var_name }});
+    {%- endif %}
+    {%- endfor %}
+    {% if func.ffi_func().return_type().is_some() %}return {% endif %}
+    {%- call ffi_lib_call(prefix, func) %};
+}
+{%- else %}
+    {% call ffi_lib_call(prefix, func) %}
+{%- endif %}
+{%- endmacro -%}
+
+{%- macro ffi_lib_call(prefix, func) -%}
+    _UniFFILib.{{ func.ffi_func().name() }}(
+        {%- if prefix != "" %}{{ prefix }}, {% endif %}
+        {%- call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
+{%- endmacro -%}
+
 {%- macro to_ffi_call(func) -%}
     {%- match func.throws_type() %}
     {%- when Some with (e) %}
@@ -15,7 +46,7 @@
     {%- else %}
     _UniffiHelpers.RustCall(
     {%- endmatch %} (ref UniffiRustCallStatus _status) =>
-    _UniFFILib.{{ func.ffi_func().name() }}({% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
+    {%- call ffi_call_body("", func) %}
 )
 {%- endmacro -%}
 
@@ -26,8 +57,7 @@
     {%- else %}
     _UniffiHelpers.RustCall(
     {%- endmatch %} (ref UniffiRustCallStatus _status) =>
-    _UniFFILib.{{ func.ffi_func().name() }}(
-        {{- prefix }}, {% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
+    {%- call ffi_call_body(prefix, func) %}
 )
 {%- endmacro -%}
 
@@ -38,8 +68,7 @@
     {%- else %}
     _UniffiHelpers.RustCall(
     {%- endmatch %} (ref UniffiRustCallStatus _status) =>
-    _UniFFILib.{{ func.ffi_func().name() }}(
-        thisPtr, {% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
+    {%- call ffi_call_body("thisPtr", func) %}
 )
 {%- endmacro -%}
 
@@ -50,8 +79,7 @@
     {%- else %}
     _UniffiHelpers.RustCall(
     {%- endmatch %} (ref UniffiRustCallStatus _status) =>
-    _UniFFILib.{{ func.ffi_func().name() }}(
-        {{- self_lower_prefix }}, {% call lower_arg_list(func) -%}{% if func.arguments().len() > 0 %},{% endif %} ref _status)
+    {%- call ffi_call_body(self_lower_prefix, func) %}
 )
 {%- endmacro -%}
 
@@ -123,7 +151,9 @@
 
 {%- macro lower_arg_list(func) %}
     {%- for arg in func.arguments() %}
-        {{- arg|lower_fn }}({{ arg.name()|var_name }})
+        {%- if arg.is_borrowed_bytes() %}_fb_{{ arg.name() }}.Bytes
+        {%- else %}{{ arg|lower_fn }}({{ arg.name()|var_name }})
+        {%- endif %}
         {%- if !loop.last %}, {% endif %}
     {%- endfor %}
 {%- endmacro -%}

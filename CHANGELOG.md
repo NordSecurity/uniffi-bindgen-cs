@@ -1,3 +1,21 @@
+### v0.12.0+v0.32.0
+- **BREAKING** Upgrade to [UniFFI 0.32.0](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html)
+  - `[ByRef] bytes` / `&[u8]` arguments now cross the FFI as a borrowed `ForeignBytes` (pointer +
+    length) instead of an owned `RustBuffer`. Rust and bindings must be rebuilt together; UDL-defined
+    functions whose Rust implementation takes `&Vec<u8>` must change to `&[u8]`
+  - Method checksums changed upstream, so bindings built with 0.11.x will not load a library built
+    with 0.32.x (and vice versa)
+- Add zero-copy lowering for `[ByRef] bytes` / `&[u8]` arguments — the C# `byte[]` is pinned with a
+  `GCHandle` for the duration of the call and passed to Rust as `ForeignBytes`, with no intermediate
+  copy. Supported for free functions, methods, and fallible calls (async is not supported upstream)
+- Add support for `HashSet<T>` (`Type::Set`), generated as a C# `HashSet<T>` with a
+  `FfiConverterHashSet*` converter
+- Add support for recursive enums and records — `Box<T>` is transparent to the bindings, so cyclic
+  types such as `enum Tree { Leaf { .. }, Node { left: Box<Tree>, right: Box<Tree> } }` generate
+  naturally in C#
+- Add `exclude` configuration option under `[bindings.csharp]` to omit functions, types, methods,
+  and constructors from the generated bindings
+
 ### v0.11.0+v0.31.0
 - **BREAKING** Upgrade to [UniFFI 0.31.0](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html)
   - Removed `--lib-file` CLI argument (library files are now auto-detected)
