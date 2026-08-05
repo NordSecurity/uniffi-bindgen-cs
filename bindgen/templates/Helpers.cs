@@ -82,14 +82,12 @@ class _UniffiHelpers {
     public delegate void RustCallAction(ref UniffiRustCallStatus status);
     public delegate U RustCallFunc<out U>(ref UniffiRustCallStatus status);
 
-    // Call a rust function that returns a Result<>.  Pass in the Error class companion that corresponds to the Err
-    public static U RustCallWithError<U, E>(CallStatusErrorHandler<E> errorHandler, RustCallFunc<U> callback)
+    // Check the status of an already-completed rust call and throw on failure.
+    public static void CheckCallStatus<E>(CallStatusErrorHandler<E> errorHandler, ref UniffiRustCallStatus status)
         where E: System.Exception
     {
-        var status = new UniffiRustCallStatus();
-        var return_value = callback(ref status);
         if (status.IsSuccess()) {
-            return return_value;
+            return;
         } else if (status.IsError()) {
             throw errorHandler.Lift(status.error_buf);
         } else if (status.IsPanic()) {
@@ -104,6 +102,16 @@ class _UniffiHelpers {
         } else {
             throw new InternalException($"Unknown rust call status: {status.code}");
         }
+    }
+
+    // Call a rust function that returns a Result<>.  Pass in the Error class companion that corresponds to the Err
+    public static U RustCallWithError<U, E>(CallStatusErrorHandler<E> errorHandler, RustCallFunc<U> callback)
+        where E: System.Exception
+    {
+        var status = new UniffiRustCallStatus();
+        var return_value = callback(ref status);
+        CheckCallStatus(errorHandler, ref status);
+        return return_value;
     }
 
     // Call a rust function that returns a Result<>.  Pass in the Error class companion that corresponds to the Err

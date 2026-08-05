@@ -13,19 +13,19 @@ internal struct RustBuffer {
     public IntPtr data;
 
     public static RustBuffer Alloc(int size) {
-        return _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
-            var buffer = _UniFFILib.{{ ci.ffi_rustbuffer_alloc().name() }}(Convert.ToUInt64(size), ref status);
-            if (buffer.data == IntPtr.Zero) {
-                throw new AllocationException($"RustBuffer.Alloc() returned null data pointer (size={size})");
-            }
-            return buffer;
-        });
+        var status = new UniffiRustCallStatus();
+        var buffer = _UniFFILib.{{ ci.ffi_rustbuffer_alloc().name() }}(Convert.ToUInt64(size), ref status);
+        _UniffiHelpers.CheckCallStatus(NullCallStatusErrorHandler.INSTANCE, ref status);
+        if (buffer.data == IntPtr.Zero) {
+            throw new AllocationException($"RustBuffer.Alloc() returned null data pointer (size={size})");
+        }
+        return buffer;
     }
 
     public static void Free(RustBuffer buffer) {
-        _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
-            _UniFFILib.{{ ci.ffi_rustbuffer_free().name() }}(buffer, ref status);
-        });
+        var status = new UniffiRustCallStatus();
+        _UniFFILib.{{ ci.ffi_rustbuffer_free().name() }}(buffer, ref status);
+        _UniffiHelpers.CheckCallStatus(NullCallStatusErrorHandler.INSTANCE, ref status);
     }
 
     public static BigEndianStream MemoryStream(IntPtr data, long length)
