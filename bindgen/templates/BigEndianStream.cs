@@ -166,6 +166,23 @@ class BigEndianStream {
         return result;
     }
 
+    // Decodes a UTF-8 string of `length` bytes directly from the underlying
+    // unmanaged memory when possible, avoiding an intermediate byte[] copy.
+    public string ReadUtf8String(int length) {
+        stream.CheckRemaining(length);
+#if NET8_0_OR_GREATER
+        if (stream is UnmanagedMemoryStream unmanagedStream) {
+            unsafe {
+                var result = System.Text.Encoding.UTF8.GetString(
+                    new ReadOnlySpan<byte>(unmanagedStream.PositionPointer, length));
+                unmanagedStream.Position += length;
+                return result;
+            }
+        }
+#endif
+        return System.Text.Encoding.UTF8.GetString(ReadBytes(length));
+    }
+
     public byte ReadByte() => (byte)stream.ReadUint32(bytesToRead: 1);
     public ushort ReadUShort() => (ushort)stream.ReadUint32(bytesToRead: 2);
     public uint ReadUInt() => (uint)stream.ReadUint32(bytesToRead: 4);

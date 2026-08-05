@@ -10,8 +10,16 @@ class FfiConverterString: FfiConverter<string, RustBuffer> {
     // store our length and avoid writing it out to the buffer.
     public override string Lift(RustBuffer value) {
         try {
-            var bytes = value.AsStream().ReadBytes(Convert.ToInt32(value.len));
+            var length = Convert.ToInt32(value.len);
+#if NET8_0_OR_GREATER
+            unsafe {
+                return System.Text.Encoding.UTF8.GetString(
+                    new ReadOnlySpan<byte>((byte*)value.data, length));
+            }
+#else
+            var bytes = value.AsStream().ReadBytes(length);
             return System.Text.Encoding.UTF8.GetString(bytes);
+#endif
         } finally {
             RustBuffer.Free(value);
         }
@@ -19,8 +27,7 @@ class FfiConverterString: FfiConverter<string, RustBuffer> {
 
     public override string Read(BigEndianStream stream) {
         var length = stream.ReadInt();
-        var bytes = stream.ReadBytes(length);
-        return System.Text.Encoding.UTF8.GetString(bytes);
+        return stream.ReadUtf8String(length);
     }
 
     public override RustBuffer Lower(string value) {
@@ -31,10 +38,19 @@ class FfiConverterString: FfiConverter<string, RustBuffer> {
         }
         {%- when _ %}
         {%- endmatch %}
+#if NET8_0_OR_GREATER
+        var rbuf = RustBuffer.Alloc(System.Text.Encoding.UTF8.GetByteCount(value));
+        unsafe {
+            var dest = new Span<byte>((byte*)rbuf.data, Convert.ToInt32(rbuf.len));
+            System.Text.Encoding.UTF8.GetBytes(value, dest);
+        }
+        return rbuf;
+#else
         var bytes = System.Text.Encoding.UTF8.GetBytes(value);
         var rbuf = RustBuffer.Alloc(bytes.Length);
         rbuf.AsWriteableStream().WriteBytes(bytes);
         return rbuf;
+#endif
     }
 
     // TODO(CS)
