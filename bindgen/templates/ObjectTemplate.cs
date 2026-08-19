@@ -24,7 +24,11 @@
 }
 
 {%- call cs::docstring(obj, 0) %}
-{{ config.access_modifier() }} class {{ impl_name }} : {% if is_error -%}UniffiException, {% endif -%}{{ interface_name }}, IDisposable {
+{{ config.access_modifier() }} class {{ impl_name }} : {% if is_error -%}UniffiException, {% endif -%}{{ interface_name }}
+    {%- for trait_impl in obj.trait_impls() -%}
+    , {{ trait_impl.trait_ty|type_name(ci) }}
+    {%- endfor -%}
+    , IDisposable {
     protected ulong pointer;
     private int _wasDestroyed = 0;
     private long _callCounter = 1;
