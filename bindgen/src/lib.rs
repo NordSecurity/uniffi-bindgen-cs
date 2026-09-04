@@ -12,6 +12,7 @@ pub use gen_cs::generate_bindings;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Write;
+use uniffi_bindgen::interface::ComponentInterface;
 use uniffi_bindgen::{Component, GenerationSettings};
 
 #[derive(Parser)]
@@ -115,6 +116,7 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
 
             // Exclusions are applied before renaming, so `exclude` names the original items.
             if !c.config.exclude().is_empty() {
+                check_exclusions(&c.ci, c.config.exclude())?;
                 uniffi_bindgen::interface::apply_exclusions(&mut c.ci, c.config.exclude());
             }
 
@@ -179,5 +181,194 @@ pub fn main() -> Result<()> {
             cli.crate_name.as_deref(),
             !cli.no_format,
         )
+    }
+}
+
+/// Reject exclusions that would silently do the wrong thing.
+///
+/// `apply_exclusions` is a set of `Vec::retain` calls and returns nothing, so
+/// on its own it cannot report either of the cases below. Both are checked
+/// here, before anything is removed, because after the retain the evidence is
+/// gone.
+///
+/// **An entry that matches nothing.** Indistinguishable from one that matched,
+/// because a retain that keeps everything looks exactly like a retain with
+/// nothing to drop. A typo, or an entry written against a renamed item when
+/// exclusions are applied before renaming, would fail open: generation
+/// succeeds and the item is still there. Where the exclusion existed to keep
+/// an internal entry point out of the public surface, failing open is the
+/// worst direction to fail in.
+///
+/// **A method on a type the foreign side implements.** Callback interfaces and
+/// traits exported with `with_foreign` cross on a vtable that is a positional
+/// struct: one slot per method, matched by ordinal, not by name. Excluding a
+/// method removes a slot from the foreign side and cannot remove it from Rust,
+/// which builds its vtable from the trait declaration. Every later slot then
+/// shifts by one, so Rust calls the wrong function pointer with the wrong
+/// argument shape, and the final slot reads past the end of the struct and
+/// invokes whatever is there as an `extern "C" fn`. The contract check that
+/// might have caught it derives its checksums from the same post-exclusion
+/// list, so it is narrowed to the surviving methods and stays quiet.
+fn check_exclusions(ci: &ComponentInterface, exclusions: &[String]) -> Result<()> {
+    let mut unmatched: Vec<&str> = Vec::new();
+    let mut vtable: Vec<&str> = Vec::new();
+
+    for entry in exclusions {
+        let entry = entry.as_str();
+        let mut matched = false;
+        let mut shifts_a_vtable = false;
+
+        // A bare name is a free function or a type.
+        matched |= ci.function_definitions().iter().any(|f| f.name() == entry);
+        matched |= ci.record_definitions().iter().any(|r| r.name() == entry);
+        matched |= ci.enum_definitions().iter().any(|e| e.name() == entry);
+        matched |= ci.object_definitions().iter().any(|o| o.name() == entry);
+        matched |= ci
+            .callback_interface_definitions()
+            .iter()
+            .any(|c| c.name() == entry);
+
+        // `Type.member` is a method or a constructor.
+        if let Some((type_name, member)) = entry.split_once('.') {
+            for o in ci.object_definitions() {
+                if o.name() != type_name {
+                    continue;
+                }
+                let hit = o.methods().iter().any(|m| m.name() == member)
+                    || o.constructors().iter().any(|c| c.name() == member);
+                if hit {
+                    matched = true;
+                    // Trait(Both) and Trait(ForeignOnly): the foreign side
+                    // implements it, so there is a vtable to shift.
+                    shifts_a_vtable |= o.imp().has_callback_interface();
+                }
+            }
+            for c in ci.callback_interface_definitions() {
+                if c.name() == type_name && c.methods().iter().any(|m| m.name() == member) {
+                    matched = true;
+                    shifts_a_vtable = true;
+                }
+            }
+            for r in ci.record_definitions() {
+                if r.name() != type_name {
+                    continue;
+                }
+                matched |= r.methods().iter().any(|m| m.name() == member)
+                    || r.constructors().iter().any(|c| c.name() == member);
+            }
+            for e in ci.enum_definitions() {
+                if e.name() != type_name {
+                    continue;
+                }
+                matched |= e.methods().iter().any(|m| m.name() == member)
+                    || e.constructors().iter().any(|c| c.name() == member);
+            }
+        }
+
+        if shifts_a_vtable {
+            vtable.push(entry);
+        } else if !matched {
+            unmatched.push(entry);
+        }
+    }
+
+    if !vtable.is_empty() {
+        anyhow::bail!(
+            "`exclude` cannot omit a method the foreign side implements, because the vtable \
+             it crosses on is positional and Rust still declares every slot. Excluding one \
+             shifts the rest, and the calls that follow land on the wrong function pointer. \
+             Remove the method on the Rust side instead, or leave it in the bindings. \
+             Offending {}: {}",
+            if vtable.len() == 1 { "entry" } else { "entries" },
+            vtable.join(", ")
+        );
+    }
+    if !unmatched.is_empty() {
+        anyhow::bail!(
+            "`exclude` {} nothing in this component, so {} silently not excluding anything. \
+             Note that exclusions are applied before renaming, so they name the original \
+             Rust items rather than the renamed ones. Offending {}: {}",
+            if unmatched.len() == 1 { "entry matches" } else { "entries match" },
+            if unmatched.len() == 1 { "it is" } else { "they are" },
+            if unmatched.len() == 1 { "entry" } else { "entries" },
+            unmatched.join(", ")
+        );
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod exclusion_tests {
+    use super::check_exclusions;
+    use uniffi_bindgen::interface::ComponentInterface;
+
+    /// A free function, and a callback interface whose vtable is positional.
+    fn interface() -> ComponentInterface {
+        ComponentInterface::from_webidl(
+            r#"
+            namespace test {
+                void plain_function();
+            };
+
+            callback interface Getters {
+                string get_string();
+                boolean get_bool();
+            };
+            "#,
+            "test",
+        )
+        .expect("the fixture UDL parses")
+    }
+
+    #[test]
+    fn excluding_a_free_function_is_allowed() {
+        // The safe case, and the only one the fixture suite covers. It has to
+        // stay quiet, or the guard is useless for being unusable.
+        let ci = interface();
+        assert!(check_exclusions(&ci, &["plain_function".to_string()]).is_ok());
+    }
+
+    #[test]
+    fn excluding_a_whole_callback_interface_is_allowed() {
+        // Removing the type removes its vtable with it, so nothing shifts.
+        // Only excluding *a method* of one is the hazard.
+        let ci = interface();
+        assert!(check_exclusions(&ci, &["Getters".to_string()]).is_ok());
+    }
+
+    #[test]
+    fn excluding_a_callback_interface_method_is_rejected() {
+        let ci = interface();
+        let err = check_exclusions(&ci, &["Getters.get_string".to_string()])
+            .expect_err("a method on a foreign-implemented type shifts the vtable");
+        let msg = err.to_string();
+        assert!(msg.contains("Getters.get_string"), "names the entry: {msg}");
+        assert!(msg.contains("positional"), "says why: {msg}");
+    }
+
+    #[test]
+    fn an_exclusion_that_matches_nothing_is_rejected() {
+        // The failure this replaces is silent: a retain that keeps everything
+        // is indistinguishable from a retain with nothing to drop, so a typo
+        // shipped the item it was meant to remove.
+        let ci = interface();
+        let err = check_exclusions(&ci, &["plain_funtcion".to_string()])
+            .expect_err("a typo must not pass for a successful exclusion");
+        let msg = err.to_string();
+        assert!(msg.contains("plain_funtcion"), "names the entry: {msg}");
+        assert!(msg.contains("before renaming"), "names the likely cause: {msg}");
+    }
+
+    #[test]
+    fn the_vtable_hazard_is_reported_ahead_of_a_mere_typo() {
+        // Both kinds at once: the dangerous one is what the caller is told
+        // about, because acting on the typo first leaves the hazard in place.
+        let ci = interface();
+        let err = check_exclusions(
+            &ci,
+            &["Getters.get_bool".to_string(), "nonexistent".to_string()],
+        )
+        .expect_err("still an error");
+        assert!(err.to_string().contains("Getters.get_bool"));
     }
 }
