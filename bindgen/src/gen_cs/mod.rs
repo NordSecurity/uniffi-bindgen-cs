@@ -74,7 +74,7 @@ pub struct Config {
     pub(super) namespace: Option<String>,
     pub(super) cdylib_name: Option<String>,
     #[serde(default)]
-    custom_types: HashMap<String, CustomTypeConfig>,
+    pub(crate) custom_types: HashMap<String, CustomTypeConfig>,
     #[serde(default)]
     pub(crate) external_packages: HashMap<String, String>,
     #[serde(default)]

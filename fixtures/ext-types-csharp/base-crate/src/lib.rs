@@ -76,4 +76,34 @@ fn base_error_identity(val: i32) -> Result<i32, BaseError> {
     }
 }
 
+// Custom types used from the consumer crate.
+//
+// `BaseBlob` has no `custom_types` entry and is rendered as `using BaseBlob = byte[];`.
+// `BaseUrl` is mapped to `System.Uri` in this crate's `uniffi.toml`; the consumer crate has no
+// config of its own and must inherit this mapping.
+
+pub struct BaseBlob(pub Vec<u8>);
+
+uniffi::custom_type!(BaseBlob, Vec<u8>, {
+    lower: |blob| blob.0,
+    try_lift: |bytes| Ok(BaseBlob(bytes)),
+});
+
+pub struct BaseUrl(pub String);
+
+uniffi::custom_type!(BaseUrl, String, {
+    lower: |url| url.0,
+    try_lift: |s| Ok(BaseUrl(s)),
+});
+
+#[uniffi::export]
+fn make_base_blob(len: u32) -> BaseBlob {
+    BaseBlob(vec![0xAB; len as usize])
+}
+
+#[uniffi::export]
+fn make_base_url(url: String) -> BaseUrl {
+    BaseUrl(url)
+}
+
 uniffi::setup_scaffolding!();
