@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 use uniffi_cs_ext_types_base::{BaseEnum, BaseError, BaseInterface, BaseRecord, BaseTrait};
 
@@ -67,6 +68,50 @@ fn get_base_records(rs: Vec<BaseRecord>) -> Vec<BaseRecord> {
 #[uniffi::export]
 fn get_maybe_base_enum(e: Option<BaseEnum>) -> Option<BaseEnum> {
     e
+}
+
+// External objects and trait interfaces inside a `RustBuffer`.
+//
+// A plain `Arc<BaseInterface>` argument crosses the FFI as a `u64` handle and never touches a
+// `BigEndianStream`. Putting the external object inside an optional, a sequence, a map or a record
+// forces the consumer's generated code to read and write it through its own stream.
+
+#[derive(uniffi::Record)]
+pub struct InterfaceHolder {
+    pub iface: Arc<BaseInterface>,
+    pub label: String,
+}
+
+#[uniffi::export]
+fn get_maybe_base_interface(i: Option<Arc<BaseInterface>>) -> Option<Arc<BaseInterface>> {
+    i
+}
+
+#[uniffi::export]
+fn get_base_interfaces(is: Vec<Arc<BaseInterface>>) -> Vec<Arc<BaseInterface>> {
+    is
+}
+
+#[uniffi::export]
+fn get_base_interface_map(
+    m: HashMap<String, Arc<BaseInterface>>,
+) -> HashMap<String, Arc<BaseInterface>> {
+    m
+}
+
+#[uniffi::export]
+fn wrap_base_interface(iface: Arc<BaseInterface>, label: String) -> InterfaceHolder {
+    InterfaceHolder { iface, label }
+}
+
+#[uniffi::export]
+fn get_maybe_base_trait(t: Option<Arc<dyn BaseTrait>>) -> Option<Arc<dyn BaseTrait>> {
+    t
+}
+
+#[uniffi::export]
+fn greet_all(ts: Vec<Arc<dyn BaseTrait>>) -> Vec<String> {
+    ts.iter().map(|t| t.greet()).collect()
 }
 
 uniffi::setup_scaffolding!();

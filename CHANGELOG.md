@@ -1,3 +1,6 @@
+### UNRELEASED
+- Fix CS1503 when an object or trait interface from another crate is used inside an optional, sequence, map or record — the consuming file now gets a forwarding `FfiConverter` that re-wraps its own `BigEndianStream` instead of a `using` alias to the other crate's converter
+
 ### v0.11.0+v0.31.0
 - **BREAKING** Upgrade to [UniFFI 0.31.0](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html)
   - Removed `--lib-file` CLI argument (library files are now auto-detected)
