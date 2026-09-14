@@ -12,7 +12,7 @@ pub use gen_cs::generate_bindings;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Write;
-use uniffi_bindgen::{Component, GenerationSettings};
+use uniffi_bindgen::{interface::Type, Component, GenerationSettings};
 
 #[derive(Parser)]
 #[clap(name = "uniffi-bindgen")]
@@ -130,6 +130,35 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
                     c.config
                         .external_packages
                         .insert(ext_crate.to_string(), ext_package.clone());
+                }
+            }
+        }
+
+        // Custom types are rendered in every file that uses them (C# `using` aliases are
+        // file-scoped), so a crate using another crate's custom type needs that type's
+        // `custom_types` entry too. Copy it from the defining crate unless the using crate has
+        // its own.
+        let custom_types = HashMap::<String, HashMap<String, gen_cs::CustomTypeConfig>>::from_iter(
+            components
+                .iter()
+                .map(|c| (c.ci.crate_name().to_string(), c.config.custom_types.clone())),
+        );
+        for c in &mut *components {
+            let external_custom_types: Vec<(String, String)> =
+                c.ci.iter_external_types()
+                    .filter_map(|t| match t {
+                        Type::Custom { name, .. } => t
+                            .crate_name()
+                            .map(|ext_crate| (ext_crate.to_string(), name.clone())),
+                        _ => None,
+                    })
+                    .collect();
+            for (ext_crate, name) in external_custom_types {
+                if c.config.custom_types.contains_key(&name) {
+                    continue;
+                }
+                if let Some(config) = custom_types.get(&ext_crate).and_then(|m| m.get(&name)) {
+                    c.config.custom_types.insert(name, config.clone());
                 }
             }
         }

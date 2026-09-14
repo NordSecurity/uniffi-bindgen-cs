@@ -92,12 +92,8 @@
 {%- when Type::Duration %}
 {% include "DurationHelper.cs" %}
 
-{%- when Type::Custom { module_path, name, builtin } %}
-{%- if ci.is_external(type_) %}
-{% include "ExternalTypeTemplate.cs" %}
-{%- else %}
+{%- when Type::Custom { name, builtin, .. } %}
 {% include "CustomTypeTemplate.cs" %}
-{%- endif %}
 
 {%- endmatch %}
 {%- endfor %}
@@ -110,6 +106,11 @@
 {% include "ExternalObjectTypeTemplate.cs" %}
 {%- when Type::CallbackInterface { .. } %}
 {% include "ExternalObjectTypeTemplate.cs" %}
+{%- when Type::Custom { name, builtin, .. } %}
+{#- C# `using` aliases are file-scoped, so a custom type defined in another crate is rendered
+    here again, exactly like a local one, instead of forwarding to the other file's alias. #}
+{%- let ffi_converter_name = type_|ffi_converter_name %}
+{% include "CustomTypeTemplate.cs" %}
 {%- else %}
 {% include "ExternalTypeTemplate.cs" %}
 {%- endmatch %}

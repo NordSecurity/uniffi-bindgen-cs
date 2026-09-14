@@ -1,5 +1,7 @@
 use std::sync::Arc;
-use uniffi_cs_ext_types_base::{BaseEnum, BaseError, BaseInterface, BaseRecord, BaseTrait};
+use uniffi_cs_ext_types_base::{
+    BaseBlob, BaseEnum, BaseError, BaseInterface, BaseRecord, BaseTrait, BaseUrl,
+};
 
 #[derive(uniffi::Record)]
 pub struct CompositeRecord {
@@ -67,6 +69,45 @@ fn get_base_records(rs: Vec<BaseRecord>) -> Vec<BaseRecord> {
 #[uniffi::export]
 fn get_maybe_base_enum(e: Option<BaseEnum>) -> Option<BaseEnum> {
     e
+}
+
+// Custom types defined in the base crate, used directly and inside an optional, a sequence and a
+// record. `BaseUrl` is mapped to `System.Uri` by the base crate's `uniffi.toml`.
+
+#[derive(uniffi::Record)]
+pub struct CustomTypeHolder {
+    pub blob: BaseBlob,
+    pub url: BaseUrl,
+}
+
+#[uniffi::export]
+fn base_blob_len(blob: BaseBlob) -> u32 {
+    blob.0.len() as u32
+}
+
+#[uniffi::export]
+fn get_maybe_base_blob(blob: Option<BaseBlob>) -> Option<BaseBlob> {
+    blob
+}
+
+#[uniffi::export]
+fn get_base_blobs(blobs: Vec<BaseBlob>) -> Vec<BaseBlob> {
+    blobs
+}
+
+#[uniffi::export]
+fn base_url_string(url: BaseUrl) -> String {
+    url.0
+}
+
+#[uniffi::export]
+fn get_maybe_base_url(url: Option<BaseUrl>) -> Option<BaseUrl> {
+    url
+}
+
+#[uniffi::export]
+fn hold_custom_types(blob: BaseBlob, url: BaseUrl) -> CustomTypeHolder {
+    CustomTypeHolder { blob, url }
 }
 
 uniffi::setup_scaffolding!();

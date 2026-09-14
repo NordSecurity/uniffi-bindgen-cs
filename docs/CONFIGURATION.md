@@ -38,6 +38,10 @@ uniffi-bindgen-cs path/to/definitions.udl --config path/to/uniffi.toml
         will be expanded into variable containing the custom value. The expression is used in a
         return statement, i.e. `return <expression(value);>`.
 
+    In library mode a crate that uses a custom type defined in another crate inherits that
+    crate's `custom_types` entry unless it configures the type itself, so the mapping only has to
+    be written once, in the defining crate.
+
 - `namespace` - override the `namespace ..;` declaration in generated bindings file. The default is
     `uniffi.{{namespace}}`, where `namespace` is the namespace from UDL file.
     ```toml
