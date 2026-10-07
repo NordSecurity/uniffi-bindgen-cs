@@ -171,6 +171,112 @@ public class TestBigEndianStream
         Assert.Throws<StreamUnderflowException>(() => newStream(7).ReadDouble());
     }
 
+    [Fact]
+    public void TestReadUtf8String()
+    {
+        var first = "Back from 東京 with the whole 👨‍👧‍👦, already missing it 🇯🇵😻";
+        var second = "Mañana: crème brûlée at the café, 4,50 € each";
+        var firstBytes = System.Text.Encoding.UTF8.GetBytes(first);
+        var secondBytes = System.Text.Encoding.UTF8.GetBytes(second);
+        byte[] data = [.. firstBytes, .. secondBytes];
+
+        // Managed MemoryStream exercises the fallback path, unmanaged memory
+        // exercises the direct decode path.
+        WithManagedAndUnmanagedStream(data, stream =>
+        {
+            Assert.Equal(first, stream.ReadUtf8String(firstBytes.Length));
+            Assert.Equal(firstBytes.Length, stream.Position);
+            Assert.Equal("", stream.ReadUtf8String(0));
+            Assert.Equal(second, stream.ReadUtf8String(secondBytes.Length));
+            Assert.False(stream.HasRemaining());
+        });
+
+        WithManagedAndUnmanagedStream(firstBytes, stream =>
+        {
+            Assert.Throws<StreamUnderflowException>(() => stream.ReadUtf8String(firstBytes.Length + 1));
+            Assert.Throws<OverflowException>(() => stream.ReadUtf8String(-1));
+            Assert.Equal(0, stream.Position);
+        });
+
+        var rbuf = RustBuffer.Alloc(firstBytes.Length);
+        try
+        {
+            Assert.Throws<NotSupportedException>(() => rbuf.AsWriteableStream().ReadUtf8String(firstBytes.Length));
+        }
+        finally
+        {
+            RustBuffer.Free(rbuf);
+        }
+    }
+
+    [Fact]
+    public void TestWriteUtf8String()
+    {
+        // Cut mid-emoji, as naive truncation does, leaving a lone high surrogate
+        // that UTF-8 encoding replaces with U+FFFD.
+        var value = "Grüße aus München, the 👨‍👧‍👦 says hi! 🎉"[..^1];
+        var utf8 = System.Text.Encoding.UTF8.GetBytes(value);
+        byte[] expected =
+        [
+            (byte)(utf8.Length >> 24), (byte)(utf8.Length >> 16), (byte)(utf8.Length >> 8), (byte)utf8.Length,
+            .. utf8,
+            0, 0, 0, 0,
+        ];
+
+        // Managed MemoryStream exercises the fallback path.
+        var managed = new MemoryStream();
+        var managedStream = new BigEndianStream(managed);
+        managedStream.WriteUtf8String(value);
+        managedStream.WriteUtf8String("");
+        Assert.Equal(expected, managed.ToArray());
+
+        // RustBuffer memory exercises the direct encode path, both with room to
+        // spare and with an exactly sized buffer (as LowerIntoRustBuffer makes).
+        foreach (var size in new[] { expected.Length + 3 * value.Length, expected.Length })
+        {
+            var rbuf = RustBuffer.Alloc(size);
+            try
+            {
+                var stream = rbuf.AsWriteableStream();
+                stream.WriteUtf8String(value);
+                stream.WriteUtf8String("");
+                Assert.Equal(expected.Length, stream.Position);
+                var actual = new byte[expected.Length];
+                Marshal.Copy(rbuf.data, actual, 0, actual.Length);
+                Assert.Equal(expected, actual);
+
+                stream.Position = size - 3;
+                Assert.Throws<NotSupportedException>(() => stream.WriteUtf8String("a"));
+                stream.Position = size + 1;
+                Assert.Throws<NotSupportedException>(() => stream.WriteUtf8String(""));
+            }
+            finally
+            {
+                RustBuffer.Free(rbuf);
+            }
+        }
+
+        Assert.Throws<ArgumentNullException>(() => managedStream.WriteUtf8String(null!));
+    }
+
+    static void WithManagedAndUnmanagedStream(byte[] data, Action<BigEndianStream> test)
+    {
+        test(new BigEndianStream(new MemoryStream(data)));
+
+        var ptr = Marshal.AllocHGlobal(Math.Max(data.Length, 1));
+        try
+        {
+            Marshal.Copy(data, 0, ptr, data.Length);
+            var stream = RustBuffer.MemoryStream(ptr, data.Length);
+            Assert.IsType<UnmanagedMemoryStream>(stream.InnerStream);
+            test(stream);
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(ptr);
+        }
+    }
+
     static void ReadWriteTest<T>(
         Func<BigEndianStream, Action<T>> write,
         Func<BigEndianStream, Func<T>> read,
