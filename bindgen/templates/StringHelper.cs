@@ -10,8 +10,10 @@ class FfiConverterString: FfiConverter<string, RustBuffer> {
     // store our length and avoid writing it out to the buffer.
     public override string Lift(RustBuffer value) {
         try {
-            var bytes = value.AsStream().ReadBytes(Convert.ToInt32(value.len));
-            return System.Text.Encoding.UTF8.GetString(bytes);
+            unsafe {
+                return System.Text.Encoding.UTF8.GetString(
+                    (byte*)value.data.ToPointer(), Convert.ToInt32(value.len));
+            }
         } finally {
             RustBuffer.Free(value);
         }
@@ -19,8 +21,7 @@ class FfiConverterString: FfiConverter<string, RustBuffer> {
 
     public override string Read(BigEndianStream stream) {
         var length = stream.ReadInt();
-        var bytes = stream.ReadBytes(length);
-        return System.Text.Encoding.UTF8.GetString(bytes);
+        return stream.ReadUtf8String(length);
     }
 
     public override RustBuffer Lower(string value) {
@@ -31,10 +32,19 @@ class FfiConverterString: FfiConverter<string, RustBuffer> {
         }
         {%- when _ %}
         {%- endmatch %}
-        var bytes = System.Text.Encoding.UTF8.GetBytes(value);
-        var rbuf = RustBuffer.Alloc(bytes.Length);
-        rbuf.AsWriteableStream().WriteBytes(bytes);
-        return rbuf;
+        var rustBuffer = RustBuffer.Alloc(System.Text.Encoding.UTF8.GetByteCount(value));
+        try {
+            unsafe {
+                fixed (char* chars = value) {
+                    System.Text.Encoding.UTF8.GetBytes(
+                        chars, value.Length, (byte*)rustBuffer.data.ToPointer(), Convert.ToInt32(rustBuffer.len));
+                }
+            }
+            return rustBuffer;
+        } catch {
+            RustBuffer.Free(rustBuffer);
+            throw;
+        }
     }
 
     // TODO(CS)
@@ -48,8 +58,6 @@ class FfiConverterString: FfiConverter<string, RustBuffer> {
     }
 
     public override void Write(string value, BigEndianStream stream) {
-        var bytes = System.Text.Encoding.UTF8.GetBytes(value);
-        stream.WriteInt(bytes.Length);
-        stream.WriteBytes(bytes);
+        stream.WriteUtf8String(value);
     }
 }

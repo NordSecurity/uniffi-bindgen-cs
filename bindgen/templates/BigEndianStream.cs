@@ -166,6 +166,61 @@ class BigEndianStream {
         return result;
     }
 
+    // Reads a UTF-8 string of `length` bytes. Streams over RustBuffer memory
+    // are decoded in place, avoiding an intermediate byte[] copy.
+    public string ReadUtf8String(int length) {
+        stream.CheckRemaining(length);
+        if (length >= 0 && stream is UnmanagedMemoryStream unmanagedStream && unmanagedStream.CanRead) {
+            unsafe {
+                var start = unmanagedStream.PositionPointer;
+                var result = System.Text.Encoding.UTF8.GetString(start, length);
+                unmanagedStream.PositionPointer = start + length;
+                return result;
+            }
+        }
+        return System.Text.Encoding.UTF8.GetString(ReadBytes(length));
+    }
+
+    // Writes a big-endian length prefix followed by the UTF-8 bytes. Streams
+    // over RustBuffer memory are encoded in place, avoiding an intermediate
+    // byte[] copy.
+    public void WriteUtf8String(string value) {
+        if (value == null) {
+            throw new ArgumentNullException(nameof(value));
+        }
+
+        if (stream is UnmanagedMemoryStream unmanagedStream && unmanagedStream.CanWrite) {
+            // Bytes left for the string itself, after its 4-byte length prefix.
+            var available = unmanagedStream.Length - unmanagedStream.Position - 4;
+
+            // UTF-8 needs at most 3 bytes per UTF-16 code unit, so the exact
+            // byte count is only computed when that worst case might not fit.
+            if (available >= 0 && (available >= 3L * value.Length
+                    || available >= System.Text.Encoding.UTF8.GetByteCount(value))) {
+                unsafe {
+                    var start = unmanagedStream.PositionPointer;
+                    int length;
+                    fixed (char* chars = value) {
+                        length = System.Text.Encoding.UTF8.GetBytes(
+                            chars, value.Length, start + 4, (int)Math.Min(available, int.MaxValue));
+                    }
+                    // The length is only known after encoding, so it goes into the
+                    // 4 bytes reserved before the string, big-endian like WriteInt.
+                    // `available >= 0` guarantees those bytes are inside the stream.
+                    start[0] = (byte)(length >> 24);
+                    start[1] = (byte)(length >> 16);
+                    start[2] = (byte)(length >> 8);
+                    start[3] = (byte)length;
+                    unmanagedStream.PositionPointer = start + 4 + length;
+                }
+                return;
+            }
+        }
+        var bytes = System.Text.Encoding.UTF8.GetBytes(value);
+        WriteInt(bytes.Length);
+        WriteBytes(bytes);
+    }
+
     public byte ReadByte() => (byte)stream.ReadUint32(bytesToRead: 1);
     public ushort ReadUShort() => (ushort)stream.ReadUint32(bytesToRead: 2);
     public uint ReadUInt() => (uint)stream.ReadUint32(bytesToRead: 4);

@@ -1,3 +1,6 @@
+### v0.11.1+v0.31.0
+- Lift, lower, read and write strings without intermediate `byte[]` copies. UTF-8 is decoded/encoded directly against `RustBuffer` memory on all target frameworks
+
 ### v0.11.0+v0.31.0
 - **BREAKING** Upgrade to [UniFFI 0.31.0](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html)
   - Removed `--lib-file` CLI argument (library files are now auto-detected)
