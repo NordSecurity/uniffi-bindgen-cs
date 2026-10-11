@@ -52,15 +52,16 @@
     {%- endmatch %}
 
     protected void FreeRustArcPtr() {
-        _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
-            _UniFFILib.{{ obj.ffi_object_free().name() }}(this.pointer, ref status);
-        });
+        var status = new UniffiRustCallStatus();
+        _UniFFILib.{{ obj.ffi_object_free().name() }}(this.pointer, ref status);
+        _UniffiHelpers.CheckCallStatus(NullCallStatusErrorHandler.INSTANCE, ref status);
     }
 
     protected ulong CloneRustArcPtr() {
-        return _UniffiHelpers.RustCall((ref UniffiRustCallStatus status) => {
-            return _UniFFILib.{{ obj.ffi_object_clone().name() }}(this.pointer, ref status);
-        });
+        var status = new UniffiRustCallStatus();
+        var result = _UniFFILib.{{ obj.ffi_object_clone().name() }}(this.pointer, ref status);
+        _UniffiHelpers.CheckCallStatus(NullCallStatusErrorHandler.INSTANCE, ref status);
+        return result;
     }
 
     public void Destroy()
@@ -138,12 +139,25 @@
     {%- match meth.return_type() -%}
     {%- when Some with (return_type) %}
     public {% if is_error && meth.name()|method_name(impl_name) == "Message" %}new {% endif %}{{ return_type|type_name(ci) }} {{ meth.name()|method_name(impl_name) }}({% call cs::arg_list_decl(meth) %}) {
-        return CallWithPointer(thisPtr => {{ return_type|lift_fn }}({%- call cs::to_ffi_call_with_prefix("thisPtr", meth) %}));
+        IncrementCallCounter();
+        try {
+            var _thisPtr = CloneRustArcPtr();
+            {%- call cs::ffi_call_binding(meth, "_thisPtr") %}
+            return {{ return_type|lift_fn }}(_uniffiResult);
+        } finally {
+            DecrementCallCounter();
+        }
     }
 
     {%- when None %}
     public {% if is_error && meth.name()|method_name(impl_name) == "Message" %}new {% endif %}void {{ meth.name()|method_name(impl_name) }}({% call cs::arg_list_decl(meth) %}) {
-        CallWithPointer(thisPtr => {%- call cs::to_ffi_call_with_prefix("thisPtr", meth) %});
+        IncrementCallCounter();
+        try {
+            var _thisPtr = CloneRustArcPtr();
+            {%- call cs::ffi_call_binding(meth, "_thisPtr") %}
+        } finally {
+            DecrementCallCounter();
+        }
     }
     {% endmatch %}
     {% endif %}

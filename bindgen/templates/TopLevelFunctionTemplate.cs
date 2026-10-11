@@ -5,7 +5,7 @@
 {%- call cs::docstring(func, 4) %}
 {%- call cs::method_throws_annotation(func.throws_type()) %}
 {%- if func.is_async() %}
-   public static async {% call cs::return_type(func) %} {{ func.name()|fn_name }}({%- call cs::arg_list_decl(func) -%}) 
+   public static async {% call cs::return_type(func) %} {{ func.name()|fn_name }}({%- call cs::arg_list_decl(func) -%})
    {
         {%- call cs::async_call(func, false) %}
    }
@@ -13,11 +13,12 @@
 {%- match func.return_type() -%}
 {%- when Some with (return_type) %}
     public static {{ return_type|type_name(ci) }} {{ func.name()|fn_name }}({%- call cs::arg_list_decl(func) -%}) {
-        return {{ return_type|lift_fn }}({% call cs::to_ffi_call(func) %});
+        {%- call cs::ffi_call_binding(func, "") %}
+        return {{ return_type|lift_fn }}(_uniffiResult);
     }
 {% when None %}
     public static void {{ func.name()|fn_name }}({% call cs::arg_list_decl(func) %}) {
-        {% call cs::to_ffi_call(func) %};
+        {%- call cs::ffi_call_binding(func, "") %}
     }
 {% endmatch %}
 {% endif  %}

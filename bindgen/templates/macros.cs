@@ -8,6 +8,28 @@
 // passed to rust via `lower_arg_list`
 #}
 
+{#
+// Statement-form call into rust: declares `_status`, invokes the FFI function
+// (binding `_uniffiResult` when it returns a value), and checks the status.
+// Unlike to_ffi_call, this does not allocate a closure per call.
+// `prefix` is prepended to the argument list when non-empty (e.g. "_thisPtr").
+#}
+{%- macro ffi_call_binding(func, prefix) %}
+        var _status = new UniffiRustCallStatus();
+        {%- match func.return_type() %}
+        {%- when Some with (return_type) %}
+        var _uniffiResult = _UniFFILib.{{ func.ffi_func().name() }}({% if prefix != "" %}{{ prefix }}, {% endif %}{% call lower_arg_list(func) %}{% if func.arguments().len() > 0 %}, {% endif %}ref _status);
+        {%- when None %}
+        _UniFFILib.{{ func.ffi_func().name() }}({% if prefix != "" %}{{ prefix }}, {% endif %}{% call lower_arg_list(func) %}{% if func.arguments().len() > 0 %}, {% endif %}ref _status);
+        {%- endmatch %}
+        {%- match func.throws_type() %}
+        {%- when Some with (e) %}
+        _UniffiHelpers.CheckCallStatus({{ e|error_converter_name }}.INSTANCE, ref _status);
+        {%- else %}
+        _UniffiHelpers.CheckCallStatus(NullCallStatusErrorHandler.INSTANCE, ref _status);
+        {%- endmatch %}
+{%- endmacro -%}
+
 {%- macro to_ffi_call(func) -%}
     {%- match func.throws_type() %}
     {%- when Some with (e) %}
