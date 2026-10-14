@@ -97,6 +97,9 @@ uniffi-bindgen-cs path/to/definitions.udl --config path/to/uniffi.toml
     exclude = ["internal_helper", "MyObject.new", "MyEnum"]
     ```
     Exclusions are applied before `rename`, so entries here use the original Rust names.
+    Generation fails if an entry matches nothing in any component, or names a method of a callback
+    interface or a foreign-implemented trait — Rust still expects every slot of that interface's
+    vtable, so it can only be excluded as a whole.
 
 - `external_packages` - map Rust crate names to C# namespaces for types imported from external
     uniffi crates (i.e., types declared with `[External]` in UDL or via `#[uniffi::remote]`). If

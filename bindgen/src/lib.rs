@@ -10,7 +10,7 @@ use clap::Parser;
 use fs_err::File;
 pub use gen_cs::generate_bindings;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::io::Write;
 use uniffi_bindgen::interface::ComponentInterface;
 use uniffi_bindgen::{Component, GenerationSettings};
@@ -102,6 +102,10 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
         settings: &GenerationSettings,
         components: &mut Vec<Component<Self::Config>>,
     ) -> Result<()> {
+        // In library mode a `--config` override applies to every component, so an
+        // `exclude` entry only has to match in one of them.
+        let mut unmatched = BTreeSet::new();
+        let mut matched = HashSet::new();
         for c in &mut *components {
             c.config
                 .namespace
@@ -116,13 +120,48 @@ impl uniffi_bindgen::BindingGenerator for BindingGenerator {
 
             // Exclusions are applied before renaming, so `exclude` names the original items.
             if !c.config.exclude().is_empty() {
-                check_exclusions(&c.ci, c.config.exclude())?;
+                let missing = check_exclusions(&c.ci, c.config.exclude())?;
+                for entry in c.config.exclude() {
+                    if missing.contains(&entry.as_str()) {
+                        unmatched.insert(entry.clone());
+                    } else {
+                        matched.insert(entry.clone());
+                    }
+                }
                 uniffi_bindgen::interface::apply_exclusions(&mut c.ci, c.config.exclude());
             }
 
             if !c.config.rename().is_empty() {
                 uniffi_bindgen::interface::rename(&mut c.ci, c.config.rename());
             }
+        }
+        let unmatched: Vec<_> = unmatched
+            .iter()
+            .filter(|e| !matched.contains(*e))
+            .map(String::as_str)
+            .collect();
+        if !unmatched.is_empty() {
+            anyhow::bail!(
+                "`exclude` {} nothing in any component, so {} silently not excluding anything. \
+                 Note that exclusions are applied before renaming, so they name the original \
+                 Rust items rather than the renamed ones. Offending {}: {}",
+                if unmatched.len() == 1 {
+                    "entry matches"
+                } else {
+                    "entries match"
+                },
+                if unmatched.len() == 1 {
+                    "it is"
+                } else {
+                    "they are"
+                },
+                if unmatched.len() == 1 {
+                    "entry"
+                } else {
+                    "entries"
+                },
+                unmatched.join(", ")
+            );
         }
         let packages = HashMap::<String, String>::from_iter(
             components
@@ -191,7 +230,8 @@ pub fn main() -> Result<()> {
 /// here, before anything is removed, because after the retain the evidence is
 /// gone.
 ///
-/// **An entry that matches nothing.** Indistinguishable from one that matched,
+/// **An entry that matches nothing.** Returned rather than rejected, because
+/// the caller has to check it across every component. Indistinguishable from one that matched,
 /// because a retain that keeps everything looks exactly like a retain with
 /// nothing to drop. A typo, or an entry written against a renamed item when
 /// exclusions are applied before renaming, would fail open: generation
@@ -209,7 +249,7 @@ pub fn main() -> Result<()> {
 /// invokes whatever is there as an `extern "C" fn`. The contract check that
 /// might have caught it derives its checksums from the same post-exclusion
 /// list, so it is narrowed to the surviving methods and stays quiet.
-fn check_exclusions(ci: &ComponentInterface, exclusions: &[String]) -> Result<()> {
+fn check_exclusions<'a>(ci: &ComponentInterface, exclusions: &'a [String]) -> Result<Vec<&'a str>> {
     let mut unmatched: Vec<&str> = Vec::new();
     let mut vtable: Vec<&str> = Vec::new();
 
@@ -279,22 +319,15 @@ fn check_exclusions(ci: &ComponentInterface, exclusions: &[String]) -> Result<()
              shifts the rest, and the calls that follow land on the wrong function pointer. \
              Remove the method on the Rust side instead, or leave it in the bindings. \
              Offending {}: {}",
-            if vtable.len() == 1 { "entry" } else { "entries" },
+            if vtable.len() == 1 {
+                "entry"
+            } else {
+                "entries"
+            },
             vtable.join(", ")
         );
     }
-    if !unmatched.is_empty() {
-        anyhow::bail!(
-            "`exclude` {} nothing in this component, so {} silently not excluding anything. \
-             Note that exclusions are applied before renaming, so they name the original \
-             Rust items rather than the renamed ones. Offending {}: {}",
-            if unmatched.len() == 1 { "entry matches" } else { "entries match" },
-            if unmatched.len() == 1 { "it is" } else { "they are" },
-            if unmatched.len() == 1 { "entry" } else { "entries" },
-            unmatched.join(", ")
-        );
-    }
-    Ok(())
+    Ok(unmatched)
 }
 
 #[cfg(test)]
@@ -347,16 +380,14 @@ mod exclusion_tests {
     }
 
     #[test]
-    fn an_exclusion_that_matches_nothing_is_rejected() {
+    fn an_exclusion_that_matches_nothing_is_reported() {
         // The failure this replaces is silent: a retain that keeps everything
         // is indistinguishable from a retain with nothing to drop, so a typo
         // shipped the item it was meant to remove.
         let ci = interface();
-        let err = check_exclusions(&ci, &["plain_funtcion".to_string()])
-            .expect_err("a typo must not pass for a successful exclusion");
-        let msg = err.to_string();
-        assert!(msg.contains("plain_funtcion"), "names the entry: {msg}");
-        assert!(msg.contains("before renaming"), "names the likely cause: {msg}");
+        let exclusions = ["plain_funtcion".to_string(), "plain_function".to_string()];
+        let unmatched = check_exclusions(&ci, &exclusions).expect("no vtable hazard");
+        assert_eq!(unmatched, ["plain_funtcion"]);
     }
 
     #[test]
