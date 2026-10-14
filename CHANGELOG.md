@@ -1,3 +1,9 @@
+### Unreleased
+- Honor `#[uniffi(default = …)]` on enum variant fields. Previously the default was dropped and the
+  field was a required argument of the variant's constructor. As with records, fields with a default
+  are moved after those without one, so positional construction of such a variant may need updating
+  — use named arguments
+
 ### v0.11.1+v0.31.0
 - Lift, lower, read and write strings without intermediate `byte[]` copies. UTF-8 is decoded/encoded directly against `RustBuffer` memory on all target frameworks
 

@@ -24,4 +24,27 @@ public class OptionalParameterTests
         string message = Hello(person);
         Assert.Equal("Hello John Connor!", message);
     }
+
+    [Fact]
+    public void EnumVariantDefault_CanBeOmitted()
+    {
+        Assert.Equal("Hello stranger!", Greet(new Greeting.Hello(IsSpecial: false)));
+        Assert.Equal("Waving 1 time(s)", Greet(new Greeting.Wave()));
+        Assert.Equal("Nodding at John 2 time(s)", Greet(new Greeting.Nod("John")));
+    }
+
+    [Fact]
+    public void EnumVariantDefault_CanBeSpecified()
+    {
+        Assert.Equal("Hello John Connor! You are special!", Greet(new Greeting.Hello(Name: "John Connor", IsSpecial: true)));
+        Assert.Equal("Waving 3 time(s)", Greet(new Greeting.Wave(3)));
+        Assert.Equal("Nodding at John 4 time(s)", Greet(new Greeting.Nod("John", 4)));
+    }
+
+    [Fact]
+    public void EnumVariantWithReorderedFields_RoundTrips()
+    {
+        var greeting = new Greeting.Hello(Name: "John Connor", IsSpecial: true);
+        Assert.Equal(greeting, EchoGreeting(greeting));
+    }
 }

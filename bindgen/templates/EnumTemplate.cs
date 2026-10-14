@@ -75,10 +75,23 @@ class {{ e|ffi_converter_name }}: FfiConverterRustBuffer<{{ type_name }}> {
     {% if !variant.has_fields() -%}
     public record {{ variant.name()|class_name(ci) }}: {{ type_name }} {}
     {% else -%}
+    {%- let (ordered_fields, is_reordered) = variant.fields()|order_variant_fields %}
+    {%- if is_reordered %}
+    /// <remarks>
+    /// <b>UniFFI Warning:</b> Optional parameters have been reordered because
+    /// of a C# syntax limitation. Use named parameters for compatibility with
+    /// future ordering changes.
+    /// </remarks>
+    {% endif -%}
     public record {{ variant.name()|class_name(ci) }} (
-        {%- for field in variant.fields() %}
-        {%- let field_name = field.name()|or_pos_var(loop.index)|property_name %}
-        {% call cs::enum_parameter_type_name(field|type_name(ci), variant.name()|class_name(ci)) %} {% call cs::enum_field_name(field_name, variant.name()|class_name(ci)) %}{% if !loop.last %},{% endif %}
+        {%- for (pos, field) in ordered_fields %}
+        {%- let field_name = field.name()|or_pos_var(pos)|property_name %}
+        {% call cs::enum_parameter_type_name(field|type_name(ci), variant.name()|class_name(ci)) %} {% call cs::enum_field_name(field_name, variant.name()|class_name(ci)) -%}
+        {%- match field.default_value() %}
+            {%- when Some with(literal) %} = {{ literal|render_literal(field, ci) }}
+            {%- else %}
+        {%- endmatch -%}
+        {% if !loop.last %},{% endif %}
         {%- endfor %}
     ) : {{ type_name }} {}
     {%- endif %}
@@ -122,7 +135,8 @@ class {{ e|ffi_converter_name }} : FfiConverterRustBuffer<{{ type_name }}>{
             case {{ loop.index }}:
                 return new {{ type_name }}.{{ variant.name()|class_name(ci) }}(
                     {%- for field in variant.fields() %}
-                    {{ field|read_fn }}(stream){% if !loop.last %},{% endif %}
+                    {%- let field_name = field.name()|or_pos_var(loop.index)|property_name %}
+                    {% call cs::enum_field_name(field_name, variant.name()|class_name(ci)) %}: {{ field|read_fn }}(stream){% if !loop.last %},{% endif %}
                     {%- endfor %}
                 );
             {%- endfor %}

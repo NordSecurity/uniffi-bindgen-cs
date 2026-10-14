@@ -217,6 +217,22 @@ pub(super) fn order_fields(fields: &[Field]) -> Result<(Vec<Field>, bool), askam
     Ok((fields, is_reordered))
 }
 
+/// Like `order_fields`, but pairs each field with its original 1-based position, so that unnamed
+/// (tuple) variant fields keep the `v{pos}` name `or_pos_var` gives them everywhere else.
+pub(super) fn order_variant_fields(
+    fields: &[Field],
+) -> Result<(Vec<(usize, Field)>, bool), askama::Error> {
+    let mut fields: Vec<_> = fields
+        .iter()
+        .cloned()
+        .enumerate()
+        .map(|(i, f)| (i + 1, f))
+        .collect();
+    fields.sort_by_key(|(_, field)| field.default_value().is_some());
+    let is_reordered = fields.iter().enumerate().any(|(i, (pos, _))| i + 1 != *pos);
+    Ok((fields, is_reordered))
+}
+
 /// If the name is empty create one based on position of the variable
 pub(super) fn or_pos_var(nm: &str, pos: &usize) -> Result<String, askama::Error> {
     if nm.is_empty() {
