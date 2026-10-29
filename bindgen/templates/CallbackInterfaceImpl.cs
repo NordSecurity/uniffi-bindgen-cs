@@ -1,5 +1,6 @@
 class {{ callback_impl_name }} {
     {%- for (ffi_callback, meth) in vtable_methods.iter() %}
+    [MonoPInvokeCallback(typeof(_UniFFILib.{{ callback_impl_name }}Method{{ loop.index0 }}))]
     static {% call cs::ffi_return_type(ffi_callback) %} {{ meth.name()|fn_name }}({% call cs::arg_list_ffi_decl(ffi_callback) %}) {
         var handle = @uniffiHandle;
         {%- if !meth.is_async() %}
@@ -165,10 +166,12 @@ class {{ callback_impl_name }} {
     }
     {%- endfor %}
 
+    [MonoPInvokeCallback(typeof(_UniFFILib.UniffiCallbackInterfaceFree))]
     static void UniffiFree(ulong @handle) {
         {{ ffi_converter_var }}.handleMap.Remove(@handle);
     }
 
+    [MonoPInvokeCallback(typeof(_UniFFILib.UniffiCallbackInterfaceClone))]
     static ulong UniffiClone(ulong @handle) {
         try {
             if (!{{ ffi_converter_var }}.handleMap.TryGet(@handle, out var obj)) {
