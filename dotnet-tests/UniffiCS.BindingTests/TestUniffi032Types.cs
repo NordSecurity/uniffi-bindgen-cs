@@ -34,9 +34,11 @@ public class TestUniffi032Types
     [Fact]
     public void SetDeduplicatesOnTheRustSide()
     {
-        // Rust sees a HashSet, so duplicates collapse regardless of what we write.
-        var in_ = new HashSet<string> { "x", "x", "y" };
-        Assert.Equal(2, Uniffi032TypesMethods.IdentitySet(in_).Count);
+        // A C# HashSet would drop the duplicate before the call, so pass an array
+        // and let Rust build the set.
+        var in_ = new[] { "x", "x", "y" };
+        var out_ = Uniffi032TypesMethods.SetFromVec(in_);
+        Assert.Equal(new HashSet<string> { "x", "y" }, out_);
     }
 
     [Fact]

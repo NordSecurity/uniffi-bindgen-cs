@@ -25,6 +25,13 @@ pub fn identity_int_set(v: HashSet<i32>) -> HashSet<i32> {
     v
 }
 
+/// Builds the set on the Rust side, so duplicates in the input collapse in Rust
+/// rather than in the C# `HashSet` before the call.
+#[uniffi::export]
+pub fn set_from_vec(v: Vec<String>) -> HashSet<String> {
+    v.into_iter().collect()
+}
+
 #[uniffi::export]
 pub fn set_contains(v: HashSet<String>, needle: String) -> bool {
     v.contains(&needle)
