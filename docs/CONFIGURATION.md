@@ -89,6 +89,20 @@ uniffi-bindgen-cs path/to/definitions.udl --config path/to/uniffi.toml
     Renaming is applied before code generation, so all generated references (interface declarations,
     FFI converter names, etc.) use the new name throughout.
 
+- `exclude` - omit items from the generated bindings. Each entry is the Rust name of a function, a
+    type, or a `Type.method` / `Type.constructor` path. The Rust library still exports the item; it
+    just isn't surfaced in C#.
+    ```toml
+    [bindings.csharp]
+    exclude = ["internal_helper", "MyObject.new", "MyEnum"]
+    ```
+    Exclusions are applied before `rename`, so entries here use the original Rust names.
+    Generation fails if an entry matches nothing in any component, or names a method of a callback
+    interface or a foreign-implemented trait — Rust still expects every slot of that interface's
+    vtable, so it can only be excluded as a whole. It also fails if an excluded type is still used
+    by an item that remains (e.g. `MyEnum` above while a function still takes a `MyEnum`); exclude
+    those items too.
+
 - `external_packages` - map Rust crate names to C# namespaces for types imported from external
     uniffi crates (i.e., types declared with `[External]` in UDL or via `#[uniffi::remote]`). If
     a crate is not listed here, the generated namespace defaults to `uniffi.<namespace>`.
