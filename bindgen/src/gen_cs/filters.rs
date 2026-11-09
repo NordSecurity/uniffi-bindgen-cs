@@ -131,6 +131,11 @@ pub(super) fn method_name(nm: &str, class_name: &str) -> Result<String, askama::
     }
 }
 
+/// Whether any field has a docstring. C# then expects a `<param>` tag for every positional parameter (CS1573).
+pub(super) fn has_docstrings(fields: &[Field]) -> Result<bool, askama::Error> {
+    Ok(fields.iter().any(|field| field.docstring().is_some()))
+}
+
 /// Generate a correct array allocation expression for potentially jagged arrays.
 /// Transforms e.g. "byte[]" → "new byte[length][]" to avoid the invalid "new byte[][length]" form.
 pub(super) fn array_new_expr(inner_type_name: &str) -> Result<String, askama::Error> {
@@ -204,9 +209,17 @@ pub(super) fn object_names(
     Ok(oracle().object_names(obj, ci))
 }
 
+/// Escape text for an XML doc comment, so `Vec<T>` in a docstring stays text (CS1570).
+pub(super) fn xml_escape(text: &str) -> Result<String, askama::Error> {
+    Ok(text
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;"))
+}
+
 /// Get the idiomatic C# rendering of docstring
 pub(super) fn docstring(docstring: &str, spaces: &i32) -> Result<String, askama::Error> {
-    let middle = textwrap::indent(&textwrap::dedent(docstring), "/// ");
+    let middle = textwrap::indent(&xml_escape(&textwrap::dedent(docstring))?, "/// ");
     let wrapped = format!("/// <summary>\n{middle}\n/// </summary>");
 
     let spaces = usize::try_from(*spaces).unwrap_or_default();

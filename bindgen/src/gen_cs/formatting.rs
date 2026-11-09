@@ -27,6 +27,8 @@ pub fn add_header(bindings: String) -> String {
 // </auto-generated>
 
 #nullable enable
+// Generated FFI plumbing is public but undocumented.
+#pragma warning disable CS1591
 
 "##
     );

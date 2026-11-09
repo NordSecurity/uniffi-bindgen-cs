@@ -7,6 +7,8 @@
         <Nullable>enable</Nullable>
         <AnalysisLevel>latest-Recommended</AnalysisLevel>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <!-- Fail on doc comments C# rejects or omits in generated code -->
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
