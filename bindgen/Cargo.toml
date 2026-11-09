@@ -1,6 +1,6 @@
 [package]
 name = "uniffi-bindgen-cs"
-version = "0.12.0+v0.32.0"
+version = "0.12.1+v0.32.2"
 edition = "2021"
 
 [lib]
@@ -13,7 +13,11 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1"
-askama = { version = "0.13", default-features = false, features = ["config", "derive", "alloc"] }
+askama = { version = "0.13", default-features = false, features = [
+    "config",
+    "derive",
+    "alloc",
+] }
 camino = "1.0.8"
 clap = { version = "3.1", features = ["cargo", "std", "derive"] }
 extend = "1.1"

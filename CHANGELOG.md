@@ -1,3 +1,6 @@
+### v0.12.1+v0.32.2
+- Upgrade to UniFFI 0.32.2
+
 ### v0.12.0+v0.32.0
 - **BREAKING** Upgrade to [UniFFI 0.32.0](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html)
   - `[ByRef] bytes` / `&[u8]` arguments now cross the FFI as a borrowed `ForeignBytes` (pointer +
