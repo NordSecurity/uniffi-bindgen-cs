@@ -8,6 +8,7 @@
 {%- let self_lower_prefix = format!("{}.INSTANCE.Lower(this)", rec_ffi_converter) %}
 
 {%- call cs::docstring(rec, 0) %}
+{%- if ordered_fields|has_docstrings %}
 {%- for field in ordered_fields %}
 {%- match field.docstring() %}
 {%- when Some with(docstring) %}
@@ -18,8 +19,10 @@
 {%- endfor %}
 /// </param>
 {%- else %}
+/// <param name="{{ field.name()|property_name }}"></param>
 {%- endmatch %}
 {%- endfor %}
+{%- endif %}
 {%- let (ordered_fields, is_reordered) = rec.fields()|order_fields %}
 {%- if is_reordered %}
 /// <remarks>
@@ -30,7 +33,6 @@
 {%- endif %}
 {{ config.access_modifier() }} record {{ type_name }} (
     {%- for field in ordered_fields %}
-    {%- call cs::docstring(field, 4) %}
     {{ field|type_name(ci) }} {{ field.name()|property_name -}}
     {%- match field.default_value() %}
         {%- when Some with(literal) %} = {{ literal|render_literal(field, ci) }}

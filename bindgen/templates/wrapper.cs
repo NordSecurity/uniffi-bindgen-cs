@@ -30,7 +30,15 @@
 using {{ imported_class }};
 {%- endfor %}
 
-{%- call cs::docstring_value(ci.namespace_docstring(), 0) %}
+{#- C# has no doc comments on namespaces (CS1587), so namespace docs are a plain comment. #}
+{%- match ci.namespace_docstring() %}
+{%- when Some(docstring) %}
+{%- let docstring = textwrap::dedent(docstring) %}
+{%- for line in docstring.lines() %}
+// {{ line.trim_end() }}
+{%- endfor %}
+{%- else %}
+{%- endmatch %}
 namespace {{ config.namespace() }};
 
 {%- for alias in self.type_aliases() %}
