@@ -1,16 +1,13 @@
 [workspace]
 resolver = "2"
 
-members = [
-    "bindgen",
-    "fixtures",
-]
+members = ["bindgen", "fixtures"]
 
 [workspace.dependencies]
-uniffi = { version = "0.32.0", features = ["build"] }
-uniffi_testing = "0.32.0"
-uniffi_macros = "0.32.0"
-uniffi_build = { version = "0.32.0", features=["builtin-bindgen"] }
-uniffi_bindgen = "0.32.0"
-uniffi_meta = "0.32.0"
-uniffi_udl = "0.32.0"
+uniffi = { version = "0.32.2", features = ["build"] }
+uniffi_testing = "0.32.2"
+uniffi_macros = "0.32.2"
+uniffi_build = { version = "0.32.2", features = ["builtin-bindgen"] }
+uniffi_bindgen = "0.32.2"
+uniffi_meta = "0.32.2"
+uniffi_udl = "0.32.2"
