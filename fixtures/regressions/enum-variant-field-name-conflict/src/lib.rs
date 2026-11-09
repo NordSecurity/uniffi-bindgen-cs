@@ -7,6 +7,8 @@
 // class (e.g. variant "Insert" with field "insert"), the generated record used to
 // declare `string Insert` inside `record Insert(...)` which is CS8866.
 // The fix renames the property to "InsertValue".
+// A field named after a sibling variant collides the same way, since variant records
+// are nested in the enum's record (variant "Replace" with field "insert").
 //
 // Also tests that Dispose() on enum variants with object-reference fields correctly
 // references the renamed property ("InsertValue", not "Insert").
@@ -16,6 +18,7 @@ pub enum Change {
     Insert { insert: String },
     Delete { delete: String },
     Move { from: u32, to: u32 },
+    Replace { delete: String, insert: String },
 }
 
 #[uniffi::export]
@@ -26,6 +29,11 @@ pub fn make_insert(s: String) -> Change {
 #[uniffi::export]
 pub fn make_delete(s: String) -> Change {
     Change::Delete { delete: s }
+}
+
+#[uniffi::export]
+pub fn make_replace(delete: String, insert: String) -> Change {
+    Change::Replace { delete, insert }
 }
 
 #[uniffi::export]

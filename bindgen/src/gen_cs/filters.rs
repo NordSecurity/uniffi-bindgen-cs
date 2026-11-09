@@ -131,6 +131,24 @@ pub(super) fn method_name(nm: &str, class_name: &str) -> Result<String, askama::
     }
 }
 
+/// Rename a variant field to avoid CS8866 when its name matches any variant record name.
+/// Variant records are nested in the enum's record, so sibling variants collide too.
+pub(super) fn enum_field_name(
+    field_name: &str,
+    e: &Enum,
+    ci: &ComponentInterface,
+) -> Result<String, askama::Error> {
+    let collides = e
+        .variants()
+        .iter()
+        .any(|variant| oracle().class_name(variant.name(), ci) == field_name);
+    if collides {
+        Ok(format!("{}Value", field_name))
+    } else {
+        Ok(field_name.to_string())
+    }
+}
+
 /// Generate a correct array allocation expression for potentially jagged arrays.
 /// Transforms e.g. "byte[]" → "new byte[length][]" to avoid the invalid "new byte[][length]" form.
 pub(super) fn array_new_expr(inner_type_name: &str) -> Result<String, askama::Error> {

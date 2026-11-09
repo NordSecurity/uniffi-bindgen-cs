@@ -17,6 +17,15 @@ public class TestEnumVariantFieldNameConflict
     }
 
     [Fact]
+    public void MakeReplaceExposesRenamedProperties()
+    {
+        var c = EnumVariantFieldNameConflictMethods.MakeReplace("old", "new");
+        var replace = Assert.IsType<Change.Replace>(c);
+        Assert.Equal("old", replace.DeleteValue);
+        Assert.Equal("new", replace.InsertValue);
+    }
+
+    [Fact]
     public void GetInsertValueOnInsertReturnsValue()
     {
         Assert.Equal("hello", EnumVariantFieldNameConflictMethods.GetInsertValue(
