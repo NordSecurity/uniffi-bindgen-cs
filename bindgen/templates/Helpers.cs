@@ -23,6 +23,13 @@ struct UniffiRustCallStatus {
     }
 }
 
+// IL2CPP only lets static methods marked with an attribute of this name, in any namespace, become
+// function pointers; .NET and Mono JIT ignore it.
+[AttributeUsage(AttributeTargets.Method)]
+internal sealed class MonoPInvokeCallbackAttribute: Attribute {
+    public MonoPInvokeCallbackAttribute(Type type) {}
+}
+
 // Base class for all uniffi exceptions
 {{ config.access_modifier() }} class UniffiException: System.Exception {
     public UniffiException(): base() {}

@@ -48,6 +48,7 @@ internal static class _UniFFIAsync {
     {
         public static UniFfiFutureCallback callback = Callback;
 
+        [MonoPInvokeCallback(typeof(UniFfiFutureCallback))]
         public static void Callback(ulong continuationHandle, byte pollResult)
         {
             if (_async_handle_map.Remove(continuationHandle, out TaskCompletionSource<byte>? task))
@@ -62,6 +63,7 @@ internal static class _UniFFIAsync {
     {
         public static _UniFFILib.UniffiForeignFutureDroppedCallback callback = Callback;
 
+        [MonoPInvokeCallback(typeof(_UniFFILib.UniffiForeignFutureDroppedCallback))]
         public static void Callback(ulong handle)
         {
             if (_foreign_futures_map.Remove(handle, out UniffiForeignFutureHandle? futureHandle) && futureHandle is not null) {
