@@ -20,6 +20,14 @@ uniffi-bindgen-cs path/to/definitions.udl
 ```
 Generates bindings file `path/to/definitions.cs`
 
+In library mode, the generator writes bindings for every UniFFI crate built into a shared library:
+```bash
+uniffi-bindgen-cs path/to/libdefinitions.so --library --out-dir path/to/out
+```
+It locates each crate's UDL file and `uniffi.toml` through `cargo metadata`. Build systems without
+Cargo can pass `--udl-dir path/to/udls`, a directory that holds every UDL file the library uses.
+Per-crate `uniffi.toml` files are not read then, so pass settings with `--config`.
+
 # How to integrate bindings
 
 To integrate the bindings into your projects, simply add the generated bindings file to your project.
