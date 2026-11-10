@@ -42,6 +42,21 @@ struct Cli {
     /// Do not try to format the generated bindings.
     #[clap(long, short)]
     no_format: bool,
+
+    /// With `--library`, read the UDL files the library's metadata names from this directory
+    /// instead of locating each crate's source through `cargo metadata`.
+    #[clap(long, requires = "library-mode")]
+    udl_dir: Option<Utf8PathBuf>,
+}
+
+struct UdlDirSupplier(Utf8PathBuf);
+
+impl uniffi_bindgen::BindgenCrateConfigSupplier for UdlDirSupplier {
+    fn get_udl(&self, _crate_name: &str, udl_name: &str) -> Result<String> {
+        Ok(fs_err::read_to_string(
+            self.0.join(format!("{udl_name}.udl")),
+        )?)
+    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -190,9 +205,13 @@ pub fn main() -> Result<()> {
             .out_dir
             .expect("--out-dir is required when using --library");
 
-        let config_supplier = {
-            use uniffi_bindgen::cargo_metadata::CrateConfigSupplier;
-            CrateConfigSupplier::from_cargo_metadata_command(false)?
+        let config_supplier: Box<dyn uniffi_bindgen::BindgenCrateConfigSupplier> = match cli.udl_dir
+        {
+            Some(udl_dir) => Box::new(UdlDirSupplier(udl_dir)),
+            None => {
+                use uniffi_bindgen::cargo_metadata::CrateConfigSupplier;
+                Box::new(CrateConfigSupplier::from_cargo_metadata_command(false)?)
+            }
         };
 
         uniffi_bindgen::library_mode::generate_bindings(
@@ -201,7 +220,7 @@ pub fn main() -> Result<()> {
             &BindingGenerator {
                 try_format_code: !cli.no_format,
             },
-            &config_supplier,
+            config_supplier.as_ref(),
             cli.config.as_deref(),
             &out_dir,
             !cli.no_format,
@@ -440,6 +459,19 @@ fn collect_types<'a>(ty: &'a Type, visit: &mut impl FnMut(&'a Type)) {
         if let Type::Box { inner_type } = t {
             collect_types(inner_type, visit);
         }
+    }
+}
+
+#[cfg(test)]
+mod udl_dir_tests {
+    use super::UdlDirSupplier;
+    use uniffi_bindgen::BindgenCrateConfigSupplier;
+
+    #[test]
+    fn a_missing_udl_names_the_file() {
+        let supplier = UdlDirSupplier("no-such-dir".into());
+        let err = supplier.get_udl("my_crate", "my_udl").unwrap_err();
+        assert!(err.to_string().contains("my_udl.udl"), "{err}");
     }
 }
 

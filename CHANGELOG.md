@@ -1,3 +1,6 @@
+### v0.12.1+v0.32.0
+- Add `--udl-dir` argument, which lets library mode read UDL files from a directory instead of locating them through `cargo metadata`, for build systems without Cargo such as Bazel or Buck
+
 ### v0.12.0+v0.32.0
 - **BREAKING** Upgrade to [UniFFI 0.32.0](https://mozilla.github.io/uniffi-rs/latest/Upgrading.html)
   - `[ByRef] bytes` / `&[u8]` arguments now cross the FFI as a borrowed `ForeignBytes` (pointer +
