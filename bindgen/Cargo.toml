@@ -23,7 +23,10 @@ paste = "1.0"
 serde = "1"
 serde_json = "1.0.0"
 textwrap = "0.16"
-toml = ">=0.8, <0.10"
+# Same range as `uniffi_bindgen`: `toml` values cross into its API (`BindingGenerator::new_config`,
+# `interface::rename`), so both must resolve to one `toml`. A narrower range here fails to compile
+# in any workspace where `uniffi_bindgen` resolves to a version outside it.
+toml = ">=0.9, <2"
 
 uniffi_bindgen.workspace = true
 uniffi_meta.workspace = true
